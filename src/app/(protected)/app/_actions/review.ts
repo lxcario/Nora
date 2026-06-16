@@ -3,6 +3,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { computeSM2 } from "@/lib/sm2";
 import { revalidatePath } from "next/cache";
+import { rewardAction } from "./gamification";
+import { incrementQuestProgress } from "./party-quests";
 
 export interface DueCard {
   id: string;
@@ -125,12 +127,10 @@ export async function submitReview(
   });
 
   // Award XP/coins based on grade
-  const { rewardAction } = await import("./gamification");
   await rewardAction(grade >= 3 ? "review_good" : "review_bad");
 
   // Track party quest progress (non-blocking — errors don't affect review flow)
   try {
-    const { incrementQuestProgress } = await import("./party-quests");
     await incrementQuestProgress(user.id, "cards_reviewed", 1);
   } catch {
     // Party quest tracking is best-effort; don't break reviews

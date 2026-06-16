@@ -20,6 +20,8 @@ import {
   sliceTranscript,
   buildNotePrompt,
 } from "./study-room/transcript-utils";
+import { rewardAction, rewardBatch } from "./gamification";
+import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
 // === Constants ===
 
@@ -85,6 +87,16 @@ export async function searchVideos(query: string): Promise<{
   const validation = validateSearchQuery(query);
   if (!validation.valid) {
     return { error: validation.error };
+  }
+
+  // Rate limit check (YouTube API is quota-sensitive)
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user) {
+    const rateCheck = checkRateLimit(user.id, "video_search", RATE_LIMITS.video_search.maxRequests, RATE_LIMITS.video_search.windowMs);
+    if (!rateCheck.allowed) {
+      return { error: `Too many searches. Please wait ${Math.ceil((rateCheck.retryAfterMs ?? 0) / 1000)} seconds.` };
+    }
   }
 
   const apiKey = process.env.YOUTUBE_API_KEY;
@@ -746,7 +758,6 @@ export async function generateNotes(
 
   // Award XP via rewardAction("session_complete") — 10 XP, 3 coins
   try {
-    const { rewardAction } = await import("./gamification");
     await rewardAction("session_complete");
   } catch (err) {
     console.warn("Failed to award XP:", err);
@@ -1054,12 +1065,9 @@ export async function saveVideoCards(
     return { error: "Failed to save cards. Please try again." };
   }
 
-  // Award XP via rewardAction("card_created") once per card
+  // Award XP via rewardBatch("card_created") — single DB round-trip
   try {
-    const { rewardAction } = await import("./gamification");
-    for (let i = 0; i < cards.length; i++) {
-      await rewardAction("card_created");
-    }
+    await rewardBatch("card_created", cards.length);
   } catch (err) {
     console.warn("Failed to award XP for video cards:", err);
   }
@@ -1298,7 +1306,6 @@ export async function evaluateWithTranscript(
 
   // Award XP via rewardAction("feynman") — 15 XP, 5 coins
   try {
-    const { rewardAction } = await import("./gamification");
     await rewardAction("feynman");
   } catch (err) {
     console.warn("Failed to award Feynman XP:", err);
@@ -1417,7 +1424,6 @@ export async function recordVideoSession(
 
   // Award XP via rewardAction("session_complete") — 10 XP, 3 coins, +2 pet affinity
   try {
-    const { rewardAction } = await import("./gamification");
     await rewardAction("session_complete");
   } catch (err) {
     console.warn("Failed to award session XP:", err);

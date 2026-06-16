@@ -1,5 +1,8 @@
 "use server";
 
+import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { createClient } from "@/lib/supabase/server";
+
 /**
  * Generates an inline completion suggestion for the Feynman explanation editor.
  * Uses Groq for speed (~1-2s), falls back to OpenRouter.
@@ -9,6 +12,16 @@ export async function getCompletionSuggestion(
   subjectName: string,
   currentText: string
 ): Promise<{ suggestion?: string; error?: string }> {
+  // Rate limit check
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user) {
+    const rateCheck = checkRateLimit(user.id, "autocomplete", RATE_LIMITS.ai_light.maxRequests, RATE_LIMITS.ai_light.windowMs);
+    if (!rateCheck.allowed) {
+      return { error: "Rate limited" };
+    }
+  }
+
   const groqKey = process.env.GROQ_API_KEY;
   const orKey = process.env.OPENROUTER_API_KEY;
 

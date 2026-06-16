@@ -42,5 +42,12 @@ next-env.d.ts
 
 # Licensed asset packs (not for public distribution)
 /Sprout Lands - UI Pack - Basic pack/
+/assets/Aseprite/
+/assets/Icons/
+/assets/Sprites/
+/assets/Sprites Animated/
+/assets/Spritesheet/
+/assets/License.txt
+/assets/Thank You for Purchasing!.txt
 
 .vercel

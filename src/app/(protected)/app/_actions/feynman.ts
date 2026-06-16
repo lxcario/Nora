@@ -2,6 +2,9 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { rewardAction, rewardBatch } from "./gamification";
+import { incrementQuestProgress } from "./party-quests";
 
 // Feynman evaluation result types
 export interface GapAnalysis {
@@ -171,6 +174,12 @@ export async function evaluateExplanation(
   } = await supabase.auth.getUser();
   if (!user) return { error: "Not authenticated" };
 
+  // Rate limit check
+  const rateCheck = checkRateLimit(user.id, "feynman", RATE_LIMITS.ai_heavy.maxRequests, RATE_LIMITS.ai_heavy.windowMs);
+  if (!rateCheck.allowed) {
+    return { error: `Too many requests. Please wait ${Math.ceil((rateCheck.retryAfterMs ?? 0) / 1000)} seconds.` };
+  }
+
   // Fetch topic and subject names for context
   const { data: topic } = await supabase
     .from("topics")
@@ -218,12 +227,10 @@ export async function evaluateExplanation(
     });
 
     // Award XP for completing a Feynman explanation
-    const { rewardAction } = await import("./gamification");
     await rewardAction("feynman");
 
     // Track quest progress for party quests (non-blocking)
     try {
-      const { incrementQuestProgress } = await import("./party-quests");
       await incrementQuestProgress(user.id, "feynman_sessions", 1);
     } catch (e) {
       console.warn("Party quest progress update failed (feynman):", e);
@@ -262,11 +269,8 @@ export async function createCardsFromFeynman(
   const { error } = await supabase.from("cards").insert(cardsToInsert);
   if (error) return { error: error.message };
 
-  // Award XP for each card created
-  const { rewardAction } = await import("./gamification");
-  for (let i = 0; i < cards.length; i++) {
-    await rewardAction("card_created");
-  }
+  // Award XP for all cards created in a single DB round-trip
+  await rewardBatch("card_created", cards.length);
 
   revalidatePath("/app/review");
   return { success: true, count: cards.length };

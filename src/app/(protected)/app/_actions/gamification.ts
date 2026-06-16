@@ -140,6 +140,94 @@ export async function rewardAction(
 }
 
 /**
+ * Awards XP and coins for multiple instances of the same action in a single DB round-trip.
+ * Use this instead of calling rewardAction() in a loop.
+ */
+export async function rewardBatch(
+  action: "feynman" | "review_good" | "review_bad" | "card_created" | "session_complete" | "missions_complete",
+  count: number
+): Promise<{ data?: RewardResult; error?: string }> {
+  if (count <= 0) return { data: { xpGained: 0, coinsGained: 0, newXp: 0, newCoins: 0, newLevel: 1, leveledUp: false, petAffinityChange: 0 } };
+  if (count === 1) return rewardAction(action);
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("xp, coins, level")
+    .eq("id", user.id)
+    .single();
+
+  if (!profile) return { error: "Profile not found" };
+
+  // Calculate per-action rewards
+  let xpPerAction = 0;
+  let coinsPerAction = 0;
+  let affinityPerAction = 0;
+
+  switch (action) {
+    case "feynman": xpPerAction = 15; coinsPerAction = 5; affinityPerAction = 3; break;
+    case "review_good": xpPerAction = 3; coinsPerAction = 1; affinityPerAction = 1; break;
+    case "review_bad": xpPerAction = 1; coinsPerAction = 0; affinityPerAction = 0; break;
+    case "card_created": xpPerAction = 2; coinsPerAction = 0; affinityPerAction = 0; break;
+    case "session_complete": xpPerAction = 10; coinsPerAction = 3; affinityPerAction = 2; break;
+    case "missions_complete": xpPerAction = 20; coinsPerAction = 10; affinityPerAction = 5; break;
+  }
+
+  const xpGained = xpPerAction * count;
+  const coinsGained = coinsPerAction * count;
+  const petAffinityChange = affinityPerAction * count;
+
+  const newXp = profile.xp + xpGained;
+  const newCoins = profile.coins + coinsGained;
+  const newLevel = calculateLevel(newXp);
+  const leveledUp = newLevel > profile.level;
+
+  // Single DB update for profile
+  const { error: updateError } = await supabase
+    .from("profiles")
+    .update({
+      xp: newXp,
+      coins: newCoins,
+      level: newLevel,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", user.id);
+
+  if (updateError) return { error: updateError.message };
+
+  // Single DB update for pet affinity
+  if (petAffinityChange > 0) {
+    const { data: pet } = await supabase
+      .from("pets")
+      .select("affinity")
+      .eq("user_id", user.id)
+      .single();
+
+    if (pet) {
+      const newAffinity = Math.min(100, pet.affinity + petAffinityChange);
+      const newState = newAffinity > 70 ? "happy" : newAffinity > 40 ? "neutral" : "sad";
+
+      await supabase
+        .from("pets")
+        .update({ affinity: newAffinity, state: newState, updated_at: new Date().toISOString() })
+        .eq("user_id", user.id);
+    }
+  }
+
+  revalidatePath("/app");
+  revalidatePath("/app/room");
+
+  return {
+    data: { xpGained, coinsGained, newXp, newCoins, newLevel, leveledUp, petAffinityChange },
+  };
+}
+
+/**
  * Creates the user's initial pet (if they don't have one).
  */
 export async function choosePet(pokemonId: number, nickname: string): Promise<{ success?: boolean; error?: string }> {

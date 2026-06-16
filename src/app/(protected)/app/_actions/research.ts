@@ -2,6 +2,8 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { rewardBatch } from "./gamification";
 
 export interface ResearchSource {
   title: string;
@@ -30,6 +32,16 @@ export async function performResearch(query: string): Promise<{
 }> {
   if (!query?.trim() || query.trim().length < 5) {
     return { error: "Enter a more detailed research question (at least 5 characters)." };
+  }
+
+  // Rate limit check (requires auth context)
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user) {
+    const rateCheck = checkRateLimit(user.id, "research", RATE_LIMITS.ai_heavy.maxRequests, RATE_LIMITS.ai_heavy.windowMs);
+    if (!rateCheck.allowed) {
+      return { error: `Too many requests. Please wait ${Math.ceil((rateCheck.retryAfterMs ?? 0) / 1000)} seconds.` };
+    }
   }
 
   // First, use AI to extract better search keywords from the user's question
@@ -366,11 +378,8 @@ export async function createCardsFromResearch(
   const { error } = await supabase.from("cards").insert(cardsToInsert);
   if (error) return { error: error.message };
 
-  // Award XP
-  const { rewardAction } = await import("./gamification");
-  for (let i = 0; i < cards.length; i++) {
-    await rewardAction("card_created");
-  }
+  // Award XP for all cards in a single DB round-trip
+  await rewardBatch("card_created", cards.length);
 
   revalidatePath("/app/review");
   return { success: true, count: cards.length };

@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { incrementQuestProgress } from "./party-quests";
 
 export interface PlannedSession {
   id?: string;
@@ -199,7 +200,6 @@ export async function completeSession(
 
   // Track party quest progress for study_minutes (non-blocking)
   try {
-    const { incrementQuestProgress } = await import("./party-quests");
     await incrementQuestProgress(user.id, "study_minutes", durationMinutes);
   } catch (e) {
     console.warn("Party quest progress update failed (session):", e);
