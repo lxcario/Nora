@@ -173,16 +173,16 @@ body {
   to { width: 0%; }
 }
 
-/* Pixel-art custom cursors */
+/* Pixel-art custom cursors — Travel Book pack */
 html {
-  cursor: url('/sprites/ui/cursors/cursor-default.png'), auto;
+  cursor: url('/sprites/travel-book/cursors/cursor-default.png'), auto;
 }
 
 a,
 button,
 [role="button"],
 input[type="submit"] {
-  cursor: url('/sprites/ui/cursors/cursor-pointer.png'), pointer;
+  cursor: url('/sprites/travel-book/cursors/cursor-pointer.png'), pointer;
 }
 
 /* UI State system — data-state attribute selectors */

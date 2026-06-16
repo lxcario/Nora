@@ -3,33 +3,41 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signout } from "@/app/(auth)/_actions/auth";
-import { IconSprite } from "@/components/pixel-ui/icon-sprite";
 import { PixelProgressBar } from "@/components/pixel-ui/pixel-progress-bar";
 import { xpForNextLevel } from "@/lib/gamification";
-import {
-  LayoutDashboard, Gamepad2, PenLine, Layers, Shuffle,
-  FlaskConical, MonitorPlay, CalendarDays, BarChart3,
-  History, Users, Settings, LogOut, Flame,
-} from "lucide-react";
 
 const navItems = [
-  { href: "/app", icon: "home", fallback: LayoutDashboard, label: "Home" },
-  { href: "/app/room", icon: "trophy", fallback: Gamepad2, label: "Room" },
-  { href: "/app/feynman", icon: "pen", fallback: PenLine, label: "Feynman" },
-  { href: "/app/review", icon: "layers", fallback: Layers, label: "Review" },
-  { href: "/app/study", icon: "refresh", fallback: Shuffle, label: "Mix" },
-  { href: "/app/research", icon: "flask", fallback: FlaskConical, label: "Research" },
-  { href: "/app/study-room", icon: "play", fallback: MonitorPlay, label: "Video" },
-  { href: "/app/planner", icon: "calendar", fallback: CalendarDays, label: "Planner" },
-  { href: "/app/analytics", icon: "chart", fallback: BarChart3, label: "Stats" },
-  { href: "/app/history", icon: "clock", fallback: History, label: "History" },
-  { href: "/app/party", icon: "users", fallback: Users, label: "Party" },
-  { href: "/app/settings", icon: "settings", fallback: Settings, label: "Settings" },
+  { href: "/app", icon: "/sprites/travel-book/icons/Home.png", label: "Home" },
+  { href: "/app/room", icon: "/sprites/travel-book/icons/Gamepad.png", label: "Room" },
+  { href: "/app/feynman", icon: "/sprites/travel-book/icons/Lightbulb.png", label: "Feynman" },
+  { href: "/app/review", icon: "/sprites/travel-book/icons/Book.png", label: "Review" },
+  { href: "/app/study", icon: "/sprites/travel-book/icons/Restart.png", label: "Mix" },
+  { href: "/app/research", icon: "/sprites/travel-book/icons/MagnifyingGlass.png", label: "Research" },
+  { href: "/app/study-room", icon: "/sprites/travel-book/icons/Monitor.png", label: "Video" },
+  { href: "/app/planner", icon: "/sprites/travel-book/icons/Document.png", label: "Planner" },
+  { href: "/app/analytics", icon: "/sprites/travel-book/icons/Trophy.png", label: "Stats" },
+  { href: "/app/history", icon: "/sprites/travel-book/icons/FloppyDisk.png", label: "History" },
+  { href: "/app/party", icon: "/sprites/travel-book/icons/Team.png", label: "Party" },
+  { href: "/app/settings", icon: "/sprites/travel-book/icons/Gear.png", label: "Settings" },
 ];
 
 interface TopBarProps {
   profile: { xp: number; coins: number; level: number } | null;
   pet: { pet_type: string; name: string; affinity: number } | null;
+}
+
+/** Renders a Travel Book pixel icon as an img tag */
+function TBIcon({ src, alt, size = 20 }: { src: string; alt: string; size?: number }) {
+  return (
+    <img
+      src={src}
+      alt={alt}
+      width={size}
+      height={size}
+      className="pixel-art"
+      draggable={false}
+    />
+  );
 }
 
 export function TopBar({ profile, pet }: TopBarProps) {
@@ -59,13 +67,19 @@ export function TopBar({ profile, pet }: TopBarProps) {
               key={item.href}
               href={item.href}
               title={item.label}
-              className="flex-shrink-0 rounded p-1.5 transition-colors"
+              className="flex-shrink-0 flex items-center justify-center rounded p-1.5 transition-colors"
               style={{
-                backgroundColor: isActive ? "color-mix(in srgb, var(--pixel-accent) 25%, transparent)" : undefined,
-                border: isActive ? "2px solid var(--pixel-accent)" : "2px solid transparent",
+                backgroundImage: isActive
+                  ? "url('/sprites/travel-book/UI_TravelBook_Slot01a.png')"
+                  : undefined,
+                backgroundSize: "100% 100%",
+                imageRendering: "pixelated",
+                border: isActive ? "none" : "2px solid transparent",
+                minWidth: "32px",
+                minHeight: "32px",
               }}
             >
-              <IconSprite name={item.icon} size={1} fallback={item.fallback} aria-label={item.label} />
+              <TBIcon src={item.icon} alt={item.label} size={20} />
             </Link>
           );
         })}
@@ -85,7 +99,7 @@ export function TopBar({ profile, pet }: TopBarProps) {
 
         {/* Coins */}
         <span className="font-pixel text-xs flex items-center gap-1" style={{ color: "var(--pixel-text-primary)" }}>
-          <IconSprite name="coin" size={1} fallback={Flame} />
+          <TBIcon src="/sprites/travel-book/icons/Coin.png" alt="Coins" size={16} />
           {profile?.coins ?? 0}
         </span>
 
@@ -96,7 +110,7 @@ export function TopBar({ profile, pet }: TopBarProps) {
             title="Sign out"
             className="rounded p-1.5 transition-colors hover:bg-[var(--pixel-bg-secondary)]"
           >
-            <IconSprite name="close" size={1} fallback={LogOut} aria-label="Sign out" />
+            <TBIcon src="/sprites/travel-book/icons/Exit.png" alt="Sign out" size={18} />
           </button>
         </form>
       </div>

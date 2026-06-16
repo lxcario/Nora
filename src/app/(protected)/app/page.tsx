@@ -1,17 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "./_components/page-header";
-import {
-  Star,
-  Sparkles,
-  Layers,
-  Flame,
-  PenLine,
-  FlaskConical,
-  CalendarDays,
-  Gamepad2,
-  BarChart3,
-} from "lucide-react";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -74,10 +63,10 @@ export default async function DashboardPage() {
 
       {/* Quick stats row */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Level" value={String(profile?.level ?? 1)} icon={Star} />
-        <StatCard label="XP" value={String(profile?.xp ?? 0)} icon={Sparkles} />
-        <StatCard label="Cards Due" value={String(cardsDue ?? 0)} icon={Layers} />
-        <StatCard label="Streak" value={`${streak} day${streak !== 1 ? "s" : ""}`} icon={Flame} />
+        <StatCard label="Level" value={String(profile?.level ?? 1)} icon="/sprites/travel-book/icons/Trophy.png" />
+        <StatCard label="XP" value={String(profile?.xp ?? 0)} icon="/sprites/travel-book/icons/Sun.png" />
+        <StatCard label="Cards Due" value={String(cardsDue ?? 0)} icon="/sprites/travel-book/icons/Book.png" />
+        <StatCard label="Streak" value={`${streak} day${streak !== 1 ? "s" : ""}`} icon="/sprites/travel-book/icons/Coin2.png" />
       </div>
 
       {/* Navigation cards */}
@@ -88,43 +77,37 @@ export default async function DashboardPage() {
             title="Feynman Mode"
             description="Explain concepts in your own words. AI probes your understanding."
             href="/app/feynman"
-            icon={PenLine}
-            color="border-l-indigo-500"
+            icon="/sprites/travel-book/icons/Lightbulb.png"
           />
           <NavCard
             title="Review Cards"
             description="Spaced repetition review. Grade your recall 0–5."
             href="/app/review"
-            icon={Layers}
-            color="border-l-emerald-500"
+            icon="/sprites/travel-book/icons/Book.png"
           />
           <NavCard
             title="Research Desk"
             description="Search academic papers. Create cards from findings."
             href="/app/research"
-            icon={FlaskConical}
-            color="border-l-amber-500"
+            icon="/sprites/travel-book/icons/MagnifyingGlass.png"
           />
           <NavCard
             title="Study Planner"
             description="Your spaced study schedule with exam dates."
             href="/app/planner"
-            icon={CalendarDays}
-            color="border-l-sky-500"
+            icon="/sprites/travel-book/icons/Document.png"
           />
           <NavCard
             title="Pixel Room"
             description="Visit your avatar and pet. See today's missions."
             href="/app/room"
-            icon={Gamepad2}
-            color="border-l-pink-500"
+            icon="/sprites/travel-book/icons/Gamepad.png"
           />
           <NavCard
             title="Analytics"
             description="Track progress, mastery, and consistency."
             href="/app/analytics"
-            icon={BarChart3}
-            color="border-l-violet-500"
+            icon="/sprites/travel-book/icons/Trophy.png"
           />
         </div>
       </div>
@@ -135,18 +118,23 @@ export default async function DashboardPage() {
 function StatCard({
   label,
   value,
-  icon: Icon,
+  icon,
 }: {
   label: string;
   value: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: string;
 }) {
   return (
-    <div className="flex items-center gap-3 rounded-sm p-4" style={{
-      border: "2px solid var(--pixel-border-light)",
-      backgroundColor: "var(--pixel-bg-surface)",
-    }}>
-      <Icon className="h-5 w-5 text-[var(--pixel-accent)]" />
+    <div
+      className="flex items-center gap-3 rounded-sm p-4"
+      style={{
+        backgroundImage: "url('/sprites/travel-book/UI_TravelBook_Slot01a.png')",
+        backgroundSize: "100% 100%",
+        imageRendering: "pixelated",
+        border: "none",
+      }}
+    >
+      <img src={icon} alt={label} width={20} height={20} className="pixel-art" />
       <div>
         <p className="font-pixel text-xs font-medium uppercase tracking-wider text-[var(--pixel-text-secondary)]">
           {label}
@@ -161,39 +149,26 @@ function NavCard({
   title,
   description,
   href,
-  icon: Icon,
-  color,
+  icon,
 }: {
   title: string;
   description: string;
   href: string;
-  icon: React.ComponentType<{ className?: string }>;
-  color: string;
+  icon: string;
 }) {
-  // Extract the color value from the Tailwind class (e.g. "border-l-indigo-500")
-  const colorMap: Record<string, string> = {
-    "border-l-indigo-500": "#6366f1",
-    "border-l-emerald-500": "#10b981",
-    "border-l-amber-500": "#f59e0b",
-    "border-l-sky-500": "#0ea5e9",
-    "border-l-pink-500": "#ec4899",
-    "border-l-violet-500": "#8b5cf6",
-  };
-  const borderLeftColor = colorMap[color] ?? "var(--pixel-accent)";
-
   return (
     <Link
       href={href}
       className="group rounded-sm p-4 transition-all hover:shadow-md"
       style={{
-        border: "2px solid var(--pixel-border-light)",
-        borderLeftWidth: "4px",
-        borderLeftColor,
-        backgroundColor: "var(--pixel-bg-surface)",
+        backgroundImage: "url('/sprites/travel-book/UI_TravelBook_Frame01a.png')",
+        backgroundSize: "100% 100%",
+        imageRendering: "pixelated",
+        border: "none",
       }}
     >
       <div className="flex items-start gap-3">
-        <Icon className="mt-0.5 h-5 w-5 text-[var(--pixel-text-secondary)] group-hover:text-[var(--pixel-accent)]" />
+        <img src={icon} alt={title} width={20} height={20} className="pixel-art mt-0.5" />
         <div>
           <h3 className="font-pixel text-[var(--pixel-text-primary)] group-hover:text-[var(--pixel-accent)]">
             {title}
