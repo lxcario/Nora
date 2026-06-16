@@ -28,6 +28,12 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        <link rel="preload" href="/sprites/ui/buttons-26x26.png" as="image" type="image/png" />
+        <link rel="preload" href="/sprites/ui/dialog-box.png" as="image" type="image/png" />
+        <link rel="preload" href="/sprites/ui/dialog-box-big.png" as="image" type="image/png" />
+        <link rel="preload" href="/sprites/ui/icons.png" as="image" type="image/png" />
+      </head>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );

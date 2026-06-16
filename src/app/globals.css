@@ -13,6 +13,21 @@
   --background: #ffffff;
   --foreground: #171717;
   --font-pixel: "SproutLands", monospace;
+
+  /* Pixel Theme - Light Mode Color Palette */
+  --pixel-bg-primary: #f5ead6;       /* cream/parchment */
+  --pixel-bg-secondary: #ede0c8;     /* darker parchment */
+  --pixel-bg-surface: #faf4e8;       /* card surface */
+  --pixel-text-primary: #3d2b1f;     /* dark brown */
+  --pixel-text-secondary: #6b4e37;   /* medium brown */
+  --pixel-accent: #d4a526;           /* amber/gold */
+  --pixel-accent-hover: #e6b832;     /* brighter gold */
+  --pixel-success: #6b8f4a;          /* sage green */
+  --pixel-warning: #d4a526;          /* amber */
+  --pixel-error: #a94442;            /* muted red */
+  --pixel-border: #8b6f47;           /* brown border */
+  --pixel-border-light: #c4a882;     /* light brown border */
+  --pixel-disabled: #a89880;         /* muted gray-brown */
 }
 
 @theme inline {
@@ -20,12 +35,48 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Pixel Art UI — Color tokens */
+  --color-pixel-bg: var(--pixel-bg-primary);
+  --color-pixel-bg-secondary: var(--pixel-bg-secondary);
+  --color-pixel-surface: var(--pixel-bg-surface);
+  --color-pixel-text: var(--pixel-text-primary);
+  --color-pixel-text-muted: var(--pixel-text-secondary);
+  --color-pixel-accent: var(--pixel-accent);
+  --color-pixel-accent-hover: var(--pixel-accent-hover);
+  --color-pixel-success: var(--pixel-success);
+  --color-pixel-warning: var(--pixel-warning);
+  --color-pixel-error: var(--pixel-error);
+  --color-pixel-border: var(--pixel-border);
+  --color-pixel-border-light: var(--pixel-border-light);
+  --color-pixel-disabled: var(--pixel-disabled);
+
+  /* Pixel Art UI — Font token */
+  --font-pixel: var(--font-pixel);
+
+  /* Pixel Art UI — Spacing token (8px base grid) */
+  --spacing-pixel: 8px;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+
+    /* Pixel Theme - Dark Mode Color Palette */
+    --pixel-bg-primary: #1a1410;
+    --pixel-bg-secondary: #2a2018;
+    --pixel-bg-surface: #241c14;
+    --pixel-text-primary: #f0e6d2;
+    --pixel-text-secondary: #c4a882;
+    --pixel-accent: #e6b832;
+    --pixel-accent-hover: #f0c844;
+    --pixel-success: #7da856;
+    --pixel-warning: #e6b832;
+    --pixel-error: #c45a58;
+    --pixel-border: #6b4e37;
+    --pixel-border-light: #8b6f47;
+    --pixel-disabled: #4a3d30;
   }
 }
 
@@ -73,6 +124,18 @@ body {
   ::view-transition-new(root) {
     animation: none;
   }
+
+  .animate-float-up,
+  .animate-pop-in,
+  .animate-shake-happy {
+    animation: none;
+  }
+
+  /* Disable hover animations and sprite transitions for pixel UI */
+  * {
+    transition-duration: 0ms !important;
+    animation-duration: 0ms !important;
+  }
 }
 
 /* Micro-interaction animations */
@@ -97,3 +160,75 @@ body {
 .animate-float-up { animation: float-up-fade 2s ease-out forwards; }
 .animate-pop-in { animation: pop-in 300ms ease-out; }
 .animate-shake-happy { animation: shake-happy 300ms ease-in-out; }
+
+/* Toast slide-in animation */
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(100%); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* Toast progress bar shrink animation */
+@keyframes toast-progress {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+
+/* Pixel-art custom cursors */
+html {
+  cursor: url('/sprites/ui/cursors/cursor-default.png'), auto;
+}
+
+a,
+button,
+[role="button"],
+input[type="submit"] {
+  cursor: url('/sprites/ui/cursors/cursor-pointer.png'), pointer;
+}
+
+/* UI State system — data-state attribute selectors */
+[data-state="disabled"] {
+  opacity: 0.5;
+  filter: grayscale(0.6);
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+[data-state="loading"] {
+  animation: pixel-pulse 1s steps(4) infinite;
+}
+
+[data-state="focus"] {
+  outline: 2px solid var(--pixel-accent);
+  outline-offset: 2px;
+}
+
+[data-state="selected"] {
+  background-color: var(--pixel-accent);
+  color: var(--pixel-bg-primary);
+}
+
+[data-state="success"] {
+  border-color: var(--pixel-success);
+}
+
+[data-state="warning"] {
+  border-color: var(--pixel-warning);
+}
+
+[data-state="error"] {
+  border-color: var(--pixel-error);
+}
+
+/* Pixel pulse animation for loading state */
+@keyframes pixel-pulse {
+  0%, 100% { opacity: 1; }
+  25% { opacity: 0.7; }
+  50% { opacity: 0.4; }
+  75% { opacity: 0.7; }
+}
+
+/* Pixel shimmer animation for skeleton loading placeholders */
+@keyframes pixel-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
