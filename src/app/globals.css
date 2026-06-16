@@ -232,3 +232,20 @@ input[type="submit"] {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
+
+/* Stardew-style warm parchment texture for main content area */
+.pixel-content-area {
+  background-color: var(--pixel-bg-primary);
+  background-image: 
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 31px,
+      color-mix(in srgb, var(--pixel-border-light) 15%, transparent) 31px,
+      color-mix(in srgb, var(--pixel-border-light) 15%, transparent) 32px
+    );
+}
+
+/* Scrollbar hiding utility */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
