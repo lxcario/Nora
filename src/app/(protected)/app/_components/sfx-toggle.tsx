@@ -20,13 +20,13 @@ export function SfxToggle() {
     <div className="px-3 py-2">
       <button
         onClick={handleToggle}
-        className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
+        className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium font-pixel text-[var(--pixel-text-secondary)] transition-colors hover:bg-[var(--pixel-bg-secondary)] hover:text-[var(--pixel-text-primary)]"
         title={muted ? "Unmute sound effects" : "Mute sound effects"}
       >
         {muted ? (
-          <VolumeX className="h-4 w-4 text-zinc-400" />
+          <VolumeX className="h-4 w-4 text-[var(--pixel-disabled)]" />
         ) : (
-          <Volume2 className="h-4 w-4 text-indigo-500" />
+          <Volume2 className="h-4 w-4 text-[var(--pixel-accent)]" />
         )}
         {muted ? "SFX Off" : "SFX On"}
       </button>

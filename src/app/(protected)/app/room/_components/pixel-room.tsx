@@ -168,19 +168,34 @@ export function PixelRoom({ state, quote, studyingMembers }: { state: RoomState;
 
       {/* Pet status */}
       <div
-        className={`rounded-lg border p-3 text-sm ${
-          state.pet.state === "happy"
-            ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-400"
-            : state.pet.state === "neutral"
-              ? "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-400"
-              : "border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400"
-        }`}
+        className="rounded-sm p-3 text-sm"
+        style={{
+          border: `2px solid ${
+            state.pet.state === "happy"
+              ? "var(--pixel-success)"
+              : state.pet.state === "neutral"
+                ? "var(--pixel-warning)"
+                : "var(--pixel-error)"
+          }`,
+          backgroundColor:
+            state.pet.state === "happy"
+              ? "color-mix(in srgb, var(--pixel-success) 10%, transparent)"
+              : state.pet.state === "neutral"
+                ? "color-mix(in srgb, var(--pixel-warning) 10%, transparent)"
+                : "color-mix(in srgb, var(--pixel-error) 10%, transparent)",
+          color:
+            state.pet.state === "happy"
+              ? "var(--pixel-success)"
+              : state.pet.state === "neutral"
+                ? "var(--pixel-warning)"
+                : "var(--pixel-error)",
+        }}
       >
         <div className="flex items-center gap-2">
           {state.pet.sprite && (
             <Image src={state.pet.sprite} alt="" width={24} height={24} className="pixel-art" unoptimized />
           )}
-          <span className="font-medium capitalize">
+          <span className="font-pixel font-medium capitalize">
             {state.pet.name} {PET_MESSAGES[state.pet.state]}
           </span>
         </div>
@@ -192,30 +207,41 @@ export function PixelRoom({ state, quote, studyingMembers }: { state: RoomState;
       </div>
 
       {/* Daily Quote */}
-      <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-        <p className="text-sm italic text-zinc-600 dark:text-zinc-400">
-          &ldquo;{quote.text}&rdquo;
-        </p>
-        <p className="mt-1 text-xs text-zinc-400">— {quote.author}</p>
+      <div className="rounded-sm p-4" style={{
+        border: "2px solid var(--pixel-border-light)",
+        backgroundColor: "var(--pixel-bg-surface)",
+      }}>
+        <div className="flex items-start gap-2">
+          <Quote className="mt-0.5 h-4 w-4 shrink-0 text-[var(--pixel-text-secondary)]" />
+          <div>
+            <p className="text-sm italic text-[var(--pixel-text-secondary)]">
+              &ldquo;{quote.text}&rdquo;
+            </p>
+            <p className="font-pixel mt-1 text-xs text-[var(--pixel-text-secondary)]">— {quote.author}</p>
+          </div>
+        </div>
       </div>
 
       {/* Today's Missions */}
-      <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="rounded-sm p-4" style={{
+        border: "2px solid var(--pixel-border-light)",
+        backgroundColor: "var(--pixel-bg-surface)",
+      }}>
         <div className="mb-3 flex items-center justify-between">
           <h2 className="font-pixel flex items-center gap-2 text-sm">
-            <TrendingUp className="h-4 w-4 text-zinc-400" />
+            <TrendingUp className="h-4 w-4 text-[var(--pixel-text-secondary)]" />
             Today&apos;s Missions
           </h2>
-          <span className="font-pixel text-xs text-zinc-400">
+          <span className="font-pixel text-xs text-[var(--pixel-text-secondary)]">
             {completedMissions}/{totalMissions}
           </span>
         </div>
 
         {/* Progress bar */}
-        <div className="mb-3 h-2 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+        <div className="mb-3 h-2 overflow-hidden rounded-full bg-[var(--pixel-bg-secondary)]">
           <div
-            className="h-full rounded-full bg-emerald-500 transition-all"
-            style={{ width: `${(completedMissions / totalMissions) * 100}%` }}
+            className="h-full rounded-full transition-all"
+            style={{ width: `${(completedMissions / totalMissions) * 100}%`, backgroundColor: "var(--pixel-success)" }}
           />
         </div>
 
@@ -233,26 +259,27 @@ export function PixelRoom({ state, quote, studyingMembers }: { state: RoomState;
               <Link
                 key={i}
                 href={href}
-                className={`flex items-center gap-3 rounded-md px-3 py-2 transition-colors ${
-                  mission.done
-                    ? "bg-emerald-50 dark:bg-emerald-900/10"
-                    : "bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700"
-                }`}
+                className="flex items-center gap-3 rounded-sm px-3 py-2 transition-colors"
+                style={{
+                  backgroundColor: mission.done
+                    ? "color-mix(in srgb, var(--pixel-success) 10%, transparent)"
+                    : "var(--pixel-bg-secondary)",
+                }}
               >
-                <Icon className={`h-4 w-4 ${mission.done ? "text-emerald-500" : "text-zinc-400"}`} />
+                <Icon className={`h-4 w-4 ${mission.done ? "text-[var(--pixel-success)]" : "text-[var(--pixel-text-secondary)]"}`} />
                 <span
                   className={`flex-1 text-sm ${
                     mission.done
-                      ? "text-emerald-600 line-through dark:text-emerald-400"
-                      : "text-zinc-700 dark:text-zinc-300"
+                      ? "line-through text-[var(--pixel-text-secondary)]"
+                      : "text-[var(--pixel-text-primary)]"
                   }`}
                 >
                   {mission.label}
                 </span>
                 {mission.done ? (
-                  <CheckSquare className="h-4 w-4 text-emerald-500" />
+                  <CheckSquare className="h-4 w-4 text-[var(--pixel-success)]" />
                 ) : (
-                  <Square className="h-4 w-4 text-zinc-300 dark:text-zinc-600" />
+                  <Square className="h-4 w-4 text-[var(--pixel-text-secondary)]" />
                 )}
               </Link>
             );

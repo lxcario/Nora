@@ -8,9 +8,9 @@ export function PageHeader({ title, description, children }: PageHeaderProps) {
   return (
     <div className="flex items-start justify-between">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+        <h1 className="font-pixel text-2xl font-bold tracking-tight text-[var(--pixel-text-primary)]">{title}</h1>
         {description && (
-          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+          <p className="mt-1 text-sm text-[var(--pixel-text-secondary)]">
             {description}
           </p>
         )}

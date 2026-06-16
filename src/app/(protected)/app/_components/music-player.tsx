@@ -92,11 +92,11 @@ export function MusicPlayer() {
   }
 
   return (
-    <div className="border-t border-zinc-200 dark:border-zinc-800">
+    <div className="border-t border-[var(--pixel-border-light)]">
       {/* Collapsed: just the mini bar */}
       <button
         onClick={() => setExpanded(!expanded)}
-        className="flex w-full items-center gap-2 px-4 py-2 text-xs text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300"
+        className="flex w-full items-center gap-2 px-4 py-2 text-xs text-[var(--pixel-text-secondary)] hover:text-[var(--pixel-text-primary)]"
       >
         <Music className="h-3 w-3" />
         <span className="flex-1 truncate text-left font-pixel">
@@ -115,7 +115,7 @@ export function MusicPlayer() {
       {expanded && (
         <div className="space-y-2 px-4 pb-3">
           {/* Track name */}
-          <p className="font-pixel truncate text-center text-[10px] text-zinc-400">
+          <p className="font-pixel truncate text-center text-[10px] text-[var(--pixel-text-secondary)]">
             {TRACKS[currentTrack].title}
           </p>
 
@@ -123,13 +123,13 @@ export function MusicPlayer() {
           <div className="flex items-center justify-center gap-2">
             <button
               onClick={prevTrack}
-              className="rounded p-1 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
+              className="rounded p-1 text-[var(--pixel-text-secondary)] hover:text-[var(--pixel-text-primary)]"
             >
               <SkipBack className="h-3.5 w-3.5" />
             </button>
             <button
               onClick={togglePlay}
-              className="flex h-7 w-7 items-center justify-center rounded-full bg-indigo-600 text-white hover:bg-indigo-700"
+              className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--pixel-accent)] text-white hover:bg-[var(--pixel-accent-hover)]"
             >
               {isPlaying ? (
                 <Pause className="h-3.5 w-3.5" />
@@ -139,7 +139,7 @@ export function MusicPlayer() {
             </button>
             <button
               onClick={nextTrack}
-              className="rounded p-1 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
+              className="rounded p-1 text-[var(--pixel-text-secondary)] hover:text-[var(--pixel-text-primary)]"
             >
               <SkipForward className="h-3.5 w-3.5" />
             </button>
@@ -149,7 +149,7 @@ export function MusicPlayer() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsMuted(!isMuted)}
-              className="text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
+              className="text-[var(--pixel-text-secondary)] hover:text-[var(--pixel-text-primary)]"
             >
               {isMuted ? (
                 <VolumeX className="h-3 w-3" />
@@ -164,7 +164,7 @@ export function MusicPlayer() {
               step="0.05"
               value={volume}
               onChange={(e) => setVolume(parseFloat(e.target.value))}
-              className="h-1 flex-1 cursor-pointer appearance-none rounded-full bg-zinc-300 dark:bg-zinc-700"
+              className="h-1 flex-1 cursor-pointer appearance-none rounded-full bg-[var(--pixel-bg-secondary)]"
             />
           </div>
 
@@ -180,10 +180,10 @@ export function MusicPlayer() {
                     audioRef.current.play().catch(() => {});
                   }
                 }}
-                className={`w-full rounded px-2 py-1 text-left text-[10px] ${
+                className={`font-pixel w-full rounded px-2 py-1 text-left text-[10px] ${
                   i === currentTrack
-                    ? "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400"
-                    : "text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                    ? "bg-[var(--pixel-accent)]/15 text-[var(--pixel-accent)]"
+                    : "text-[var(--pixel-text-secondary)] hover:bg-[var(--pixel-bg-secondary)]"
                 }`}
               >
                 {track.title}

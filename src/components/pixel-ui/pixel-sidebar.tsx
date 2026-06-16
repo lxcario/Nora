@@ -18,7 +18,6 @@ import {
   Settings,
   LogOut,
 } from "lucide-react";
-import { NineSlice } from "./nine-slice";
 import { IconSprite } from "./icon-sprite";
 import { MusicPlayer } from "@/app/(protected)/app/_components/music-player";
 import { SfxToggle } from "@/app/(protected)/app/_components/sfx-toggle";
@@ -61,112 +60,116 @@ export function PixelSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="flex w-60 flex-col" style={{ minHeight: "100vh" }}>
-      <NineSlice variant="standard" scale={2} className="flex flex-1 flex-col overflow-hidden">
-        {/* Brand */}
-        <div
-          className="flex items-center justify-center px-5 py-4"
-          style={{ borderBottom: "2px solid var(--pixel-border-light)" }}
+    <aside
+      className="flex w-60 min-h-screen flex-col"
+      style={{
+        backgroundColor: "var(--pixel-bg-surface)",
+        borderRight: "2px solid var(--pixel-border)",
+      }}
+    >
+      {/* Brand */}
+      <div
+        className="flex items-center justify-center px-5 py-4"
+        style={{ borderBottom: "2px solid var(--pixel-border-light)" }}
+      >
+        <h2
+          className="font-pixel text-xl tracking-wide"
+          style={{ color: "var(--pixel-accent)" }}
         >
-          <h2
-            className="font-pixel text-xl tracking-wide"
-            style={{ color: "var(--pixel-accent)" }}
-          >
-            NORA
-          </h2>
-        </div>
+          NORA
+        </h2>
+      </div>
 
-        {/* Navigation */}
-        <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-3 py-4">
-          {navItems.map((item) => {
-            const isActive =
-              item.href === "/app"
-                ? pathname === "/app"
-                : pathname.startsWith(item.href);
+      {/* Navigation */}
+      <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-3 py-4">
+        {navItems.map((item) => {
+          const isActive =
+            item.href === "/app"
+              ? pathname === "/app"
+              : pathname.startsWith(item.href);
 
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                data-state={isActive ? "selected" : undefined}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors"
-                style={{
-                  fontFamily: "var(--font-pixel)",
-                  letterSpacing: "0.5px",
-                  color: isActive
-                    ? "var(--pixel-accent)"
-                    : "var(--pixel-text-primary)",
-                  backgroundColor: isActive
-                    ? "color-mix(in srgb, var(--pixel-accent) 18%, transparent)"
-                    : undefined,
-                }}
-                onMouseEnter={(e) => {
-                  if (!isActive) {
-                    e.currentTarget.style.backgroundColor =
-                      "color-mix(in srgb, var(--pixel-accent) 10%, transparent)";
-                    e.currentTarget.style.color = "var(--pixel-accent-hover)";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isActive) {
-                    e.currentTarget.style.backgroundColor = "";
-                    e.currentTarget.style.color = "var(--pixel-text-primary)";
-                  }
-                }}
-              >
-                <IconSprite
-                  name={item.spriteName}
-                  size={1}
-                  fallback={item.fallback}
-                  aria-label={item.label}
-                />
-                <span className="truncate">{item.label}</span>
-              </Link>
-            );
-          })}
-        </nav>
-
-        {/* Music Player */}
-        <MusicPlayer />
-
-        {/* SFX Toggle */}
-        <SfxToggle />
-
-        {/* Sign out */}
-        <div
-          className="px-3 py-4"
-          style={{ borderTop: "2px solid var(--pixel-border-light)" }}
-        >
-          <form action={signout}>
-            <button
-              type="submit"
-              className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors"
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              data-state={isActive ? "selected" : undefined}
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors"
               style={{
                 fontFamily: "var(--font-pixel)",
                 letterSpacing: "0.5px",
-                color: "var(--pixel-text-secondary)",
+                color: isActive
+                  ? "var(--pixel-accent)"
+                  : "var(--pixel-text-primary)",
+                backgroundColor: isActive
+                  ? "color-mix(in srgb, var(--pixel-accent) 18%, transparent)"
+                  : undefined,
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor =
-                  "color-mix(in srgb, var(--pixel-accent) 10%, transparent)";
-                e.currentTarget.style.color = "var(--pixel-text-primary)";
+                if (!isActive) {
+                  e.currentTarget.style.backgroundColor =
+                    "color-mix(in srgb, var(--pixel-accent) 10%, transparent)";
+                  e.currentTarget.style.color = "var(--pixel-accent-hover)";
+                }
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "";
-                e.currentTarget.style.color = "var(--pixel-text-secondary)";
+                if (!isActive) {
+                  e.currentTarget.style.backgroundColor = "";
+                  e.currentTarget.style.color = "var(--pixel-text-primary)";
+                }
               }}
             >
               <IconSprite
-                name="icon-close"
+                name={item.spriteName}
                 size={1}
-                fallback={LogOut}
-                aria-label="Sign out"
+                fallback={item.fallback}
+                aria-label={item.label}
               />
-              <span>Sign out</span>
-            </button>
-          </form>
-        </div>
-      </NineSlice>
+              <span className="truncate">{item.label}</span>
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* Music Player */}
+      <MusicPlayer />
+
+      {/* SFX Toggle */}
+      <SfxToggle />
+
+      {/* Sign out */}
+      <div
+        className="px-3 py-4"
+        style={{ borderTop: "2px solid var(--pixel-border-light)" }}
+      >
+        <form action={signout}>
+          <button
+            type="submit"
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors"
+            style={{
+              fontFamily: "var(--font-pixel)",
+              letterSpacing: "0.5px",
+              color: "var(--pixel-text-secondary)",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor =
+                "color-mix(in srgb, var(--pixel-accent) 10%, transparent)";
+              e.currentTarget.style.color = "var(--pixel-text-primary)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "";
+              e.currentTarget.style.color = "var(--pixel-text-secondary)";
+            }}
+          >
+            <IconSprite
+              name="icon-close"
+              size={1}
+              fallback={LogOut}
+              aria-label="Sign out"
+            />
+            <span>Sign out</span>
+          </button>
+        </form>
+      </div>
     </aside>
   );
 }

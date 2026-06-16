@@ -82,7 +82,7 @@ export default async function DashboardPage() {
 
       {/* Navigation cards */}
       <div>
-        <h2 className="mb-4 text-lg font-semibold">Study Modes</h2>
+        <h2 className="font-pixel mb-4 text-lg font-semibold">Study Modes</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <NavCard
             title="Feynman Mode"
@@ -142,13 +142,16 @@ function StatCard({
   icon: React.ComponentType<{ className?: string }>;
 }) {
   return (
-    <div className="flex items-center gap-3 rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-      <Icon className="h-5 w-5 text-zinc-400" />
+    <div className="flex items-center gap-3 rounded-sm p-4" style={{
+      border: "2px solid var(--pixel-border-light)",
+      backgroundColor: "var(--pixel-bg-surface)",
+    }}>
+      <Icon className="h-5 w-5 text-[var(--pixel-accent)]" />
       <div>
-        <p className="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+        <p className="font-pixel text-xs font-medium uppercase tracking-wider text-[var(--pixel-text-secondary)]">
           {label}
         </p>
-        <p className="text-lg font-bold">{value}</p>
+        <p className="font-pixel text-lg font-bold text-[var(--pixel-text-primary)]">{value}</p>
       </div>
     </div>
   );
@@ -167,18 +170,35 @@ function NavCard({
   icon: React.ComponentType<{ className?: string }>;
   color: string;
 }) {
+  // Extract the color value from the Tailwind class (e.g. "border-l-indigo-500")
+  const colorMap: Record<string, string> = {
+    "border-l-indigo-500": "#6366f1",
+    "border-l-emerald-500": "#10b981",
+    "border-l-amber-500": "#f59e0b",
+    "border-l-sky-500": "#0ea5e9",
+    "border-l-pink-500": "#ec4899",
+    "border-l-violet-500": "#8b5cf6",
+  };
+  const borderLeftColor = colorMap[color] ?? "var(--pixel-accent)";
+
   return (
     <Link
       href={href}
-      className={`group rounded-lg border border-l-4 border-zinc-200 bg-white p-4 transition-all hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700 ${color}`}
+      className="group rounded-sm p-4 transition-all hover:shadow-md"
+      style={{
+        border: "2px solid var(--pixel-border-light)",
+        borderLeftWidth: "4px",
+        borderLeftColor,
+        backgroundColor: "var(--pixel-bg-surface)",
+      }}
     >
       <div className="flex items-start gap-3">
-        <Icon className="mt-0.5 h-5 w-5 text-zinc-400 group-hover:text-indigo-500" />
+        <Icon className="mt-0.5 h-5 w-5 text-[var(--pixel-text-secondary)] group-hover:text-[var(--pixel-accent)]" />
         <div>
-          <h3 className="font-semibold group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
+          <h3 className="font-pixel text-[var(--pixel-text-primary)] group-hover:text-[var(--pixel-accent)]">
             {title}
           </h3>
-          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+          <p className="mt-1 text-sm text-[var(--pixel-text-secondary)]">
             {description}
           </p>
         </div>
