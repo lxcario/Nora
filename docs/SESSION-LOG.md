@@ -628,3 +628,183 @@ package.json (pdf-parse, vitest, fast-check, test scripts)
 ---
 
 *Polish wave ended at ~3:30 PM AZT, June 16, 2026.*
+
+
+---
+
+# Session 3 — June 17, 2026
+
+## Overview
+
+Massive feature session: final polish pass, Video Study Room (full spec → implementation), History & Journals page, 8-bit sound effects, project rebrand to "Nora", Vercel deployment, and various bugfixes.
+
+---
+
+## Final Polish Pass ✅
+
+### Empty States
+- **Study Mix** (`/app/study`) — Low-diversity hint when queue has ≤2 modalities; full empty state with action cards linking to Feynman, flashcards, Research
+- **Analytics** (`/app/analytics`) — "Not enough data yet" message when fewer than 3 days of history; still shows stat cards below
+- **Review** (`/app/review`) — Enhanced empty state: green CheckCircle, "All caught up!" messaging, links to Feynman and Research
+- **Research → Papers** — Improved paper library empty state with richer guidance
+
+### Reward Feedback Wiring
+- **Feynman evaluation complete** → XpToast (+15 XP, +5 coins)
+- **Cards saved from Feynman** → SuccessCheck ("Cards saved to your deck!")
+- **Card review graded** → XpToast (+3 XP/+1 coin for grade ≥ 3, +1 XP for grade < 3)
+- **Review session complete** → XpToast (+10 XP, +3 coins) + SuccessCheck
+- **Study Mix session complete** → XpToast + SuccessCheck
+- **Cards saved from RAG** → SuccessCheck ("Cards saved from your papers!")
+
+### Low-Text PDF Guidance
+- Papers with `parseStatus: "ready"` and 1-2 chunks show amber warning: "This document may be image-heavy."
+
+### 8-Bit Sound Effects
+- Created `src/lib/sfx.ts` — Web Audio API oscillator-based sounds:
+  - `playXpGained()` — ascending triangle-wave chirp (C5 → E5 → G5)
+  - `playCardSaved()` — short square-wave arpeggio
+  - `playSessionComplete()` — triumphant melody
+  - `playLevelUp()` — longer fanfare with sparkle overtone
+- Sound suppression system (bigger sounds suppress smaller ones to avoid stacking)
+- Mute state persisted in localStorage with in-memory fallback
+- `SfxToggle` component in sidebar (Volume2/VolumeX icons)
+- XpToast plays `playXpGained()`, SuccessCheck plays `playCardSaved()`
+- Session completion plays `playSessionComplete()` directly
+
+### Lint Fixes
+- Fixed `react-hooks/set-state-in-effect` in feynman-editor.tsx (moved suggestion clearing to onChange handler)
+- Fixed unused `CheckCircle` import in review-session.tsx
+
+---
+
+## Video Study Room (Phase 14) ✅
+
+**Full spec-driven development: Requirements → Design → Tasks → Implementation**
+
+### Spec Files Created
+```
+.kiro/specs/study-room/requirements.md (12 requirements, 78 acceptance criteria)
+.kiro/specs/study-room/design.md (architecture, schema, 16 correctness properties)
+.kiro/specs/study-room/tasks.md (45 tasks across 7 phases)
+```
+
+### Database
+- `supabase/migrations/004_study_room.sql`:
+  - `videos` table (user-scoped, UNIQUE on user_id + youtube_id)
+  - `video_transcripts` table (JSONB segments, JOIN-based RLS via parent videos)
+  - `notes` table (numrange time_segment, GiST index for range queries)
+  - Extended `cards` with `source_type: 'video'` + `metadata` JSONB column
+  - Extended `study_sessions` with `mode: 'video'`
+
+### Server Actions (`_actions/study-room.ts` + sub-modules)
+- `searchVideos()` — Two-step YouTube API pipeline: search.list → videos.list → heuristic scoring
+- `loadVideo()` — UPSERT video record for user
+- `fetchTranscript()` — Cache-first transcript retrieval (YouTube captions → Whisper fallback)
+- `generateNotes()` — Transcript slicing + Groq LLM → structured notes with timestamp citations
+- `saveNote()` / `getVideoNotes()` — CRUD for timestamped notes
+- `saveVideoCards()` — Card creation with source_type 'video' + metadata
+- `evaluateWithTranscript()` — Feynman evaluation grounded in video transcript
+- `recordVideoSession()` — Study session tracking at 5-min cumulative play
+- `updateVideoTopic()` — Topic association for videos
+
+### Sub-Modules
+- `search-heuristic.ts` — `scoreVideo()`, `filterAndRankVideos()`, `validateSearchQuery()`, `buildSearchQuery()`, `extractYouTubeId()`
+- `transcript-provider.ts` — TranscriptProvider interface, YouTubeCaptionProvider, WhisperProvider (stubbed)
+- `transcript-utils.ts` — `sliceTranscript()`, `parseTimeInput()`, `formatSeconds()`, `validateTimeRange()`, `buildNotePrompt()`
+- `note-completion.ts` — AI inline completion for note editor
+
+### UI Components (`study-room/_components/`)
+- `youtube-player.tsx` — YouTube IFrame API with seekTo/pause/play/getCurrentTime, 500ms time reporting
+- `video-search.tsx` — Debounced search with thumbnail grid results
+- `url-input.tsx` — Direct YouTube URL paste with validation
+- `time-range-selector.tsx` — MM:SS/HH:MM:SS inputs with "From here" button
+- `generated-notes.tsx` — AI summary, key concepts with timestamp badges, flashcard editor
+- `timestamp-mark.ts` — Custom Tiptap Mark extension (clickable [MM:SS] badges)
+- `note-editor.tsx` — Tiptap editor with auto-save, AI completions, TimestampMark support
+- `video-card-editor.tsx` — Per-card edit/accept/reject with timestamp badges
+- `feynman-video-prompt.tsx` — "Explain what you watched" after 60s playback
+- `topic-linker.tsx` — Topic association dropdown
+- `study-room-layout.tsx` — Split-panel responsive layout (60/40 desktop, stacked mobile)
+
+### Page
+- `study-room/page.tsx` — Server component with topic loading + URL param handling (?video=xxx&t=yyy)
+
+### Integrations
+- Sidebar nav: "Study Room" with MonitorPlay icon
+- Card source navigation: video cards in review show "View in Study Room" badge → navigates back
+- XP toast for note generation, card save, Feynman completion, session recording
+- Cumulative play time tracking → session record at 5 minutes
+
+### Dependencies Added
+- `youtube-transcript-plus` — Transcript extraction
+- `@tiptap/core`, `@tiptap/react`, `@tiptap/starter-kit`, `@tiptap/pm` — Rich text editor
+
+---
+
+## History & Journals ✅
+
+- `/app/history` — Filterable timeline of past study activity
+- Server action `_actions/history.ts`: queries `feynman_explanations`, `notes` (with video JOIN), `study_sessions`
+- Client filter bar: Type chips (All/Feynman/Video/Research), Topic dropdown, Date range (7d/30d/90d/All)
+- Items grouped by date, expandable with full content + AI summary
+- Feynman items show gap analysis dot summary (green/amber/red count)
+- Video items show video title + time segment
+- Sidebar nav: "History" with History icon
+
+---
+
+## Project Rebrand: Pixel Study OS → Nora ✅
+
+- Tagline: "a softer way to study"
+- Updated: package.json, root layout metadata, sidebar branding, landing page, login/signup, 404, all OpenRouter X-Title headers
+- README.md completely rewritten as premium GitHub README
+- Sidebar shows "NORA" in pixel font with amber color
+
+---
+
+## Vercel Deployment ✅
+
+- Deployed to: `https://nora-mu-six.vercel.app`
+- GitHub repo connected: `https://github.com/lxcario/Nora`
+- Auto-deploys on push
+- All environment variables configured (Supabase, Groq, OpenRouter, YouTube API)
+
+---
+
+## Bugfixes
+
+### Party Disband Fix
+- `disbandParty()` was failing due to RLS on child tables (cheers, messages, quests)
+- Fixed: uses admin client to bypass RLS for cascading delete, while still verifying ownership through normal auth
+
+### Dashboard Stats Fix
+- Level, XP, Cards Due, Streak were hardcoded ("1", "0", "—", "0 days")
+- Fixed: now fetches real data from profiles table, cards (due count), and calculates streak from consecutive activity days
+
+---
+
+## Git History (this session)
+
+```
+28d141e feat: Nora — full study OS with Feynman, SM-2, RAG, Video Study Room, Parties, and Gamification
+c0fa0a5 feat: add History & Journals page with filterable timeline
+49031c1 fix: use admin client for party disband to bypass RLS on child tables
+0c947aa feat: add Nora cat logo as favicon and sidebar brand
+71b3f98 style: switch to gold pixel text logo, remove text label
+0a0bc8a style: increase logo size to h-12, remove pixelated rendering
+6c7d7dc style: revert to pixel font NORA text in sidebar
+71fb146 fix: dashboard stats now fetch real Level, XP, Cards Due, and Streak from DB
+```
+
+---
+
+## Current State
+
+- **Live at:** https://nora-mu-six.vercel.app
+- **GitHub:** https://github.com/lxcario/Nora
+- **All features working:** Feynman, SM-2 Review, Study Mix, Research + RAG, Video Study Room, Party, Planner, Analytics, History, Gamification, SFX, Music Player
+- **Next up:** UI/visual overhaul to cozy pixel RPG aesthetic (requires pixel art sprite assets)
+
+---
+
+*Session ended June 17, 2026.*
