@@ -228,16 +228,25 @@ export async function disbandParty(): Promise<{ success?: boolean; error?: strin
 
   const partyId = membership.party_id;
 
+  // Use admin client to bypass RLS for cleanup operations
+  const { createAdminClient } = await import("@/lib/supabase/admin");
+  const admin = createAdminClient();
+
+  // Delete related data first (cheers, messages, quests)
+  await admin.from("party_cheers").delete().eq("party_id", partyId);
+  await admin.from("party_messages").delete().eq("party_id", partyId);
+  await admin.from("party_quests").delete().eq("party_id", partyId);
+
   // Delete all party_members rows for this party
-  const { error: deleteMembersError } = await supabase
+  const { error: deleteMembersError } = await admin
     .from("party_members")
     .delete()
     .eq("party_id", partyId);
 
-  if (deleteMembersError) return { error: "Something went wrong" };
+  if (deleteMembersError) return { error: "Failed to remove members: " + deleteMembersError.message };
 
   // Soft-delete the party record
-  const { error: updateError } = await supabase
+  const { error: updateError } = await admin
     .from("parties")
     .update({
       deleted_at: new Date().toISOString(),
@@ -245,7 +254,7 @@ export async function disbandParty(): Promise<{ success?: boolean; error?: strin
     })
     .eq("id", partyId);
 
-  if (updateError) return { error: "Something went wrong" };
+  if (updateError) return { error: "Failed to disband: " + updateError.message };
 
   revalidatePath("/app/party");
   return { success: true };
