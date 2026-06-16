@@ -126,19 +126,19 @@ function StatCard({
 }) {
   return (
     <div
-      className="flex items-center gap-3 p-4"
+      className="flex items-center gap-4 px-5 py-4"
       style={{
         backgroundImage: "url('/sprites/travel-book/UI_TravelBook_Slot01a.png')",
         backgroundSize: "100% 100%",
         imageRendering: "pixelated",
       }}
     >
-      <img src={icon} alt={label} width={24} height={24} className="pixel-art" />
-      <div>
+      <img src={icon} alt={label} width={28} height={28} className="pixel-art flex-shrink-0" />
+      <div className="min-w-0">
         <p className="font-pixel text-[10px] uppercase tracking-wider" style={{ color: "#c4a882" }}>
           {label}
         </p>
-        <p className="text-xl font-bold" style={{ color: "#f0e6d2" }}>{value}</p>
+        <p className="text-2xl font-bold leading-tight" style={{ color: "#f0e6d2" }}>{value}</p>
       </div>
     </div>
   );

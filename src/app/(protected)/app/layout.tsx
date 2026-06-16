@@ -17,7 +17,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <div className="flex min-h-screen flex-col" style={{ backgroundColor: "var(--pixel-bg-primary)" }}>
       <TopBar profile={profile} pet={pet} />
       <main className="pixel-content-area flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-5xl px-4 py-6 pb-20 md:pb-6">{children}</div>
+        <div className="mx-auto max-w-6xl px-6 py-8 pb-20 md:pb-8">{children}</div>
       </main>
     </div>
   );
