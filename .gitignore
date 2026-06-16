@@ -42,3 +42,5 @@ next-env.d.ts
 
 # Licensed asset packs (not for public distribution)
 /Sprout Lands - UI Pack - Basic pack/
+
+.vercel

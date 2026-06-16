@@ -13,6 +13,7 @@ import {
   MonitorPlay,
   CalendarDays,
   BarChart3,
+  History,
   Users,
   Settings,
   LogOut,
@@ -31,6 +32,7 @@ const navItems = [
   { href: "/app/study-room", label: "Study Room", icon: MonitorPlay },
   { href: "/app/planner", label: "Planner", icon: CalendarDays },
   { href: "/app/analytics", label: "Analytics", icon: BarChart3 },
+  { href: "/app/history", label: "History", icon: History },
   { href: "/app/party", label: "Party", icon: Users },
   { href: "/app/settings", label: "Settings", icon: Settings },
 ];
