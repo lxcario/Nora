@@ -42,8 +42,8 @@ export function Sidebar() {
   return (
     <aside className="flex w-60 flex-col border-r border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
       {/* Logo / Brand */}
-      <div className="flex items-center justify-center border-b border-zinc-200 px-4 py-5 dark:border-zinc-800">
-        <img src="/nora-logo.png" alt="Nora" className="h-12 w-auto" />
+      <div className="flex items-center justify-center border-b border-zinc-200 px-5 py-4 dark:border-zinc-800">
+        <h2 className="font-pixel text-xl tracking-wide text-amber-400">NORA</h2>
       </div>
 
       {/* Navigation */}
