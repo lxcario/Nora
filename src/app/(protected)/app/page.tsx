@@ -126,20 +126,19 @@ function StatCard({
 }) {
   return (
     <div
-      className="flex items-center gap-3 rounded-sm p-4"
+      className="flex items-center gap-3 p-4"
       style={{
         backgroundImage: "url('/sprites/travel-book/UI_TravelBook_Slot01a.png')",
         backgroundSize: "100% 100%",
         imageRendering: "pixelated",
-        border: "none",
       }}
     >
-      <img src={icon} alt={label} width={20} height={20} className="pixel-art" />
+      <img src={icon} alt={label} width={24} height={24} className="pixel-art" />
       <div>
-        <p className="font-pixel text-xs font-medium uppercase tracking-wider text-[var(--pixel-text-secondary)]">
+        <p className="font-pixel text-[10px] uppercase tracking-wider" style={{ color: "#c4a882" }}>
           {label}
         </p>
-        <p className="font-pixel text-lg font-bold text-[var(--pixel-text-primary)]">{value}</p>
+        <p className="text-xl font-bold" style={{ color: "#f0e6d2" }}>{value}</p>
       </div>
     </div>
   );
@@ -159,21 +158,20 @@ function NavCard({
   return (
     <Link
       href={href}
-      className="group rounded-sm p-4 transition-all hover:shadow-md"
+      className="group block p-5 transition-all hover:brightness-110"
       style={{
         backgroundImage: "url('/sprites/travel-book/UI_TravelBook_Frame01a.png')",
         backgroundSize: "100% 100%",
         imageRendering: "pixelated",
-        border: "none",
       }}
     >
       <div className="flex items-start gap-3">
-        <img src={icon} alt={title} width={20} height={20} className="pixel-art mt-0.5" />
+        <img src={icon} alt={title} width={24} height={24} className="pixel-art mt-0.5" />
         <div>
-          <h3 className="font-pixel text-[var(--pixel-text-primary)] group-hover:text-[var(--pixel-accent)]">
+          <h3 className="font-pixel text-sm" style={{ color: "#3d2b1f" }}>
             {title}
           </h3>
-          <p className="mt-1 text-sm text-[var(--pixel-text-secondary)]">
+          <p className="mt-1 text-xs leading-relaxed" style={{ color: "#5a4030" }}>
             {description}
           </p>
         </div>

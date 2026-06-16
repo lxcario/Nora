@@ -49,7 +49,7 @@ export function PixelRoom({ state, quote, studyingMembers }: { state: RoomState;
   return (
     <div className="space-y-4">
       {/* Room viewport */}
-      <div className="relative overflow-hidden rounded-lg border-2 border-zinc-700 bg-gradient-to-b from-[#1a1225] to-[#2d1f3d]">
+      <div className="relative overflow-hidden rounded-sm bg-[#2a1f15]" style={{ border: "3px solid #5a3d2e" }}>
         {/* Party presence indicators — bottom-right of room viewport */}
         <PartyPresenceIndicator members={studyingMembers} />
         {/* Room scene */}
@@ -57,7 +57,7 @@ export function PixelRoom({ state, quote, studyingMembers }: { state: RoomState;
           {/* Room background elements */}
           <div className="absolute inset-0">
             {/* Wall */}
-            <div className="absolute left-0 right-0 top-0 h-[45%] bg-gradient-to-b from-[#2d1f3d] to-[#1a1225]">
+            <div className="absolute left-0 right-0 top-0 h-[45%] bg-gradient-to-b from-[#2a1f15] to-[#3d2817]">
               {/* Window */}
               <div className="absolute left-[12%] top-[15%] h-[65%] w-[16%] rounded-t-lg border-2 border-[#5a3d2e] bg-gradient-to-b from-[#87ceeb] to-[#4a9abb]">
                 <div className="absolute inset-[3px] grid grid-cols-2 grid-rows-2 gap-[2px]">
@@ -76,7 +76,7 @@ export function PixelRoom({ state, quote, studyingMembers }: { state: RoomState;
               </div>
             </div>
             {/* Floor */}
-            <div className="absolute bottom-0 left-0 right-0 h-[55%] bg-[#3d2817]">
+            <div className="absolute bottom-0 left-0 right-0 h-[55%] bg-[#4a3520]">
               <div
                 className="absolute inset-0 opacity-15"
                 style={{
@@ -85,6 +85,14 @@ export function PixelRoom({ state, quote, studyingMembers }: { state: RoomState;
                 }}
               />
             </div>
+            {/* Warm lamp glow */}
+            <div className="absolute top-[20%] left-[30%] w-32 h-32 rounded-full opacity-20"
+              style={{ background: "radial-gradient(circle, #d4a526 0%, transparent 70%)" }}
+            />
+            {/* Cozy rug */}
+            <div className="absolute bottom-[25%] left-[30%] w-[25%] h-[8%] rounded-sm opacity-80"
+              style={{ backgroundColor: "#8b4513", border: "2px solid #5a3d2e" }}
+            />
             {/* Desk */}
             <div className="absolute bottom-[20%] right-[6%] h-[15%] w-[28%] rounded-t bg-[#6b4423]">
               <div className="absolute -top-8 left-[25%] h-8 w-10 rounded-t border-2 border-zinc-600 bg-zinc-800" />
@@ -105,6 +113,7 @@ export function PixelRoom({ state, quote, studyingMembers }: { state: RoomState;
           <div className="relative z-10 flex flex-col items-center">
             <div
               className={`rounded-full border-2 bg-zinc-800/60 p-2 shadow-lg ${STATE_BORDER[state.pet.state]}`}
+              style={state.pet.state === "happy" ? { boxShadow: "0 0 20px rgba(212, 165, 38, 0.3)" } : undefined}
             >
               {state.pet.sprite ? (
                 <Image

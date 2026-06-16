@@ -48,7 +48,7 @@ export function TopBar({ profile, pet }: TopBarProps) {
     <header
       className="sticky top-0 z-40 flex items-center gap-2 px-3 py-2"
       style={{
-        backgroundColor: "var(--pixel-bg-surface)",
+        backgroundColor: "#2a2018",
         borderBottom: "3px solid var(--pixel-border)",
         boxShadow: "0 2px 0 var(--pixel-border-light)",
       }}
