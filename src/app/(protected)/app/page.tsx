@@ -19,6 +19,52 @@ export default async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // Fetch real stats
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("xp, coins, level")
+    .eq("id", user!.id)
+    .single();
+
+  const today = new Date().toISOString().split("T")[0];
+  const { count: cardsDue } = await supabase
+    .from("cards")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user!.id)
+    .lte("next_review_at", today);
+
+  // Calculate streak (consecutive days with activity)
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+  const { data: sessions } = await supabase
+    .from("study_sessions")
+    .select("started_at")
+    .eq("user_id", user!.id)
+    .gte("started_at", thirtyDaysAgo.toISOString());
+
+  const { data: reviews } = await supabase
+    .from("card_reviews")
+    .select("reviewed_at")
+    .eq("user_id", user!.id)
+    .gte("reviewed_at", thirtyDaysAgo.toISOString());
+
+  const activityDates = new Set<string>();
+  (sessions ?? []).forEach((s) => activityDates.add((s.started_at as string).split("T")[0]));
+  (reviews ?? []).forEach((r) => activityDates.add((r.reviewed_at as string).split("T")[0]));
+
+  let streak = 0;
+  const checkDate = new Date();
+  while (true) {
+    const dateStr = checkDate.toISOString().split("T")[0];
+    if (activityDates.has(dateStr)) {
+      streak++;
+      checkDate.setDate(checkDate.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+
   return (
     <div className="space-y-8">
       <PageHeader
@@ -28,10 +74,10 @@ export default async function DashboardPage() {
 
       {/* Quick stats row */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Level" value="1" icon={Star} />
-        <StatCard label="XP" value="0" icon={Sparkles} />
-        <StatCard label="Cards Due" value="—" icon={Layers} />
-        <StatCard label="Streak" value="0 days" icon={Flame} />
+        <StatCard label="Level" value={String(profile?.level ?? 1)} icon={Star} />
+        <StatCard label="XP" value={String(profile?.xp ?? 0)} icon={Sparkles} />
+        <StatCard label="Cards Due" value={String(cardsDue ?? 0)} icon={Layers} />
+        <StatCard label="Streak" value={`${streak} day${streak !== 1 ? "s" : ""}`} icon={Flame} />
       </div>
 
       {/* Navigation cards */}
