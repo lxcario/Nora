@@ -42,9 +42,8 @@ export function Sidebar() {
   return (
     <aside className="flex w-60 flex-col border-r border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
       {/* Logo / Brand */}
-      <div className="flex items-center gap-2 border-b border-zinc-200 px-5 py-4 dark:border-zinc-800">
-        <img src="/nora-logo.png" alt="Nora" className="h-7 w-7 rounded" style={{ imageRendering: "pixelated" }} />
-        <h2 className="font-pixel text-base tracking-tight">Nora</h2>
+      <div className="flex items-center justify-center border-b border-zinc-200 px-5 py-4 dark:border-zinc-800">
+        <img src="/nora-logo.png" alt="Nora" className="h-8" style={{ imageRendering: "pixelated" }} />
       </div>
 
       {/* Navigation */}
