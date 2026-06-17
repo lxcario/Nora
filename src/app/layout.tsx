@@ -33,6 +33,12 @@ export default function RootLayout({
         <link rel="preload" href="/sprites/ui/dialog-box.png" as="image" type="image/png" />
         <link rel="preload" href="/sprites/ui/dialog-box-big.png" as="image" type="image/png" />
         <link rel="preload" href="/sprites/ui/icons.png" as="image" type="image/png" />
+        {/* No-flash: apply cursor pack + animation + theme + accent before first paint */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var d=document.documentElement;d.setAttribute('data-cursor',localStorage.getItem('pixel-cursor-pack')==='catpaw'?'catpaw':'travelbook');d.setAttribute('data-animations',localStorage.getItem('pixel-animations')==='off'?'off':'on');d.setAttribute('data-theme',localStorage.getItem('pixel-theme')==='light'?'light':'dark');var a=localStorage.getItem('pixel-accent-color');if(a){d.style.setProperty('--pixel-accent',a);}}catch(e){}})();`,
+          }}
+        />
       </head>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>

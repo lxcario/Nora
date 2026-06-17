@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, type CSSProperties } from "react";
-import { NineSlice } from "./nine-slice";
 import { useToast, type ToastVariant } from "./toast-provider";
 import { playLevelUp } from "@/lib/sfx";
 
@@ -58,11 +57,10 @@ export function ToastItem({
   const isLevelUp = variant === "level-up";
 
   const wrapperStyle: CSSProperties = {
-    animation: "slide-in-right 300ms ease-out forwards",
-    border: `2px solid ${VARIANT_BORDER_COLORS[variant]}`,
-    borderRadius: "4px",
     maxWidth: "320px",
     width: "100%",
+    padding: "10px 12px",
+    borderImageSource: `url('/sprites/travel-book/UI_TravelBook_Slot01${isLevelUp ? "b" : "a"}.png')`,
   };
 
   const progressBarStyle: CSSProperties = {
@@ -70,47 +68,50 @@ export function ToastItem({
     backgroundColor: VARIANT_PROGRESS_COLORS[variant],
     animation: `toast-progress ${duration}ms linear forwards`,
     imageRendering: "pixelated",
-    borderRadius: "1px",
   };
 
   return (
     <div
+      className={`pixel-panel ${isLevelUp ? "pixel-panel-lg" : ""} animate-pixel-slide-in`}
       style={wrapperStyle}
       role="status"
       aria-live="polite"
       aria-atomic="true"
     >
-      <NineSlice variant={isLevelUp ? "large" : "standard"}>
-        <div style={{ padding: "12px 16px 8px" }}>
-          {/* Message */}
-          <p
-            className={isLevelUp ? "animate-float-up" : undefined}
-            style={{
-              fontFamily: "var(--font-pixel)",
-              fontSize: isLevelUp ? "16px" : "13px",
-              letterSpacing: "1px",
-              color: "var(--pixel-text-primary)",
-              margin: 0,
-              marginBottom: "8px",
-            }}
-          >
-            {message}
-          </p>
+      {/* Variant accent strip */}
+      <div
+        style={{
+          height: "4px",
+          backgroundColor: VARIANT_BORDER_COLORS[variant],
+          marginBottom: "8px",
+        }}
+      />
+      {/* Message */}
+      <p
+        className={isLevelUp ? "animate-pixel-wiggle" : undefined}
+        style={{
+          fontFamily: "var(--font-pixel)",
+          fontSize: isLevelUp ? "16px" : "13px",
+          letterSpacing: "1px",
+          color: "var(--pixel-text-primary)",
+          margin: 0,
+          marginBottom: "8px",
+        }}
+      >
+        {message}
+      </p>
 
-          {/* Progress bar */}
-          <div
-            style={{
-              width: "100%",
-              height: "4px",
-              backgroundColor: "var(--pixel-bg-secondary)",
-              borderRadius: "1px",
-              overflow: "hidden",
-            }}
-          >
-            <div style={progressBarStyle} />
-          </div>
-        </div>
-      </NineSlice>
+      {/* Progress bar */}
+      <div
+        style={{
+          width: "100%",
+          height: "4px",
+          backgroundColor: "var(--pixel-bg-secondary)",
+          overflow: "hidden",
+        }}
+      >
+        <div style={progressBarStyle} />
+      </div>
     </div>
   );
 }

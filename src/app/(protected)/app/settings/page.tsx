@@ -1,9 +1,14 @@
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "../_components/page-header";
-import { User, Palette, Cat, Award, BookOpen } from "lucide-react";
 import { SubjectsManager } from "./_components/subjects-manager";
 import { PetSelector } from "./_components/pet-selector";
 import { ProfileForm } from "./_components/profile-form";
+import { AvatarUpload } from "../_components/avatar-upload";
+import {
+  DialogFrame,
+  PreferencesPanel,
+  CursorPicker,
+} from "@/components/pixel-ui";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
@@ -17,35 +22,49 @@ export default async function SettingsPage() {
     .select("id, name, color, topics(id, name, exam_date)")
     .order("created_at", { ascending: true });
 
+  // Avatar (separate query so missing column pre-migration can't break the page)
+  let avatarUrl: string | null = null;
+  try {
+    const { data: av } = await supabase
+      .from("profiles")
+      .select("avatar_url")
+      .eq("id", user!.id)
+      .single();
+    avatarUrl = (av as { avatar_url?: string | null } | null)?.avatar_url ?? null;
+  } catch {
+    avatarUrl = null;
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-4xl">
       <PageHeader
         title="Settings"
         description="Manage your profile, subjects, and preferences."
       />
 
+      {/* Preferences — animations, sound, cursor */}
+      <DialogFrame title="PREFERENCES">
+        <PreferencesPanel />
+        <div className="mt-4 border-t border-[var(--pixel-border)] pt-4">
+          <p className="font-pixel mb-2 text-sm text-[var(--pixel-text-primary)]">
+            Cursor
+          </p>
+          <CursorPicker />
+        </div>
+      </DialogFrame>
+
       {/* Subjects & Topics */}
-      <section className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-        <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-zinc-500">
-          <BookOpen className="h-4 w-4" />
-          Subjects & Topics
-        </h2>
+      <DialogFrame title="SUBJECTS & TOPICS">
         <SubjectsManager
-          subjects={
-            (subjects ?? []).map((s) => ({
-              ...s,
-              topics: s.topics ?? [],
-            }))
-          }
+          subjects={(subjects ?? []).map((s) => ({
+            ...s,
+            topics: s.topics ?? [],
+          }))}
         />
-      </section>
+      </DialogFrame>
 
       {/* Account section */}
-      <section className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-        <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-zinc-500">
-          <User className="h-4 w-4" />
-          Account
-        </h2>
+      <DialogFrame title="ACCOUNT">
         <div className="space-y-3">
           <SettingRow label="Email" value={user?.email ?? "—"} />
           <SettingRow
@@ -61,51 +80,47 @@ export default async function SettingsPage() {
             }
           />
         </div>
-      </section>
+      </DialogFrame>
 
       {/* Profile section */}
-      <section className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-        <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-zinc-500">
-          <Palette className="h-4 w-4" />
-          Profile
-        </h2>
-        <ProfileForm />
-      </section>
+      <DialogFrame title="PROFILE">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+          <AvatarUpload currentUrl={avatarUrl} size={72} showCaption />
+          <div className="flex-1">
+            <ProfileForm />
+          </div>
+        </div>
+      </DialogFrame>
 
       {/* Avatar & Pet */}
-      <section className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-        <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-zinc-500">
-          <Cat className="h-4 w-4" />
-          Choose Your Pet
-        </h2>
+      <DialogFrame title="CHOOSE YOUR PET">
         <PetSelector currentPetType={null} />
-      </section>
+      </DialogFrame>
 
       {/* Credits */}
-      <section className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-        <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-zinc-500">
-          <Award className="h-4 w-4" />
-          Credits & Licenses
-        </h2>
-        <ul className="space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
+      <DialogFrame title="CREDITS & LICENSES">
+        <ul className="space-y-1 text-sm text-[var(--pixel-text-secondary)]">
           <li>Character sprites: LPC (CC BY-SA 3.0 / GPL 3.0)</li>
-          <li>UI elements: Kenney Pixel UI Pack (CC0)</li>
+          <li>UI — Travel Book by Crusenho (CC BY 4.0)</li>
+          <li>UI — Sprout Lands by Cup Nooble (non-commercial)</li>
           <li>Fonts: CC0 / OFL pixel fonts</li>
           <li>Icons: Lucide (ISC license)</li>
         </ul>
-        <p className="mt-2 text-xs text-zinc-400">
+        <p className="mt-2 text-xs text-[var(--pixel-text-muted)]">
           Full credits in docs/ASSETS.md
         </p>
-      </section>
+      </DialogFrame>
     </div>
   );
 }
 
 function SettingRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between border-b border-zinc-100 pb-2 last:border-0 dark:border-zinc-800">
-      <span className="text-sm text-zinc-500 dark:text-zinc-400">{label}</span>
-      <span className="text-sm font-medium">{value}</span>
+    <div className="flex items-center justify-between border-b border-[var(--pixel-border)] pb-2 last:border-0">
+      <span className="text-sm text-[var(--pixel-text-secondary)]">{label}</span>
+      <span className="text-sm font-medium text-[var(--pixel-text-primary)]">
+        {value}
+      </span>
     </div>
   );
 }

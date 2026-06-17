@@ -1,5 +1,3 @@
-import { NineSlice } from "./nine-slice";
-
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -22,13 +20,9 @@ export interface DialogFrameProps {
 // ---------------------------------------------------------------------------
 
 /**
- * Card wrapper that composes a NineSlice panel with optional title header
- * and state-based styling. Uses the 8px grid for internal padding.
- *
- * - Wraps a NineSlice in an outer container that carries the `data-state` attribute
- * - If `title` is provided, displays a pixel-font header at the top of the content
- * - Applies state-based border/outline styling when state !== "default"
- * - Internal padding of 16px (2 × spacing-pixel) for children content
+ * Dark pixel-art panel with subtle border styling.
+ * Uses CSS borders and background to create a clean dark panel
+ * that fits the cozy dark theme without visible sprite tiling artifacts.
  */
 export function DialogFrame({
   title,
@@ -43,30 +37,27 @@ export function DialogFrame({
 
   return (
     <div
-      className={className}
+      className={`pixel-panel ${variant === "large" ? "pixel-panel-lg" : ""} ${className ?? ""}`.trim()}
       {...stateProps}
-      style={{ border: "2px solid transparent", borderRadius: "4px" }}
     >
-      <NineSlice variant={variant}>
-        <div style={{ padding: "16px" }}>
-          {title && (
-            <header
-              style={{
-                fontFamily: "var(--font-pixel)",
-                fontSize: "14px",
-                letterSpacing: "1px",
-                color: "var(--pixel-text-primary)",
-                paddingBottom: "8px",
-                marginBottom: "8px",
-                borderBottom: "2px solid var(--pixel-border-light)",
-              }}
-            >
-              {title}
-            </header>
-          )}
-          {children}
-        </div>
-      </NineSlice>
+      <div style={{ padding: variant === "large" ? "20px" : "16px" }}>
+        {title && (
+          <header
+            style={{
+              fontFamily: "var(--font-pixel)",
+              fontSize: "14px",
+              letterSpacing: "1px",
+              color: "var(--pixel-accent)",
+              paddingBottom: "8px",
+              marginBottom: "12px",
+              borderBottom: "2px solid var(--pixel-border)",
+            }}
+          >
+            {title}
+          </header>
+        )}
+        {children}
+      </div>
     </div>
   );
 }

@@ -10,8 +10,12 @@ export type { SpriteCoord, SpriteMap } from "./sprite-map";
 // Primitives
 export { NineSlice } from "./nine-slice";
 export type { NineSliceProps } from "./nine-slice";
+export { PixelPanel } from "./pixel-panel";
+export type { PixelPanelProps } from "./pixel-panel";
 export { PixelButton } from "./pixel-button";
 export type { PixelButtonProps } from "./pixel-button";
+export { PixelCounter } from "./pixel-counter";
+export type { PixelCounterProps } from "./pixel-counter";
 export { IconSprite } from "./icon-sprite";
 export type { IconSpriteProps } from "./icon-sprite";
 export { PixelInput } from "./pixel-input";
@@ -46,3 +50,11 @@ export type { PixelHeatmapProps } from "./pixel-heatmap";
 // Navigation
 export { PixelSidebar } from "./pixel-sidebar";
 export { BottomNav } from "./bottom-nav";
+
+// Preferences
+export { PreferencesProvider, usePreferences } from "./preferences-provider";
+export type { CursorPack, Preferences } from "./preferences-provider";
+export { PreferencesPanel } from "./preferences-panel";
+export { CursorPicker } from "./cursor-picker";
+export { PixelToggle } from "./pixel-toggle";
+export type { PixelToggleProps } from "./pixel-toggle";

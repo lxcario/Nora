@@ -10,24 +10,79 @@
 }
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
   --font-pixel: "SproutLands", monospace;
 
-  /* Pixel Theme - Light Mode Color Palette */
-  --pixel-bg-primary: #f5ead6;       /* cream/parchment */
-  --pixel-bg-secondary: #ede0c8;     /* darker parchment */
-  --pixel-bg-surface: #faf4e8;       /* card surface */
-  --pixel-text-primary: #3d2b1f;     /* dark brown */
-  --pixel-text-secondary: #6b4e37;   /* medium brown */
-  --pixel-accent: #d4a526;           /* amber/gold */
-  --pixel-accent-hover: #e6b832;     /* brighter gold */
-  --pixel-success: #6b8f4a;          /* sage green */
-  --pixel-warning: #d4a526;          /* amber */
-  --pixel-error: #a94442;            /* muted red */
-  --pixel-border: #8b6f47;           /* brown border */
-  --pixel-border-light: #c4a882;     /* light brown border */
-  --pixel-disabled: #a89880;         /* muted gray-brown */
+  /* ═══════════════════════════════════════════════════════════════════════
+     Dark Pixel Theme (always-on, matching reference image)
+     Deep brown/charcoal base with warm amber/gold accents
+     ═══════════════════════════════════════════════════════════════════════ */
+  --background: #0f0b08;
+  --foreground: #f0e6d2;
+
+  --pixel-bg-primary: #1a1410;        /* main background — deep brown-black */
+  --pixel-bg-secondary: #241c14;      /* slightly lighter card bg */
+  --pixel-bg-surface: #2a2018;        /* panel/dialog interior */
+  --pixel-bg-elevated: #342a1e;       /* hover/elevated surfaces */
+  --pixel-text-primary: #f0e6d2;      /* warm cream text */
+  --pixel-text-secondary: #c4a882;    /* muted tan text */
+  --pixel-text-muted: #8b7355;        /* dimmed helper text */
+  --pixel-accent: #d4a526;            /* amber/gold accent */
+  --pixel-accent-hover: #e6b832;      /* brighter gold on hover */
+  --pixel-success: #7da856;           /* sage green (XP, progress) */
+  --pixel-warning: #e6b832;           /* amber warning */
+  --pixel-error: #c45a58;             /* muted red */
+  --pixel-border: #3d2817;            /* dark brown border */
+  --pixel-border-light: #5a3d2e;      /* lighter brown for separators */
+  --pixel-disabled: #4a3d30;          /* disabled/muted state */
+  --pixel-sidebar-bg: #1e1814;        /* sidebar darker bg */
+  --pixel-sidebar-active: #2d4a2d;    /* sidebar active item green tint */
+  --pixel-card-purple: #3a2540;       /* study mode card: purple */
+  --pixel-card-teal: #1e3a3a;         /* study mode card: teal */
+  --pixel-card-navy: #1e2a3a;         /* study mode card: navy */
+  --pixel-card-olive: #3a3520;        /* study mode card: olive */
+  --pixel-card-forest: #1e3a28;       /* study mode card: forest */
+  --pixel-card-plum: #2e1e3a;         /* study mode card: plum */
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LIGHT THEME — cozy parchment palette. Applied via [data-theme="light"] on
+   <html> (Settings toggle). Default (no attr / "dark") keeps the values above.
+   ═══════════════════════════════════════════════════════════════════════════ */
+[data-theme="light"] {
+  --background: #f3e7cf;
+  --foreground: #3a2a1c;
+
+  --pixel-bg-primary: #f3e7cf;       /* warm parchment */
+  --pixel-bg-secondary: #e9dabd;     /* darker parchment */
+  --pixel-bg-surface: #fbf4e6;       /* card surface */
+  --pixel-bg-elevated: #e2d0ad;      /* hover/elevated */
+  --pixel-text-primary: #3a2a1c;     /* dark cocoa text */
+  --pixel-text-secondary: #6d5236;   /* medium brown */
+  --pixel-text-muted: #93785a;       /* dim helper */
+  --pixel-accent: #b07e15;           /* deeper amber for contrast on light */
+  --pixel-accent-hover: #c9961f;
+  --pixel-success: #5d8636;          /* forest green */
+  --pixel-warning: #c2901c;
+  --pixel-error: #b0413f;            /* brick red */
+  --pixel-border: #b08a5a;           /* warm wood border */
+  --pixel-border-light: #d7c19a;     /* light wood separator */
+  --pixel-disabled: #cdbb98;
+  --pixel-sidebar-bg: #e9dabd;
+  --pixel-sidebar-active: #cdd9b0;
+  --pixel-card-purple: #d8c3e0;
+  --pixel-card-teal: #bcd8d4;
+  --pixel-card-navy: #c2cfdd;
+  --pixel-card-olive: #d6cfa6;
+  --pixel-card-forest: #c2d8c2;
+  --pixel-card-plum: #d3c0dd;
+
+  /* Light grid background */
+  --grid-bg-base: #efe1c6;
+  --grid-bg-base-2: #e7d6b6;
+  --grid-line: rgba(150, 110, 60, 0.12);
+  --grid-line-strong: rgba(150, 110, 60, 0.22);
+  --grid-star: rgba(150, 110, 60, 0.20);
+  --grid-glow: rgba(212, 165, 38, 0.16);
 }
 
 @theme inline {
@@ -40,6 +95,7 @@
   --color-pixel-bg: var(--pixel-bg-primary);
   --color-pixel-bg-secondary: var(--pixel-bg-secondary);
   --color-pixel-surface: var(--pixel-bg-surface);
+  --color-pixel-elevated: var(--pixel-bg-elevated);
   --color-pixel-text: var(--pixel-text-primary);
   --color-pixel-text-muted: var(--pixel-text-secondary);
   --color-pixel-accent: var(--pixel-accent);
@@ -58,30 +114,8 @@
   --spacing-pixel: 8px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-
-    /* Pixel Theme - Dark Mode Color Palette */
-    --pixel-bg-primary: #1a1410;
-    --pixel-bg-secondary: #2a2018;
-    --pixel-bg-surface: #241c14;
-    --pixel-text-primary: #f0e6d2;
-    --pixel-text-secondary: #c4a882;
-    --pixel-accent: #e6b832;
-    --pixel-accent-hover: #f0c844;
-    --pixel-success: #7da856;
-    --pixel-warning: #e6b832;
-    --pixel-error: #c45a58;
-    --pixel-border: #6b4e37;
-    --pixel-border-light: #8b6f47;
-    --pixel-disabled: #4a3d30;
-  }
-}
-
 body {
-  background: var(--background);
+  background: var(--pixel-bg-primary);
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
@@ -98,24 +132,23 @@ body {
   letter-spacing: 1px;
 }
 
-
-/* View Transitions — smooth cross-fade between routes */
+/* View Transitions — stepped pixel dissolve between routes (retro, not a smooth fade) */
 ::view-transition-old(root) {
-  animation: fade-out 200ms ease-out;
+  animation: pixel-dissolve-out 220ms steps(5) both;
 }
 
 ::view-transition-new(root) {
-  animation: fade-in 200ms ease-in;
+  animation: pixel-dissolve-in 220ms steps(5) both;
 }
 
-@keyframes fade-out {
-  from { opacity: 1; transform: translateY(0); }
-  to { opacity: 0; transform: translateY(-4px); }
+@keyframes pixel-dissolve-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
 }
 
-@keyframes fade-in {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
+@keyframes pixel-dissolve-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 /* Reduce motion for accessibility */
@@ -131,11 +164,189 @@ body {
     animation: none;
   }
 
-  /* Disable hover animations and sprite transitions for pixel UI */
   * {
     transition-duration: 0ms !important;
     animation-duration: 0ms !important;
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ANIMATION KILL SWITCH
+   Set `data-animations="off"` on <html> (via the Settings toggle) to disable
+   every animation and transition app-wide. Honors the same code path as
+   prefers-reduced-motion so the two stay consistent.
+   ═══════════════════════════════════════════════════════════════════════════ */
+[data-animations="off"] *,
+[data-animations="off"] *::before,
+[data-animations="off"] *::after {
+  animation: none !important;
+  transition: none !important;
+}
+
+[data-animations="off"] ::view-transition-old(root),
+[data-animations="off"] ::view-transition-new(root) {
+  animation: none !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SYNTHWAVE PIXEL GRID BACKGROUND
+   Cool retro grid field for the main workspace. Warm amber panels float on top
+   for depth + contrast (amber-CRT-on-deep-blue retro combo). Kept low-contrast
+   so content panels remain readable. All offsets are integer px for crisp edges.
+   ═══════════════════════════════════════════════════════════════════════════ */
+:root {
+  --grid-bg-base: #160f0a;        /* deep cozy brown-black base */
+  --grid-bg-base-2: #1f1610;      /* slightly lighter toward horizon */
+  --grid-line: rgba(120, 88, 50, 0.12);    /* faint warm-brown grid lines */
+  --grid-line-strong: rgba(150, 110, 64, 0.22);
+  --grid-star: rgba(212, 165, 38, 0.28);   /* faint amber dust motes */
+  --grid-glow: rgba(120, 78, 30, 0.20);     /* warm hearth glow */
+}
+
+.pixel-grid-bg {
+  background-color: var(--grid-bg-base);
+  background-image:
+    /* horizon glow near top */
+    radial-gradient(120% 60% at 50% 0%, var(--grid-glow) 0%, transparent 55%),
+    /* scattered stars (static, integer positions) */
+    radial-gradient(1px 1px at 12% 18%, var(--grid-star) 50%, transparent 51%),
+    radial-gradient(1px 1px at 27% 42%, var(--grid-star) 50%, transparent 51%),
+    radial-gradient(1px 1px at 41% 12%, var(--grid-star) 50%, transparent 51%),
+    radial-gradient(1px 1px at 63% 33%, var(--grid-star) 50%, transparent 51%),
+    radial-gradient(1px 1px at 78% 22%, var(--grid-star) 50%, transparent 51%),
+    radial-gradient(1px 1px at 88% 48%, var(--grid-star) 50%, transparent 51%),
+    radial-gradient(1px 1px at 54% 58%, var(--grid-star) 50%, transparent 51%),
+    /* vertical grid lines */
+    repeating-linear-gradient(90deg, var(--grid-line) 0 1px, transparent 1px 32px),
+    /* horizontal grid lines */
+    repeating-linear-gradient(0deg, var(--grid-line) 0 1px, transparent 1px 32px),
+    /* base vertical gradient toward horizon */
+    linear-gradient(180deg, var(--grid-bg-base) 0%, var(--grid-bg-base-2) 100%);
+  image-rendering: pixelated;
+}
+
+/* Stronger variant for hero/room areas */
+.pixel-grid-bg-strong {
+  --grid-line: var(--grid-line-strong);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PIXEL PANEL — real sprite 9-slice via CSS border-image
+   Source: Travel Book Slot01a (30×30) — the only fully-symmetric, clean-tiling
+   frame in the asset set (verified pixel-by-pixel). Its border is exactly 2px,
+   so border-image-slice: 2 is exact (no guessing, no sub-pixel artifacts).
+
+   We deliberately omit the `fill` keyword so the panel interior is OUR themed
+   background-color (not the sprite's grey), and use background-clip: padding-box
+   so the rounded transparent corners reveal the grid behind the panel.
+
+   border-width MUST stay an integer multiple of the slice (2) to keep pixels
+   crisp — default 6px = slice(2) × 3x.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.pixel-panel {
+  border-style: solid;
+  border-width: 6px;
+  border-image-source: url('/sprites/travel-book/UI_TravelBook_Slot01a.png');
+  border-image-slice: 2;
+  border-image-repeat: stretch;
+  background-color: var(--pixel-bg-surface);
+  background-clip: padding-box;
+  image-rendering: pixelated;
+}
+
+/* Recessed/inset look (inputs, wells) — darker interior */
+.pixel-panel-inset {
+  background-color: var(--pixel-bg-primary);
+}
+
+/* Selected/active frame — brighter highlight variant (Slot01b) */
+.pixel-panel-selected {
+  border-image-source: url('/sprites/travel-book/UI_TravelBook_Slot01b.png');
+}
+
+/* Thicker frame for hero panels — 8px = slice(2) × 4x */
+.pixel-panel-lg {
+  border-width: 8px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PIXEL BUTTON — real sprite 9-slice via border-image
+   Source: cropped btn-0-0.png (26×28) from the Sprout Lands button sheet.
+   Geometry (verified pixel-by-pixel): 3px side borders, 4px highlighted top
+   cap, 6px shadowed bottom cap, uniform tileable middle.
+   slice "4 3 6 3" → border-width "8 6 12 6" keeps every region at an exact 2x
+   integer scale (crisp, no sub-pixel blur). No `fill`: the interior color is
+   themed per variant, the sprite supplies the beveled 3D border.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.pixel-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 2px 14px;
+  border-style: solid;
+  border-width: 8px 6px 12px 6px;
+  border-image-source: url('/sprites/ui/buttons/btn-0-0.png');
+  border-image-slice: 4 3 6 3;
+  border-image-repeat: stretch;
+  border-radius: 0;
+  background-color: var(--pixel-bg-elevated);
+  background-clip: padding-box;
+  color: var(--pixel-text-primary);
+  font-family: var(--font-pixel);
+  font-size: 14px;
+  letter-spacing: 1px;
+  line-height: 1;
+  image-rendering: pixelated;
+  transition: filter 80ms steps(2), transform 80ms steps(2);
+}
+
+.pixel-btn:hover:not(:disabled):not([aria-disabled="true"]) {
+  filter: brightness(1.08);
+  background-color: var(--pixel-bg-elevated);
+}
+
+.pixel-btn:active:not(:disabled):not([aria-disabled="true"]) {
+  transform: translateY(2px);
+  filter: brightness(0.92);
+}
+
+.pixel-btn:focus-visible {
+  outline: 3px solid var(--pixel-accent);
+  outline-offset: 2px;
+}
+
+.pixel-btn:disabled,
+.pixel-btn[aria-disabled="true"] {
+  filter: grayscale(0.7);
+  opacity: 0.55;
+}
+
+/* Variants — interior color conveys meaning, sprite supplies the bevel */
+.pixel-btn-primary {
+  background-color: var(--pixel-accent);
+  color: #1a1410;
+}
+.pixel-btn-secondary {
+  background-color: var(--pixel-bg-elevated);
+  color: var(--pixel-text-primary);
+}
+.pixel-btn-danger {
+  background-color: var(--pixel-error);
+  color: #fff5f5;
+}
+.pixel-btn-success {
+  background-color: var(--pixel-success);
+  color: #14210a;
+}
+
+/* Small label variant (border stays 2x for crispness; only text shrinks) */
+.pixel-btn-sm {
+  font-size: 11px;
+  padding: 0 8px;
 }
 
 /* Micro-interaction animations */
@@ -173,16 +384,87 @@ body {
   to { width: 0%; }
 }
 
-/* Pixel-art custom cursors — Travel Book pack */
-html {
-  cursor: url('/sprites/travel-book/cursors/cursor-default.png'), auto;
+/* ═══════════════════════════════════════════════════════════════════════════
+   CUSTOM PIXEL CURSOR SYSTEM
+   - Cursor URLs live in CSS variables so the active pack can be swapped at
+     runtime by setting `data-cursor="<pack>"` on <html>.
+   - Applied to `*` so the OS cursor never leaks on ANY element (the bug where
+     random components showed the default arrow). Element/class selectors are
+     more specific than `*`, so components can still override their own cursor.
+   - Wrapped in `@media (hover: hover) and (pointer: fine)` so touch devices and
+     assistive setups are unaffected (research-recommended).
+   - Hotspot coordinates (the two numbers after the url) align the click point
+     to the visual tip. Tune per sprite if needed.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Default pack: Travel Book — 2× scaled (28×32) for visibility.
+     Hotspot scaled to match: arrow tip at pixel (2, 2) in 2× space. */
+  --cur-default: url('/sprites/travel-book/cursors/cursor-pointer-2x.png') 2 2;
+  --cur-pointer: url('/sprites/travel-book/cursors/cursor-pointer-2x.png') 2 2;
+  --cur-text: url('/sprites/travel-book/cursors/cursor-pointer-2x.png') 2 2;
+  --cur-grab: url('/sprites/travel-book/cursors/cursor-pointer-2x.png') 2 2;
 }
 
-a,
-button,
-[role="button"],
-input[type="submit"] {
-  cursor: url('/sprites/travel-book/cursors/cursor-pointer.png'), pointer;
+/* Catpaw pack (Sprout Lands) — 2× scaled (32×32) */
+[data-cursor="catpaw"] {
+  --cur-default: url('/sprites/cursors/catpaw/default-2x.png') 6 2;
+  --cur-pointer: url('/sprites/cursors/catpaw/pointer-2x.png') 12 2;
+  --cur-text: url('/sprites/cursors/catpaw/default-2x.png') 6 2;
+  --cur-grab: url('/sprites/cursors/catpaw/grab-2x.png') 12 4;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  /* Floor: every element gets the custom default cursor — no OS leaks */
+  *,
+  *::before,
+  *::after {
+    cursor: var(--cur-default), auto !important;
+  }
+
+  /* Interactive elements → pointer (pixel hand) */
+  a,
+  button,
+  [role="button"],
+  [type="submit"],
+  [type="button"],
+  [type="reset"],
+  label[for],
+  summary,
+  select,
+  .cursor-pixel-pointer {
+    cursor: var(--cur-pointer), pointer !important;
+  }
+
+  /* Force pointer to propagate to ALL children inside interactive elements
+     (fixes cursor only showing on border edges, not on inner text/images) */
+  a *,
+  button *,
+  [role="button"] *,
+  .cursor-pixel-pointer * {
+    cursor: inherit !important;
+  }
+
+  /* Text-entry fields → text-affordance cursor (still a pixel sprite) */
+  input:not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]),
+  textarea,
+  [contenteditable="true"],
+  .cursor-pixel-text {
+    cursor: var(--cur-text), text !important;
+  }
+
+  /* Grab/drag affordance utility */
+  .cursor-pixel-grab {
+    cursor: var(--cur-grab), grab !important;
+  }
+
+  /* Disabled / non-interactive */
+  :disabled,
+  [disabled],
+  [data-state="disabled"],
+  [aria-disabled="true"] {
+    cursor: var(--cur-default), not-allowed !important;
+  }
 }
 
 /* UI State system — data-state attribute selectors */
@@ -203,8 +485,8 @@ input[type="submit"] {
 }
 
 [data-state="selected"] {
-  background-color: var(--pixel-accent);
-  color: var(--pixel-bg-primary);
+  background-color: var(--pixel-sidebar-active);
+  color: var(--pixel-text-primary);
 }
 
 [data-state="success"] {
@@ -233,25 +515,479 @@ input[type="submit"] {
   100% { background-position: 200% 0; }
 }
 
-/* Stardew-style warm parchment texture for main content area (light mode only) */
-.pixel-content-area {
-  background-color: var(--pixel-bg-primary);
-  background-image: 
-    repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 31px,
-      color-mix(in srgb, var(--pixel-border-light) 15%, transparent) 31px,
-      color-mix(in srgb, var(--pixel-border-light) 15%, transparent) 32px
-    );
+/* Stepped blink (loading dots / cursor) — hard on/off, no easing */
+@keyframes pixel-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0.25; }
+}
+.animate-pixel-blink {
+  animation: pixel-blink 0.8s steps(1) infinite;
 }
 
-@media (prefers-color-scheme: dark) {
-  .pixel-content-area {
-    background-image: none;
-  }
+/* Stepped hop — pixel-art bounce in 3 discrete steps (no smooth easing).
+   Used on nav icons on hover / active. */
+@keyframes pixel-hop {
+  0%   { transform: translateY(0); }
+  33%  { transform: translateY(-3px); }
+  66%  { transform: translateY(-1px); }
+  100% { transform: translateY(0); }
+}
+.nav-ico {
+  display: inline-flex;
+}
+a:hover > .nav-ico,
+.pixel-panel-selected > .nav-ico {
+  animation: pixel-hop 0.4s steps(3) 1;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   STEPPED PIXEL ANIMATIONS
+   All use steps() timing for the discrete, frame-by-frame feel of pixel art
+   (no smooth easing). Disabled app-wide by [data-animations="off"] and by
+   prefers-reduced-motion.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Pop-in — panels/cards appear with a chunky 4-step scale */
+@keyframes pixel-pop {
+  0%   { transform: scale(0.85); opacity: 0; }
+  50%  { transform: scale(1.04); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.animate-pixel-pop { animation: pixel-pop 0.24s steps(4) 1 both; }
+
+/* Slide-in from right — toasts (6 discrete steps) */
+@keyframes pixel-slide-in {
+  0%   { transform: translateX(110%); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+.animate-pixel-slide-in { animation: pixel-slide-in 0.28s steps(6) 1 both; }
+
+/* Idle float — gentle 2-step bob for pets/decor */
+@keyframes pixel-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-2px); }
+}
+.animate-pixel-float { animation: pixel-float 1.2s steps(2) infinite; }
+
+/* Wiggle — happy 4-step shake (rewards, evolve-ready) */
+@keyframes pixel-wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25%      { transform: rotate(-4deg); }
+  50%      { transform: rotate(0deg); }
+  75%      { transform: rotate(4deg); }
+}
+.animate-pixel-wiggle { animation: pixel-wiggle 0.4s steps(4) 1; }
+
+/* Progress fill — stepped grow (HP/MP/XP bar feel) */
+@keyframes pixel-fill {
+  from { width: 0; }
+}
+.animate-pixel-fill { animation: pixel-fill 0.6s steps(10) 1 both; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Global Form Elements — Dark Pixel Theme
+   All inputs, selects, textareas, and buttons inherit the cozy dark aesthetic
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+input,
+textarea,
+select {
+  background-color: var(--pixel-bg-primary);
+  color: var(--pixel-text-primary);
+  border: 2px solid var(--pixel-border);
+  border-radius: 4px;
+  padding: 10px 12px;
+  font-size: 14px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--pixel-accent);
+  box-shadow: 0 0 0 2px rgba(212, 165, 38, 0.15);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--pixel-text-muted);
+}
+
+select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23c4a882'%3E%3Cpath d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+select option {
+  background-color: var(--pixel-bg-surface);
+  color: var(--pixel-text-primary);
+}
+
+/* Buttons — pixel-art styled with amber accent */
+button,
+[type="button"],
+[type="submit"],
+[type="reset"] {
+  background-color: var(--pixel-bg-elevated);
+  color: var(--pixel-text-primary);
+  border: 2px solid var(--pixel-border);
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.15s ease;
+}
+
+button:hover,
+[type="button"]:hover,
+[type="submit"]:hover,
+[type="reset"]:hover {
+  background-color: var(--pixel-accent);
+  border-color: var(--pixel-accent);
+  color: var(--pixel-bg-primary);
+}
+
+button:active,
+[type="button"]:active,
+[type="submit"]:active,
+[type="reset"]:active {
+  transform: translateY(1px);
+}
+
+button:disabled,
+[type="button"]:disabled,
+[type="submit"]:disabled,
+[type="reset"]:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: var(--pixel-disabled);
+  border-color: var(--pixel-border);
+  color: var(--pixel-text-muted);
+}
+
+button:disabled:hover,
+[type="button"]:disabled:hover,
+[type="submit"]:disabled:hover,
+[type="reset"]:disabled:hover {
+  transform: none;
+  background-color: var(--pixel-disabled);
+}
+
+/* Label styling */
+label {
+  color: var(--pixel-text-primary);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* Headings within app */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--pixel-text-primary);
+}
+
+/* Paragraph and general text */
+p {
+  color: var(--pixel-text-secondary);
+}
+
+/* Links */
+a {
+  color: var(--pixel-accent);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+a:hover {
+  color: var(--pixel-accent-hover);
+}
+
+/* Tables */
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+th {
+  background-color: var(--pixel-bg-surface);
+  color: var(--pixel-text-primary);
+  font-weight: 600;
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 2px solid var(--pixel-border);
+}
+
+td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--pixel-border);
+  color: var(--pixel-text-secondary);
+}
+
+tr:hover td {
+  background-color: var(--pixel-bg-secondary);
+}
+
+/* HR / Dividers */
+hr {
+  border: none;
+  border-top: 1px solid var(--pixel-border);
+  margin: 16px 0;
+}
+
+/* Code blocks */
+code {
+  background-color: var(--pixel-bg-secondary);
+  color: var(--pixel-accent);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 0.875em;
+}
+
+pre {
+  background-color: var(--pixel-bg-secondary);
+  border: 1px solid var(--pixel-border);
+  border-radius: 4px;
+  padding: 12px 16px;
+  overflow-x: auto;
+}
+
+/* Scrollbar styling for dark theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--pixel-bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--pixel-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--pixel-border-light);
 }
 
 /* Scrollbar hiding utility */
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LEGACY OVERRIDE LAYER
+   Forces old Tailwind dark:/light class patterns to use the pixel theme.
+   This ensures all existing pages (review, research, planner, etc.) 
+   automatically inherit the dark pixel-art aesthetic without per-file edits.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Card/Panel backgrounds ── */
+.bg-white,
+.dark\:bg-zinc-900,
+.dark\:bg-zinc-800 {
+  background-color: var(--pixel-bg-surface) !important;
+}
+
+.bg-zinc-50,
+.dark\:bg-zinc-800\/50,
+.bg-gray-50 {
+  background-color: var(--pixel-bg-secondary) !important;
+}
+
+.bg-zinc-100,
+.dark\:bg-zinc-700 {
+  background-color: var(--pixel-bg-elevated) !important;
+}
+
+/* ── Border colors ── */
+.border-zinc-200,
+.dark\:border-zinc-800,
+.border-zinc-300,
+.dark\:border-zinc-700,
+.border-gray-200 {
+  border-color: var(--pixel-border) !important;
+}
+
+.border-zinc-100,
+.dark\:border-zinc-600 {
+  border-color: var(--pixel-border-light) !important;
+}
+
+/* ── Text colors ── */
+.text-zinc-900,
+.dark\:text-zinc-100,
+.text-gray-900 {
+  color: var(--pixel-text-primary) !important;
+}
+
+.text-zinc-700,
+.dark\:text-zinc-300,
+.text-gray-700 {
+  color: var(--pixel-text-primary) !important;
+}
+
+.text-zinc-600,
+.dark\:text-zinc-400,
+.text-gray-600 {
+  color: var(--pixel-text-secondary) !important;
+}
+
+.text-zinc-500,
+.dark\:text-zinc-400,
+.text-gray-500 {
+  color: var(--pixel-text-secondary) !important;
+}
+
+.text-zinc-400,
+.dark\:text-zinc-500,
+.text-gray-400 {
+  color: var(--pixel-text-muted) !important;
+}
+
+/* ── Error/Warning states ── */
+.bg-red-50,
+.dark\:bg-red-900\/20 {
+  background-color: rgba(196, 90, 88, 0.08) !important;
+}
+
+.border-red-200,
+.dark\:border-red-800 {
+  border-color: var(--pixel-error) !important;
+}
+
+.text-red-700,
+.dark\:text-red-400 {
+  color: var(--pixel-error) !important;
+}
+
+/* ── Success states ── */
+.bg-emerald-50,
+.dark\:bg-emerald-900\/10,
+.dark\:bg-emerald-900\/20 {
+  background-color: rgba(125, 168, 86, 0.08) !important;
+}
+
+.border-emerald-200,
+.dark\:border-emerald-800 {
+  border-color: var(--pixel-success) !important;
+}
+
+.text-emerald-600,
+.dark\:text-emerald-400,
+.text-emerald-400,
+.dark\:text-emerald-600 {
+  color: var(--pixel-success) !important;
+}
+
+/* ── Indigo/Accent states (loading, active buttons) ── */
+.bg-indigo-50,
+.dark\:bg-indigo-900\/20 {
+  background-color: rgba(212, 165, 38, 0.08) !important;
+}
+
+.border-indigo-200,
+.dark\:border-indigo-800 {
+  border-color: var(--pixel-accent) !important;
+}
+
+.text-indigo-700,
+.dark\:text-indigo-300,
+.text-indigo-600,
+.text-indigo-500 {
+  color: var(--pixel-accent) !important;
+}
+
+.bg-indigo-600 {
+  background-color: var(--pixel-accent) !important;
+  color: var(--pixel-bg-primary) !important;
+}
+
+.bg-indigo-600:hover,
+.hover\:bg-indigo-700:hover {
+  background-color: var(--pixel-accent-hover) !important;
+}
+
+/* ── Amber states ── */
+.bg-amber-50,
+.dark\:bg-amber-900\/10 {
+  background-color: rgba(230, 184, 50, 0.08) !important;
+}
+
+.border-amber-500,
+.border-l-amber-500 {
+  border-color: var(--pixel-warning) !important;
+}
+
+/* ── Emerald button ── */
+.bg-emerald-600 {
+  background-color: var(--pixel-success) !important;
+  color: white !important;
+}
+
+.bg-emerald-600:hover,
+.hover\:bg-emerald-700:hover {
+  background-color: var(--pixel-success) !important;
+  filter: brightness(1.1);
+}
+
+/* ── Hover states on interactive elements ── */
+.hover\:bg-zinc-100:hover,
+.dark\:hover\:bg-zinc-700:hover {
+  background-color: var(--pixel-bg-elevated) !important;
+}
+
+.hover\:border-emerald-300:hover,
+.dark\:hover\:border-emerald-700:hover {
+  border-color: var(--pixel-success) !important;
+}
+
+.hover\:bg-emerald-50:hover,
+.dark\:hover\:bg-emerald-900\/20:hover {
+  background-color: rgba(125, 168, 86, 0.1) !important;
+}
+
+.hover\:border-amber-300:hover,
+.dark\:hover\:border-amber-700:hover {
+  border-color: var(--pixel-warning) !important;
+}
+
+.hover\:bg-amber-50:hover,
+.dark\:hover\:bg-amber-900\/20:hover {
+  background-color: rgba(230, 184, 50, 0.08) !important;
+}
+
+.hover\:border-indigo-300:hover,
+.dark\:hover\:border-indigo-700:hover {
+  border-color: var(--pixel-accent) !important;
+}
+
+.hover\:bg-indigo-50:hover,
+.dark\:hover\:bg-indigo-900\/20:hover {
+  background-color: rgba(212, 165, 38, 0.08) !important;
+}
+
+/* ── Ring/Focus overrides ── */
+.ring-zinc-200,
+.dark\:ring-zinc-700 {
+  --tw-ring-color: var(--pixel-border) !important;
+}
+
+.focus\:ring-indigo-500:focus {
+  --tw-ring-color: var(--pixel-accent) !important;
+}
+
+/* ── Divide color overrides ── */
+.divide-zinc-200 > * + *,
+.dark\:divide-zinc-800 > * + * {
+  border-color: var(--pixel-border) !important;
+}
+
+/* ── Placeholder text ── */
+.placeholder\:text-zinc-500::placeholder,
+.placeholder\:text-zinc-400::placeholder {
+  color: var(--pixel-text-muted) !important;
+}

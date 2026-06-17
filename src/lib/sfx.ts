@@ -162,3 +162,68 @@ export function playSessionComplete(): void {
   playNote(783.99, 0.25, now + 0.35, "triangle", 0.14); // G5
   playNote(1046.5, 0.3, now + 0.55, "triangle", 0.12); // C6
 }
+
+// ---------------------------------------------------------------------------
+// UI interaction sounds (frequency sweeps) — research-tuned retro recipes
+// ---------------------------------------------------------------------------
+
+/**
+ * Play a frequency sweep (glide) — used for UI clicks, toggles, navigation.
+ */
+function playSweep(
+  fromFreq: number,
+  toFreq: number,
+  duration: number,
+  startTime: number,
+  type: OscillatorType = "triangle",
+  volume = 0.1
+) {
+  const ctx = getAudioContext();
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+
+  osc.type = type;
+  osc.frequency.setValueAtTime(fromFreq, startTime);
+  osc.frequency.linearRampToValueAtTime(toFreq, startTime + duration);
+
+  gain.gain.setValueAtTime(volume, startTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+
+  osc.start(startTime);
+  osc.stop(startTime + duration);
+}
+
+/** Standard UI click — short triangle blip (menu-select feel). */
+export function playClick(): void {
+  if (isMuted()) return;
+  playSweep(140, 90, 0.05, getAudioContext().currentTime, "triangle", 0.09);
+}
+
+/** Subtle hover tick — very short + quiet (use sparingly). */
+export function playHover(): void {
+  if (isMuted()) return;
+  playNote(440, 0.02, getAudioContext().currentTime, "triangle", 0.035);
+}
+
+/** Toggle switch — rising (on) or falling (off) square blip. */
+export function playToggle(on: boolean): void {
+  if (isMuted()) return;
+  const now = getAudioContext().currentTime;
+  if (on) playSweep(280, 560, 0.08, now, "square", 0.07);
+  else playSweep(380, 180, 0.08, now, "square", 0.07);
+}
+
+/** Page navigation — soft rising sweep. */
+export function playNavigate(): void {
+  if (isMuted()) return;
+  playSweep(480, 820, 0.1, getAudioContext().currentTime, "triangle", 0.05);
+}
+
+/** Error / rejection — descending sawtooth. */
+export function playError(): void {
+  if (isMuted()) return;
+  playSweep(220, 110, 0.18, getAudioContext().currentTime, "sawtooth", 0.08);
+}
