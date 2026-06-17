@@ -27,7 +27,6 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-      style={{ fontSize: "125%" }}
     >
       <head>
         <link rel="preload" href="/sprites/ui/buttons-26x26.png" as="image" type="image/png" />
