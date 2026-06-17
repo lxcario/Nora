@@ -3,6 +3,13 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { incrementQuestProgress } from "./party-quests";
+import type { AcademicEventType, ConfidenceStatus } from "@/lib/supabase/database.types";
+import {
+  assessLoad,
+  loadIntensityMultiplier,
+  type LoadEvent,
+  type LoadPhase,
+} from "@/lib/academic/academic-load";
 
 export interface PlannedSession {
   id?: string;
@@ -16,15 +23,52 @@ export interface PlannedSession {
   completed: boolean;
 }
 
+/** A confirmed academic deadline surfaced in the planner (Requirement 13.1, 13.2). */
+export interface PlannedAcademicEvent {
+  id: string;
+  eventType: AcademicEventType;
+  label: string;
+  title: string | null;
+  startDate: string; // never null here (unreleased events are excluded)
+  endDate: string | null;
+  status: ConfidenceStatus; // "verified" | "inferred" (never "unreleased")
+  daysUntil: number;
+}
+
+const ACADEMIC_EVENT_LABEL: Record<AcademicEventType, string> = {
+  semester_start: "Semester start",
+  semester_end: "Semester end",
+  registration: "Registration",
+  add_drop: "Add / Drop deadline",
+  withdrawal_deadline: "Withdrawal deadline",
+  midterm_period: "Midterms",
+  final_period: "Finals",
+  makeup_period: "Make-up exams",
+  holiday: "Holiday",
+  break: "Break",
+  other: "Academic event",
+};
+
 /**
  * Gets the weekly plan for the user.
  * Combines actual study_sessions with auto-generated suggestions
  * based on topics, exam dates, and review queue.
  */
+export interface AcademicLoadSummary {
+  value: number;
+  phase: LoadPhase;
+  dominantLabel: string | null;
+  dominantDaysUntil: number | null;
+  message: string | null;
+}
+
 export async function getWeeklyPlan(weekOffset = 0): Promise<{
   sessions: PlannedSession[];
   weekStart: string;
   weekEnd: string;
+  academicEvents: PlannedAcademicEvent[];
+  upcomingDeadlines: PlannedAcademicEvent[];
+  academicLoad: AcademicLoadSummary;
   error?: string;
 }> {
   const supabase = await createClient();
@@ -32,7 +76,15 @@ export async function getWeeklyPlan(weekOffset = 0): Promise<{
     data: { user },
   } = await supabase.auth.getUser();
   if (!user)
-    return { sessions: [], weekStart: "", weekEnd: "", error: "Not authenticated" };
+    return {
+      sessions: [],
+      weekStart: "",
+      weekEnd: "",
+      academicEvents: [],
+      upcomingDeadlines: [],
+      academicLoad: { value: 0, phase: "baseline", dominantLabel: null, dominantDaysUntil: null, message: null },
+      error: "Not authenticated",
+    };
 
   // Calculate week boundaries (Monday-Sunday)
   const today = new Date();
@@ -143,7 +195,109 @@ export async function getWeeklyPlan(weekOffset = 0): Promise<{
   // Sort by date
   sessions.sort((a, b) => a.date.localeCompare(b.date));
 
-  return { sessions, weekStart, weekEnd };
+  // --- Merge confirmed academic events (Requirement 13.1, 13.2, 13.4) ---
+  // Only confirmed, dated events surface; `unreleased` (NULL-date) events are
+  // never shown as concrete dates.
+  let academicEvents: PlannedAcademicEvent[] = [];
+  let upcomingDeadlines: PlannedAcademicEvent[] = [];
+  let academicLoad: AcademicLoadSummary = {
+    value: 0,
+    phase: "baseline",
+    dominantLabel: null,
+    dominantDaysUntil: null,
+    message: null,
+  };
+
+  const { data: academicProfile } = await supabase
+    .from("academic_profiles")
+    .select("id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (academicProfile) {
+    const { data: evs } = await supabase
+      .from("academic_events")
+      .select("id, event_type, title, start_date, end_date, status")
+      .eq("user_id", user.id)
+      .eq("academic_profile_id", academicProfile.id)
+      .eq("is_confirmed", true)
+      .neq("status", "unreleased")
+      .not("start_date", "is", null)
+      .order("start_date", { ascending: true });
+
+    const todayMs = new Date(`${todayStr}T00:00:00`).getTime();
+    const all: PlannedAcademicEvent[] = (evs ?? []).map((e) => {
+      const startDate = e.start_date as string;
+      const daysUntil = Math.ceil(
+        (new Date(`${startDate}T00:00:00`).getTime() - todayMs) / (1000 * 60 * 60 * 24)
+      );
+      return {
+        id: e.id,
+        eventType: e.event_type as AcademicEventType,
+        label: ACADEMIC_EVENT_LABEL[e.event_type as AcademicEventType] ?? "Academic event",
+        title: e.title ?? null,
+        startDate,
+        endDate: (e.end_date as string | null) ?? null,
+        status: e.status as ConfidenceStatus,
+        daysUntil,
+      };
+    });
+
+    // Events intersecting the displayed week → calendar chips.
+    academicEvents = all.filter((e) => {
+      const end = e.endDate ?? e.startDate;
+      return e.startDate <= weekEnd && end >= weekStart;
+    });
+
+    // Next confirmed deadlines (today onward) → warning strip.
+    upcomingDeadlines = all.filter((e) => e.daysUntil >= 0).slice(0, 5);
+
+    // --- Cognitive-load-aware planning (Requirements 14.1–14.4) ---
+    const loadEvents: LoadEvent[] = all
+      .filter((e) => e.daysUntil >= 0)
+      .map((e) => ({ eventType: e.eventType, daysUntil: e.daysUntil }));
+    const assessment = assessLoad(loadEvents);
+    const dominantPlanned = assessment.dominant
+      ? all.find(
+          (e) =>
+            e.eventType === assessment.dominant!.eventType &&
+            e.daysUntil === assessment.dominant!.daysUntil
+        ) ?? null
+      : null;
+
+    let message: string | null = null;
+    if (assessment.phase === "escalation" && dominantPlanned) {
+      message = `Focus is shifting toward ${dominantPlanned.label.toLowerCase()} (in ${dominantPlanned.daysUntil} day${dominantPlanned.daysUntil === 1 ? "" : "s"}). Prioritizing related prep.`;
+    } else if (assessment.phase === "mitigation" && dominantPlanned) {
+      const when =
+        dominantPlanned.daysUntil === 0
+          ? "today"
+          : dominantPlanned.daysUntil === 1
+          ? "tomorrow"
+          : `in ${dominantPlanned.daysUntil} days`;
+      message = `High study load: ${dominantPlanned.label.toLowerCase()} ${when}. Emphasize active test-prep now.`;
+    }
+
+    academicLoad = {
+      value: Number(assessment.load.toFixed(3)),
+      phase: assessment.phase,
+      dominantLabel: dominantPlanned?.label ?? null,
+      dominantDaysUntil: dominantPlanned?.daysUntil ?? null,
+      message,
+    };
+
+    // Reweight suggested (not-yet-completed) sessions as load rises.
+    const multiplier = loadIntensityMultiplier(assessment.phase);
+    if (multiplier > 1) {
+      for (const s of sessions) {
+        if (!s.completed && !s.id && s.duration_minutes) {
+          s.duration_minutes = Math.min(60, Math.round(s.duration_minutes * multiplier));
+        }
+      }
+    }
+  }
+
+  return { sessions, weekStart, weekEnd, academicEvents, upcomingDeadlines, academicLoad };
 }
 
 /**

@@ -3,8 +3,13 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export async function proxy(request: NextRequest) {
+  // Expose the current pathname to Server Components (the app layout's
+  // onboarding gate needs it, and layouts don't receive the path directly).
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-pathname", request.nextUrl.pathname);
+
   let supabaseResponse = NextResponse.next({
-    request,
+    request: { headers: requestHeaders },
   });
 
   const supabase = createServerClient(
@@ -20,7 +25,7 @@ export async function proxy(request: NextRequest) {
             request.cookies.set(name, value)
           );
           supabaseResponse = NextResponse.next({
-            request,
+            request: { headers: requestHeaders },
           });
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)

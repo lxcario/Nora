@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { type PlannedSession } from "@/app/(protected)/app/_actions/planner";
+import { type PlannedSession, type PlannedAcademicEvent } from "@/app/(protected)/app/_actions/planner";
 import {
   ChevronLeft,
   ChevronRight,
@@ -11,6 +11,7 @@ import {
   FlaskConical,
   CheckCircle2,
   Clock,
+  GraduationCap,
 } from "lucide-react";
 
 const MODE_CONFIG = {
@@ -24,9 +25,10 @@ interface Props {
   sessions: PlannedSession[];
   weekStart: string;
   weekEnd: string;
+  academicEvents?: PlannedAcademicEvent[];
 }
 
-export function WeeklyCalendar({ sessions, weekStart, weekEnd }: Props) {
+export function WeeklyCalendar({ sessions, weekStart, weekEnd, academicEvents = [] }: Props) {
   const [currentWeekOffset] = useState(0);
 
   // Generate days of the week
@@ -70,6 +72,10 @@ export function WeeklyCalendar({ sessions, weekStart, weekEnd }: Props) {
           const dateStr = day.toISOString().split("T")[0];
           const isToday = dateStr === today;
           const daySessions = sessions.filter((s) => s.date === dateStr);
+          const dayAcademic = academicEvents.filter((e) => {
+            const end = e.endDate ?? e.startDate;
+            return e.startDate <= dateStr && end >= dateStr;
+          });
 
           return (
             <div key={dateStr} className="flex flex-col">
@@ -101,7 +107,10 @@ export function WeeklyCalendar({ sessions, weekStart, weekEnd }: Props) {
                     : "border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900"
                 }`}
               >
-                {daySessions.length === 0 ? (
+                {dayAcademic.map((e) => (
+                  <AcademicChip key={e.id} event={e} />
+                ))}
+                {daySessions.length === 0 && dayAcademic.length === 0 ? (
                   <div className="flex flex-1 items-center justify-center">
                     <span className="text-[10px] text-zinc-300 dark:text-zinc-700">—</span>
                   </div>
@@ -129,6 +138,21 @@ export function WeeklyCalendar({ sessions, weekStart, weekEnd }: Props) {
           Completed
         </div>
       </div>
+    </div>
+  );
+}
+
+function AcademicChip({ event }: { event: PlannedAcademicEvent }) {
+  // Verified = official source; inferred = needs a look. Never unreleased here.
+  const dotColor = event.status === "verified" ? "bg-emerald-500" : "bg-amber-500";
+  return (
+    <div
+      className="flex items-center gap-1 rounded border border-[var(--pixel-border)] bg-[var(--pixel-bg-surface)] px-1.5 py-1 text-[10px] text-[var(--pixel-text-primary)]"
+      title={event.status === "verified" ? "Verified — official source" : "Inferred — confirm if unsure"}
+    >
+      <GraduationCap className="h-2.5 w-2.5 flex-shrink-0 text-[var(--pixel-accent)]" />
+      <span className="truncate font-medium">{event.label}</span>
+      <span className={`ml-auto h-1.5 w-1.5 flex-shrink-0 rounded-full ${dotColor}`} />
     </div>
   );
 }

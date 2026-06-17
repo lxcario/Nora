@@ -17,6 +17,7 @@ const navItems = [
   { href: "/app/research", icon: "/sprites/travel-book/icons/MagnifyingGlass.png", label: "Research Desk" },
   { href: "/app/study-room", icon: "/sprites/travel-book/icons/Monitor.png", label: "Study Room" },
   { href: "/app/planner", icon: "/sprites/travel-book/icons/Document.png", label: "Study Planner" },
+  { href: "/app/academic", icon: "/sprites/travel-book/icons/Backpack.png", label: "My University" },
   { href: "/app/analytics", icon: "/sprites/travel-book/icons/Trophy.png", label: "Analytics" },
   { href: "/app/history", icon: "/sprites/travel-book/icons/FloppyDisk.png", label: "History" },
   { href: "/app/room", icon: "/sprites/travel-book/icons/Gamepad.png", label: "Pixel Room" },

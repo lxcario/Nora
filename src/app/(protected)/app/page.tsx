@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { DialogFrame, PixelCounter } from "@/components/pixel-ui";
+import { AcademicTimelineWidget } from "./_components/academic-timeline-widget";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -159,6 +160,9 @@ export default async function DashboardPage() {
           </div>
         </div>
       </DialogFrame>
+
+      {/* ═══ Academic Timeline ═══ */}
+      <AcademicTimelineWidget />
 
       {/* ═══ Study Modes ═══ */}
       <div>

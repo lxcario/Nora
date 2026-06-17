@@ -1,100 +1,81 @@
 <p align="center">
-  <img src="https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=nextdotjs" />
-  <img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react" />
-  <img src="https://img.shields.io/badge/Supabase-Postgres-3ECF8E?style=flat-square&logo=supabase" />
-  <img src="https://img.shields.io/badge/AI-Groq%20%2B%20OpenRouter-FF6F00?style=flat-square" />
-  <img src="https://img.shields.io/badge/Tailwind-v4-06B6D4?style=flat-square&logo=tailwindcss" />
-  <img src="https://img.shields.io/badge/TypeScript-Strict-3178C6?style=flat-square&logo=typescript" />
+  <img src="public/nora-logo.png" alt="Nora — Pixel Study OS" width="220" />
 </p>
 
-# 🎮 Nora
+<h1 align="center">Nora</h1>
 
-> A softer way to study — combining evidence-based learning techniques with a cozy pixel-art world where your Pokémon companion evolves as you master topics through Feynman explanations, spaced repetition, AI-powered research, and video study rooms.
+<p align="center">
+  <strong>A softer way to study.</strong><br/>
+  Evidence-based learning wrapped in a cozy pixel-art world — where your companion grows as you master what you study.
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Next.js-16-000000?style=flat-square&logo=nextdotjs" />
+  <img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react" />
+  <img src="https://img.shields.io/badge/Supabase-Postgres%20%2B%20pgvector-3ECF8E?style=flat-square&logo=supabase" />
+  <img src="https://img.shields.io/badge/AI-Groq%20%2B%20OpenRouter-FF6F00?style=flat-square" />
+  <img src="https://img.shields.io/badge/Tailwind-v4-06B6D4?style=flat-square&logo=tailwindcss" />
+  <img src="https://img.shields.io/badge/TypeScript-strict-3178C6?style=flat-square&logo=typescript" />
+  <img src="https://img.shields.io/badge/tests-Vitest%20%2B%20fast--check-729B1B?style=flat-square&logo=vitest" />
+</p>
+
+<p align="center">
+  <img src="public/ui.png" alt="Nora in action" width="860" />
+</p>
 
 ---
 
-## ✨ What Makes This Different
+## Why Nora
 
-Nora isn't another generic study timer or AI homework helper. It's built on six evidence-based learning strategies from cognitive psychology:
+Most study apps are timers with a coat of paint, or AI that does the work for you. Nora is neither.
 
-- **Feynman Technique** — Explain concepts in your own words; AI identifies knowledge gaps
-- **Spaced Repetition (SM-2)** — Review flashcards at scientifically optimal intervals
-- **Interleaved Practice** — Mix study modalities for deeper retention
-- **Retrieval Practice** — Active recall through flashcards and quizzes
-- **Elaboration** — Connect ideas, find analogies, go deeper
-- **RAG-Powered Research** — Ask questions about your uploaded papers with cited answers
+It's a study operating system built on six learning strategies from cognitive science, and a pixel-art world that only grows when your understanding does. The AI never writes your assignments — it asks questions, finds your gaps, and helps you plan. Your pet's mood reflects your real habits, not a streak counter you can game.
 
-All wrapped in a pixel-art game world where your Pokémon pet's happiness reflects your real study habits.
+> Learning first. AI as a tutor, never the author. Gentle motivation over guilt.
 
 ---
 
-## 🏠 Features
+## What's inside
 
 ### 🧠 Feynman Mode
-Explain any topic in your own words. The AI "Inquisitive Student" evaluates your explanation with:
-- Color-coded gap analysis (green = accurate, amber = vague, red = wrong)
-- Probing questions that test deeper understanding
-- Auto-generated flashcards from your explanation
-- Inline autocomplete suggestions while typing
+Explain a concept in plain words and an AI "Inquisitive Student" probes it back — color-coded gap analysis (green / amber / red), clarifying questions, and one-click flashcards generated from your own explanation.
 
-### 📚 SM-2 Flashcard Review
-- Full SM-2 algorithm implementation (interval, repetition, ease factor)
-- Grade 0-5 with color-coded buttons
-- Cards from Feynman, Research, or Video study automatically enter the review queue
-- Per-card editing before save (accept/reject/modify)
+### 🔁 SM-2 Spaced Repetition
+A full SM-2 scheduler (interval, repetition, ease factor) drives a due-card review queue. Cards from Feynman, research, and video study all flow into the same queue. Grade 0–5, edit before saving.
 
-### 🔀 Study Mix (Interleaved Practice)
-- Automatically builds a mixed queue: flashcards + Feynman prompts + research questions
-- Interleaves across subjects and modalities for "desirable difficulty"
-- Progress tracking and session completion stats
+### 🔀 Study Mix
+Interleaved practice that auto-builds a mixed queue across subjects and modalities — flashcards, Feynman prompts, and research questions — for desirable difficulty.
 
 ### 🎬 Video Study Room
-- **YouTube video search** with educational filtering (category, duration, heuristic scoring)
-- **Transcript extraction** with caching (youtube-transcript-plus + Groq Whisper fallback)
-- **Timestamp-aware AI notes** — select a time range, get structured notes with key concepts
-- **Tiptap rich text editor** with clickable timestamp marks (Ctrl+Shift+T to insert)
-- **AI inline completions** in the note editor (2s inactivity → ghost text → Tab to accept)
-- **Feynman-with-video** — "Explain what you just watched" evaluated against the transcript
-- **Flashcard generation** from any video segment, linked back to source timestamps
+YouTube search with educational filtering, transcript extraction (with Groq Whisper fallback), timestamp-aware AI notes in a Tiptap editor with clickable time marks, inline ghost-text completions, and "explain what you just watched" Feynman evaluated against the transcript.
 
-### 🔬 Research Desk
-- **Web Research** — AI-synthesized answers from Wikipedia + Open Library with citations
-- **Paper RAG** — Upload PDFs, auto-chunk/index, ask questions with cited answers
-- Dual-mode retrieval: pgvector cosine similarity (with OpenAI key) or Postgres FTS (free)
-- Suggested flashcards from research findings
+### 🔬 Research Desk + Paper RAG
+Web research synthesized from open sources with citations, plus PDF upload → auto chunk → index → ask with cited answers. Dual-mode retrieval: pgvector cosine similarity when an embedding key is present, or free Postgres full-text search otherwise.
 
-### 🐾 Pixel Room & Pet System
-- Choose from 12 animated Pokémon companions (PokéAPI Gen V sprites)
-- Pet evolves based on your level (Stage 2 at Lv5, Stage 3 at Lv15)
-- Pet mood (happy/neutral/sad) reflects your last 3 days of study activity
-- Daily missions with progress bars linking to actual study actions
-- Daily motivational quote
+### 🎓 University-Aware Onboarding & Personalization
+Tell Nora your university, faculty, department, year, and term. It finds your institution's **official** academic data — academic calendar (akademik takvim), registration / add-drop / midterm / final / make-up dates, holidays, and curriculum — stores the official PDFs, indexes them, and uses them to build a semester-aware study plan, a dashboard timeline, and an academic RAG you can ask about your own semester.
+
+- Diacritic-insensitive Turkish-aware university matching (first launch: **ODTÜ / METU**, Electrical & Electronics Engineering)
+- Guarded auto-discovery through an SSRF-protected, per-university domain allowlist
+- **Never invents dates** — ungrounded LLM-extracted dates are dropped; missing official dates are stored as `unreleased`
+- Manual upload always works; auto-discovery is an enhancement, not a dependency
+- Background ingestion via an `ingestion_jobs` queue with client-poll-driven processing
+
+### 🐾 Pixel Room & Pet
+Pick from 12 animated companions. Your pet evolves with your level and its mood mirrors your last few days of study. Daily missions tie directly to real study actions.
 
 ### 👥 Social Parties
-- Create or join study groups (public discovery or invite code)
-- Shared weekly quests (cards reviewed, Feynman sessions, study minutes)
-- "Help quests" auto-generated for members who miss 2+ days (compassionate design)
-- Real-time cheers (6 Lucide icon reactions, daily cooldown)
-- Party chat with character limit and content filtering
-- Presence indicators showing who's currently studying
+Create or join study groups, share weekly quests, and send cheers. Missed days become compassionate "help quests" for the group instead of punishing resets.
 
-### 📊 Analytics Dashboard
-- Sessions/week, cards reviewed, cards created, study minutes, streak
-- 30-day bar charts with hover tooltips
-- GitHub-style consistency heatmap
-- Topic mastery progress bars (color-coded by average grade)
-
-### 📅 Study Planner
-- Weekly calendar view (Mon–Sun)
-- Completed sessions shown as colored chips
-- Auto-suggestions: "Review due cards today", "Feynman session for upcoming exam"
+### 📊 Analytics & 📅 Planner
+Weekly stats, 30-day charts, a GitHub-style consistency heatmap, topic mastery bars, and a weekly planner that now merges confirmed academic events with status badges.
 
 ---
 
-## 🎯 Gamification
+## Gamification
 
-| Action | XP | Coins | Pet Affinity |
-|--------|-----|-------|-------------|
+| Action | XP | Coins | Affinity |
+|---|---|---|---|
 | Feynman explanation | +15 | +5 | +3 |
 | Card review (grade ≥ 3) | +3 | +1 | +1 |
 | Card review (grade < 3) | +1 | — | — |
@@ -102,66 +83,49 @@ Explain any topic in your own words. The AI "Inquisitive Student" evaluates your
 | Study session complete | +10 | +3 | +2 |
 | All daily missions | +20 | +10 | +5 |
 
-**Level formula:** `floor(sqrt(xp / 50)) + 1`
+**Level:** `floor(sqrt(xp / 50)) + 1` — Lv2 at 50 XP, Lv3 at 200, Lv4 at 450, Lv5 at 800.
 
-Lv2 at 50 XP → Lv3 at 200 XP → Lv4 at 450 XP → Lv5 at 800 XP
-
-### 🔊 8-Bit Sound Effects
-- Procedural Web Audio API oscillators (no audio files)
-- XP gained → ascending triangle-wave chirp
-- Card saved → short arpeggio
-- Session complete → triumphant fanfare
-- Overlap suppression (bigger sounds suppress smaller ones)
-- Mute toggle in sidebar
+8-bit sound effects are generated live with the Web Audio API — no audio files, just procedural oscillators with a mute toggle in the sidebar.
 
 ---
 
-## 🛠 Tech Stack
+## Tech stack
 
 | Layer | Technology |
-|-------|-----------|
-| Framework | Next.js 16 (App Router, Server Actions) |
-| Language | TypeScript (strict mode) |
-| React | 19.2.4 |
-| Database | Supabase (Postgres + pgvector + RLS + Storage) |
-| Auth | Supabase Auth (email/password) |
-| AI (Primary) | Groq Cloud (Llama 3.3 70B, ~2s response) |
-| AI (Fallback) | OpenRouter (free tier, ~15-30s) |
-| Transcription | Groq Whisper (fallback for videos without captions) |
-| Rich Text | Tiptap v3 (custom timestamp mark extension) |
-| Styling | Tailwind CSS v4 |
-| Icons | Lucide React |
-| PDF Parsing | pdf-parse v1 |
-| Video | YouTube IFrame API + youtube-transcript-plus |
+|---|---|
+| Framework | Next.js 16 (App Router, Server Actions, Cache Components) |
+| Language | TypeScript (strict) |
+| UI | React 19, Tailwind CSS v4, custom pixel-UI components |
+| Database | Supabase — Postgres, pgvector, Row Level Security, Storage |
+| Auth | Supabase Auth (gated via `proxy.ts`) |
+| AI (primary) | Groq Cloud (Llama 3.3 70B) |
+| AI (fallback) | OpenRouter (free tier) |
+| Transcription | Groq Whisper |
+| Scraping | Provider-agnostic (Firecrawl, free tier) behind SSRF guard + domain allowlist |
+| Rich text | Tiptap v3 (custom timestamp mark) |
+| PDF parsing | pdf-parse |
 | Sprites | PokéAPI (animated Gen V), Sprout Lands UI Pack |
 | Testing | Vitest + fast-check (property-based) |
-| Audio | Web Audio API (procedural 8-bit SFX) |
-| Music | Streaming internet radio (lo-fi, jazz, ambient) |
 
 ---
 
-## 🚀 Getting Started
+## Getting started
 
 ### Prerequisites
 - Node.js 18+
 - A Supabase project (free tier works)
-- Groq API key (free at [console.groq.com](https://console.groq.com))
+- A Groq API key (free at [console.groq.com](https://console.groq.com))
 
 ### Setup
 
 ```bash
-# Clone the repository
-git clone https://github.com/YOUR_USERNAME/nora.git
-cd nora
-
-# Install dependencies
+git clone https://github.com/lxcario/Nora.git
+cd Nora
 npm install
-
-# Copy environment variables
 cp .env.example .env.local
 ```
 
-### Environment Variables
+### Environment
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
@@ -170,20 +134,36 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 GROQ_API_KEY=your_groq_api_key
 OPENROUTER_API_KEY=your_openrouter_key
 YOUTUBE_API_KEY=your_youtube_data_api_key
-# Optional: enables vector search for RAG (otherwise uses free FTS)
+
+# Optional — enables pgvector RAG (otherwise free Postgres FTS is used)
 OPENAI_API_KEY=your_openai_key
+
+# Optional — enables academic auto-discovery (otherwise manual upload only)
+FIRECRAWL_API_KEY=your_firecrawl_key
 ```
 
-### Database Setup
+### Database
 
-Run migrations in order via the Supabase SQL Editor:
+Run the migrations in order via the Supabase SQL Editor:
 
 ```
 supabase/migrations/001_initial_schema.sql
 supabase/migrations/002_social_parties.sql
+supabase/migrations/003_avatar_storage.sql
 supabase/migrations/003_rag_extensions.sql
 supabase/migrations/003b_storage_bucket.sql
 supabase/migrations/004_study_room.sql
+supabase/migrations/005_party_rls_fix.sql
+supabase/migrations/006_feynman_scoring.sql
+supabase/migrations/007_university_onboarding.sql
+supabase/migrations/008_ingestion_jobs.sql
+supabase/migrations/009_academic_sweeper.sql   # optional sweeper
+```
+
+Then seed the university registry:
+
+```
+supabase/seed_university_registry.sql
 ```
 
 ### Run
@@ -196,89 +176,67 @@ Open [http://localhost:3000](http://localhost:3000), sign up, and start studying
 
 ---
 
-## 📁 Project Structure
+## Testing
+
+```bash
+npm test            # run all tests
+npm run test:watch  # watch mode
+```
+
+Coverage includes the SM-2 scheduler, transcript slicing and time parsing, search heuristics, the RAG chunker and embedder, and the academic feature's pure functions — university matching, identity validation, date extraction and grounding, source ranking, job state transitions, and cognitive-load modeling — all with property-based tests via fast-check.
+
+---
+
+## Project structure
 
 ```
 src/
 ├── app/
-│   ├── (auth)/              # Login, Signup
-│   ├── (protected)/app/     # Main app (all features)
-│   │   ├── _actions/        # Server actions (17 files)
-│   │   ├── _components/     # Shared UI (sidebar, toasts, etc.)
-│   │   ├── feynman/         # Feynman Mode
-│   │   ├── review/          # SM-2 Review
-│   │   ├── study/           # Study Mix
-│   │   ├── study-room/      # Video Study Room
-│   │   ├── research/        # Research Desk + RAG
-│   │   ├── room/            # Pixel Room + Pet
-│   │   ├── party/           # Social Parties
-│   │   ├── planner/         # Study Planner
-│   │   ├── analytics/       # Analytics Dashboard
-│   │   └── settings/        # Profile, Pet, Topics
-│   └── globals.css          # Tailwind + pixel font + animations
+│   ├── (auth)/                     # Login, signup
+│   └── (protected)/app/            # Main app
+│       ├── _actions/               # Server actions
+│       │   ├── academic/           # Onboarding, registry, ingest, extract, review, jobs
+│       │   └── rag/                # parser, chunker, embedder
+│       ├── _components/            # Shared UI (sidebar, academic panels, pollers)
+│       ├── onboarding/             # University-aware onboarding wizard
+│       ├── academic/               # Academic documents + review
+│       ├── feynman/  review/  study/  study-room/
+│       ├── research/  room/  party/  planner/  analytics/  settings/
+│       └── globals.css
 ├── lib/
-│   ├── sm2.ts               # SM-2 algorithm
-│   ├── gamification.ts      # XP/level calculations
-│   ├── pokeapi.ts           # PokéAPI integration
-│   ├── sfx.ts               # 8-bit sound effects
-│   └── supabase/            # Supabase clients + types
-├── proxy.ts                 # Auth middleware
-supabase/
-├── migrations/              # 5 SQL migrations
-public/
-├── fonts/                   # Pixel font
-├── sprites/ui/              # UI spritesheets
+│   ├── academic/                   # Pure libs: registry, validation, extract, ranking, job-state, load
+│   ├── sm2.ts  gamification.ts  ssrf.ts  rate-limit.ts  scrape-client.ts
+│   └── supabase/                   # Clients + generated types
+└── proxy.ts                        # Auth gate
+supabase/migrations/                # 001–009
 ```
 
 ---
 
-## 🧪 Testing
+## Design philosophy
 
-```bash
-# Run all tests
-npm test
-
-# Watch mode
-npm run test:watch
-```
-
-Tests include:
-- SM-2 algorithm correctness
-- Transcript slicing and time parsing
-- Search heuristic scoring
-- RAG chunker and embedder
-- Property-based tests with fast-check
+1. **Learning over engagement** — every mechanic maps to real study behavior.
+2. **AI as tutor, not author** — it questions and guides, never writes your work.
+3. **Compassionate design** — no punishment for missed days; the group helps instead.
+4. **Grounded data** — official sources only; no invented academic dates, ever.
+5. **Reuse over rebuild** — the academic feature rides the existing RAG pipeline.
 
 ---
 
-## 📝 Design Philosophy
-
-1. **Learning over engagement** — Every game mechanic maps to real study behavior
-2. **AI as tutor, not author** — AI asks questions, identifies gaps, and suggests — never writes your work
-3. **Compassionate design** — No punishment for missed days; "help quests" support struggling members
-4. **Progressive complexity** — Start with one topic, one card; grow into full research pipelines
-5. **Offline-first data** — Transcripts and notes cached; works even when APIs are slow
-
----
-
-## 🙏 Credits & Licenses
+## Credits & licenses
 
 - **Sprout Lands UI Pack** by Cup Nooble — pixel font and UI elements
-- **PokéAPI** — Pokémon data and animated sprites (fan use)
-- **Lucide** — MIT-licensed icon set
+- **PokéAPI** — companion data and animated sprites (fan use)
+- **Lucide** — MIT-licensed icons
 - **Tiptap** — MIT-licensed rich text editor
-- **SM-2 Algorithm** — Public domain (Piotr Wozniak, 1987)
+- **SM-2 algorithm** — Piotr Woźniak (1987), public domain
+
+University academic data is sourced from official institutional portals and treated as untrusted, read-only input.
 
 ---
 
-## 📜 License
+## License
 
 MIT
 
----
-
-<p align="center">
-  <em>Built with 🎮 pixels, 🧠 science, and ☕ way too much coffee.</em>
-  <br/>
-  <strong>Nora</strong> — a softer way to study.
-</p>
+<p align="center"><em>Built with pixels, science, and a lot of coffee.</em><br/><strong>Nora</strong> — a softer way to study.</p>

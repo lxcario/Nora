@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { GameSidebar } from "./_components/game-sidebar";
 import { GameTopBar } from "./_components/game-top-bar";
 import { PreferencesProvider } from "@/components/pixel-ui/preferences-provider";
@@ -8,6 +9,28 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
+
+  // Onboarding gate: students without an academic profile are routed to the
+  // onboarding wizard before the rest of the app. The current path comes from
+  // the proxy via the `x-pathname` header (layouts don't receive it directly).
+  const pathname = (await headers()).get("x-pathname") ?? "";
+  const onOnboarding = pathname.startsWith("/app/onboarding");
+
+  const { data: academicProfile } = await supabase
+    .from("academic_profiles")
+    .select("id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (!academicProfile && !onOnboarding) {
+    redirect("/app/onboarding");
+  }
+
+  // The onboarding wizard renders without the game shell (no sidebar/topbar),
+  // which also breaks the potential redirect loop on /app/onboarding.
+  if (onOnboarding) {
+    return <PreferencesProvider>{children}</PreferencesProvider>;
+  }
 
   const { data: profile } = await supabase
     .from("profiles")

@@ -8,6 +8,7 @@ import { chunkText } from "./rag/chunker";
 import { generateEmbeddings, generateQueryEmbedding, hasEmbeddingSupport } from "./rag/embedder";
 import { callLLM, hasLLMProvider } from "@/lib/llm";
 import { assertPublicHttpUrl } from "@/lib/ssrf";
+import { classifyEventType } from "@/lib/academic/academic-extract";
 
 // --- Types ---
 
@@ -17,7 +18,7 @@ export interface IngestionResult {
 }
 
 export interface RagScope {
-  type: "all" | "paper" | "topic";
+  type: "all" | "paper" | "topic" | "academic";
   paperId?: string;
   topicId?: string;
 }
@@ -493,6 +494,12 @@ export async function queryRag(
   // 2. Validate question (3-500 chars)
   const questionValidation = validateQuestion(question);
   if (!questionValidation.valid) return { error: questionValidation.error };
+
+  // 2b. Academic scope: answer from the user's academic documents and, for date
+  // questions, the structured academic_events table (Requirement 16.1–16.4).
+  if (scope.type === "academic") {
+    return queryAcademicRag(supabase, user.id, question);
+  }
 
   // 3. Retrieve chunks (dual-mode)
   let retrievedChunks: RetrievedChunk[];
@@ -1309,4 +1316,237 @@ export async function generateSuggestedQuestions(
   } catch {
     return { data: [] };
   }
+}
+
+// ===========================================================================
+// Academic RAG (Requirement 16.1–16.4)
+// Scope filtered to the user's academic documents; date questions answered from
+// the structured academic_events table (exact, status-labelled) in preference
+// to free-text chunks; unreleased/not-found answered explicitly (never guessed).
+// ===========================================================================
+
+const ACADEMIC_RAG_EVENT_LABEL: Record<string, string> = {
+  semester_start: "Semester start",
+  semester_end: "Semester end",
+  registration: "Registration",
+  add_drop: "Add / Drop",
+  withdrawal_deadline: "Withdrawal deadline",
+  midterm_period: "Midterms",
+  final_period: "Finals",
+  makeup_period: "Make-up exams",
+  holiday: "Holiday",
+  break: "Break",
+  other: "Academic event",
+};
+
+function formatAcademicDate(start: string | null, end: string | null): string {
+  if (!start) return "unreleased";
+  const fmt = (s: string) =>
+    new Date(`${s}T00:00:00`).toLocaleDateString("en-US", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  if (!end || end === start) return fmt(start);
+  return `${fmt(start)} – ${fmt(end)}`;
+}
+
+async function queryAcademicRag(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  question: string
+): Promise<{ data?: RagAnswer; error?: string }> {
+  const { data: profile } = await supabase
+    .from("academic_profiles")
+    .select("id")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (!profile) {
+    return {
+      data: {
+        answer:
+          "Finish setting up your semester (university and term) to ask questions about your academic calendar and curriculum.",
+        citations: [],
+        suggestedCards: [],
+      },
+    };
+  }
+
+  // Route date questions to the structured events table.
+  const askedType = classifyEventType(question);
+  const isDateQuestion =
+    askedType !== null ||
+    /\b(when|date|dates|deadline|schedule|ne zaman|tarih|hangi g[uü]n)\b/i.test(question);
+  if (isDateQuestion) {
+    return answerAcademicDateQuestion(supabase, userId, profile.id, askedType);
+  }
+
+  // Otherwise answer from indexed academic chunks (curriculum, syllabi…).
+  const { data: academicPapers } = await supabase
+    .from("papers")
+    .select("id, title")
+    .eq("user_id", userId)
+    .eq("academic_profile_id", profile.id)
+    .not("academic_kind", "is", null);
+
+  const paperIds = (academicPapers ?? []).map((p: { id: string }) => p.id);
+  if (paperIds.length === 0) {
+    return {
+      data: {
+        answer:
+          "No academic documents are indexed yet. Upload your curriculum or syllabus from the My University page, or wait for automatic discovery to finish.",
+        citations: [],
+        suggestedCards: [],
+      },
+    };
+  }
+  const titleMap = new Map<string, string>(
+    (academicPapers ?? []).map((p: { id: string; title: string }) => [p.id, p.title])
+  );
+
+  let chunks: RetrievedChunk[] = [];
+
+  if (hasEmbeddingSupport()) {
+    const embedding = await generateQueryEmbedding(question);
+    if (embedding) {
+      const { data: matched } = await supabase.rpc("match_paper_chunks", {
+        query_embedding: JSON.stringify(embedding),
+        match_user_id: userId,
+        match_paper_id: null,
+        match_topic_id: null,
+        match_threshold: 0.3,
+        match_count: 24,
+      });
+      chunks = ((matched ?? []) as {
+        paper_id: string;
+        chunk_index: number;
+        content: string;
+        section_heading: string | null;
+        similarity: number;
+      }[])
+        .filter((c) => paperIds.includes(c.paper_id))
+        .slice(0, 8)
+        .map((c) => ({
+          paperId: c.paper_id,
+          paperTitle: titleMap.get(c.paper_id) ?? "Document",
+          chunkIndex: c.chunk_index,
+          content: c.content,
+          sectionHeading: c.section_heading ?? "",
+          similarity: c.similarity,
+        }));
+    }
+  }
+
+  // FTS / fallback: pull chunks for the academic papers and let the LLM filter.
+  if (chunks.length === 0) {
+    const { data: fts } = await supabase
+      .from("paper_chunks")
+      .select("paper_id, chunk_index, content, section_heading")
+      .eq("user_id", userId)
+      .in("paper_id", paperIds)
+      .limit(8);
+    chunks = ((fts ?? []) as {
+      paper_id: string;
+      chunk_index: number;
+      content: string;
+      section_heading: string | null;
+    }[]).map((c) => ({
+      paperId: c.paper_id,
+      paperTitle: titleMap.get(c.paper_id) ?? "Document",
+      chunkIndex: c.chunk_index,
+      content: c.content,
+      sectionHeading: c.section_heading ?? "",
+      similarity: 1,
+    }));
+  }
+
+  if (chunks.length === 0) {
+    return {
+      data: {
+        answer: "I couldn't find anything about that in your academic documents.",
+        citations: [],
+        suggestedCards: [],
+      },
+    };
+  }
+
+  try {
+    const answer = await synthesizeRagAnswer(question, chunks);
+    return { data: answer };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Synthesis failed";
+    return { error: msg };
+  }
+}
+
+async function answerAcademicDateQuestion(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  profileId: string,
+  askedType: string | null
+): Promise<{ data: RagAnswer }> {
+  const { data: events } = await supabase
+    .from("academic_events")
+    .select("event_type, start_date, end_date, status, source_excerpt")
+    .eq("user_id", userId)
+    .eq("academic_profile_id", profileId)
+    .eq("is_confirmed", true)
+    .order("start_date", { ascending: true, nullsFirst: false });
+
+  type Ev = {
+    event_type: string;
+    start_date: string | null;
+    end_date: string | null;
+    status: string;
+    source_excerpt: string | null;
+  };
+  const list = (events ?? []) as Ev[];
+  const label = (t: string) => ACADEMIC_RAG_EVENT_LABEL[t] ?? "Academic event";
+  const statusNote = (s: string) =>
+    s === "verified" ? "verified — official" : s === "inferred" ? "inferred — confirm if unsure" : "unreleased";
+
+  const citationsFrom = (evs: Ev[]): Citation[] =>
+    evs
+      .filter((e) => e.source_excerpt)
+      .slice(0, 5)
+      .map((e) => ({
+        paperId: "",
+        paperTitle: "Academic calendar",
+        sectionHeading: label(e.event_type),
+        chunkIndex: 0,
+        snippet: (e.source_excerpt ?? "").slice(0, 300),
+      }));
+
+  let answer: string;
+  let citations: Citation[] = [];
+
+  if (askedType) {
+    const matches = list.filter((e) => e.event_type === askedType);
+    const dated = matches.filter((e) => e.start_date && e.status !== "unreleased");
+    if (dated.length > 0) {
+      const parts = dated.map(
+        (e) => `${formatAcademicDate(e.start_date, e.end_date)} (${statusNote(e.status)})`
+      );
+      answer = `${label(askedType)}: ${parts.join("; ")}.`;
+      citations = citationsFrom(dated);
+    } else if (matches.length > 0) {
+      answer = `Your ${label(askedType).toLowerCase()} dates are not yet released by your university, so I can't give you a date — I won't guess. I'll surface them once they're published.`;
+    } else {
+      answer = `I don't have ${label(askedType).toLowerCase()} dates for your semester yet. You can upload the official academic calendar on the My University page.`;
+    }
+  } else {
+    const dated = list.filter((e) => e.start_date && e.status !== "unreleased");
+    if (dated.length === 0) {
+      answer =
+        "I don't have any confirmed academic dates for your semester yet. Upload your academic calendar or finish discovery on the My University page.";
+    } else {
+      const parts = dated
+        .slice(0, 8)
+        .map((e) => `${label(e.event_type)} — ${formatAcademicDate(e.start_date, e.end_date)}`);
+      answer = `Here are your confirmed academic dates: ${parts.join("; ")}.`;
+      citations = citationsFrom(dated);
+    }
+  }
+
+  return { data: { answer, citations, suggestedCards: [] } };
 }
