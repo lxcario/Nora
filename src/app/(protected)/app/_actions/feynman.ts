@@ -3,6 +3,12 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { callLLM, hasLLMProvider } from "@/lib/llm";
+import {
+  computeComprehensionScore,
+  normalizeSegmentStatus,
+  type ComprehensionScore,
+} from "@/lib/feynman-score";
 import { rewardAction, rewardBatch } from "./gamification";
 import { incrementQuestProgress } from "./party-quests";
 
@@ -16,6 +22,18 @@ export interface GapAnalysis {
     feedback: string;
   }[];
   suggestedCards: { front: string; back: string }[];
+  /** Deterministic comprehension score derived from the segments. */
+  score: ComprehensionScore;
+}
+
+/** Optional context for an iterative refinement attempt. */
+export interface RefineContext {
+  /** 1-based attempt number for this topic in the current session. */
+  attemptNumber: number;
+  /** Score (0–100) from the previous attempt, for the prompt to build on. */
+  previousScore: number;
+  /** Feedback strings for the gaps (amber/red) the student was asked to close. */
+  previousGaps: string[];
 }
 
 const FEYNMAN_PROMPT = `You are the "Inquisitive Student" — a knowledgeable evaluator who deeply understands the topic the student is studying. You know the subject matter at an expert level, but your role is to TEST the student's understanding, not teach them.
@@ -53,113 +71,99 @@ Respond ONLY with valid JSON (no markdown, no code fences, no extra text):
 }`;
 
 /**
- * Calls an LLM with the Feynman prompt.
- * Primary: Groq (fast, ~2s)
- * Fallback: OpenRouter free (slower, ~15-30s)
+ * Builds an extra prompt section for iterative refinement attempts so the
+ * evaluator knows this is a re-explanation and which gaps were flagged before.
  */
-async function callLLM(systemPrompt: string, userMessage: string): Promise<string> {
-  // Try Groq first (much faster)
-  const groqKey = process.env.GROQ_API_KEY;
-  if (groqKey) {
-    try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 15000);
+function buildRefineSection(refine: RefineContext): string {
+  const gaps = refine.previousGaps
+    .slice(0, 6)
+    .map((g, i) => `${i + 1}. ${g}`)
+    .join("\n");
 
-      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${groqKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "llama-3.3-70b-versatile",
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userMessage },
-          ],
-          temperature: 0.7,
-        }),
-        signal: controller.signal,
-      });
+  return `
 
-      clearTimeout(timeout);
+THIS IS A RE-EXPLANATION (attempt #${refine.attemptNumber}). The student previously scored ${refine.previousScore}/100.
+Previously flagged gaps the student was asked to address:
+${gaps || "(none recorded)"}
 
-      if (res.ok) {
-        const data = await res.json();
-        const content = data.choices?.[0]?.message?.content;
-        if (content) return content;
-      }
-      console.warn("Groq failed, falling back to OpenRouter:", res.status);
-    } catch (err) {
-      console.warn("Groq error, falling back to OpenRouter:", err);
-    }
-  }
-
-  // Fallback: OpenRouter free
-  const orKey = process.env.OPENROUTER_API_KEY;
-  if (!orKey) throw new Error("No AI API key configured");
-
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 45000);
-
-  const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${orKey}`,
-      "Content-Type": "application/json",
-      "HTTP-Referer": "http://localhost:3000",
-      "X-Title": "Nora",
-    },
-    body: JSON.stringify({
-      model: "openrouter/free",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userMessage },
-      ],
-      temperature: 0.7,
-    }),
-    signal: controller.signal,
-  });
-
-  clearTimeout(timeout);
-
-  if (!res.ok) {
-    const errText = await res.text();
-    throw new Error(`OpenRouter error (${res.status}): ${errText.slice(0, 200)}`);
-  }
-
-  const data = await res.json();
-  return data.choices?.[0]?.message?.content ?? "";
+When evaluating this attempt:
+- Judge it on its own merits, but explicitly note in your feedback where a previously weak area is now improved or still missing.
+- Reward genuine improvement; do not be lenient on remaining gaps.`;
 }
 
 /**
  * Safely parses and validates the AI response as a GapAnalysis.
- * Handles invalid JSON, missing fields, and malformed responses.
+ * Handles invalid JSON, missing fields, and malformed responses, then
+ * normalizes the data (valid statuses, non-empty entries) and attaches a
+ * deterministic comprehension score.
  */
 function safeParseGapAnalysis(jsonStr: string): { analysis?: GapAnalysis; error?: string } {
+  let parsed: unknown;
   try {
-    const parsed = JSON.parse(jsonStr);
-
-    // Structural validation — ensure required arrays/fields exist
-    if (
-      !parsed ||
-      !Array.isArray(parsed.questions) ||
-      typeof parsed.paraphrase !== "string" ||
-      !Array.isArray(parsed.segments) ||
-      !Array.isArray(parsed.suggestedCards)
-    ) {
-      return { error: "AI returned invalid structure. Please try again." };
-    }
-
-    return { analysis: parsed as GapAnalysis };
+    parsed = JSON.parse(jsonStr);
   } catch {
     return { error: "AI returned invalid JSON. Please try again." };
   }
+
+  const p = parsed as Record<string, unknown> | null;
+
+  // Structural validation — ensure required arrays/fields exist
+  if (
+    !p ||
+    !Array.isArray(p.questions) ||
+    typeof p.paraphrase !== "string" ||
+    !Array.isArray(p.segments) ||
+    !Array.isArray(p.suggestedCards)
+  ) {
+    return { error: "AI returned invalid structure. Please try again." };
+  }
+
+  // Normalize questions: keep non-empty strings only.
+  const questions = (p.questions as unknown[])
+    .filter((q): q is string => typeof q === "string" && q.trim().length > 0)
+    .map((q) => q.trim());
+
+  // Normalize segments: coerce status to the enum, drop empty text.
+  const segments = (p.segments as unknown[])
+    .map((s) => {
+      const seg = (s ?? {}) as Record<string, unknown>;
+      const text = typeof seg.text === "string" ? seg.text.trim() : "";
+      const feedback = typeof seg.feedback === "string" ? seg.feedback.trim() : "";
+      return {
+        text,
+        status: normalizeSegmentStatus(seg.status),
+        feedback,
+      };
+    })
+    .filter((s) => s.text.length > 0);
+
+  // Normalize suggested cards: require both sides, cap lengths defensively.
+  const suggestedCards = (p.suggestedCards as unknown[])
+    .map((c) => {
+      const card = (c ?? {}) as Record<string, unknown>;
+      const front = typeof card.front === "string" ? card.front.trim() : "";
+      const back = typeof card.back === "string" ? card.back.trim() : "";
+      return { front: front.slice(0, 200), back: back.slice(0, 1000) };
+    })
+    .filter((c) => c.front.length > 0 && c.back.length > 0);
+
+  const score = computeComprehensionScore(segments);
+
+  return {
+    analysis: {
+      questions,
+      paraphrase: (p.paraphrase as string).trim(),
+      segments,
+      suggestedCards,
+      score,
+    },
+  };
 }
 
 export async function evaluateExplanation(
   topicId: string,
-  explanationText: string
+  explanationText: string,
+  refine?: RefineContext
 ): Promise<{ data?: GapAnalysis; error?: string }> {
   if (!explanationText?.trim()) {
     return { error: "Please write an explanation first." };
@@ -194,10 +198,20 @@ export async function evaluateExplanation(
   // Build the prompt with topic context
   const contextualPrompt = FEYNMAN_PROMPT
     .replace("{{TOPIC_NAME}}", topicName)
-    .replace("{{SUBJECT_NAME}}", subjectName);
+    .replace("{{SUBJECT_NAME}}", subjectName)
+    + (refine ? buildRefineSection(refine) : "");
 
   try {
-    const responseText = await callLLM(contextualPrompt, explanationText);
+    if (!hasLLMProvider()) {
+      return { error: "No AI API key configured" };
+    }
+    const responseText = await callLLM({
+      system: contextualPrompt,
+      user: explanationText,
+      temperature: 0.7,
+      groqTimeoutMs: 15000,
+      openRouterTimeoutMs: 45000,
+    });
 
     // Guard against empty response
     if (!responseText?.trim()) {
@@ -217,14 +231,29 @@ export async function evaluateExplanation(
       return { error: parseError ?? "AI returned invalid JSON. Please try again." };
     }
 
-    // Store in database
-    await supabase.from("feynman_explanations").insert({
+    // Store in database. The `score` column was added in migration 006; if it
+    // hasn't been applied yet, fall back to inserting without it so evaluation
+    // keeps working (the score is also embedded in gaps_json regardless).
+    const baseRow = {
       user_id: user.id,
       topic_id: topicId,
       raw_text: explanationText,
       ai_summary: analysis.paraphrase,
       gaps_json: analysis,
-    });
+    };
+
+    let { error: insertError } = await supabase
+      .from("feynman_explanations")
+      .insert({ ...baseRow, score: analysis.score.score });
+
+    if (insertError && /score/i.test(insertError.message ?? "")) {
+      ({ error: insertError } = await supabase
+        .from("feynman_explanations")
+        .insert(baseRow));
+    }
+    if (insertError) {
+      console.warn("Failed to store Feynman explanation:", insertError.message);
+    }
 
     // Award XP for completing a Feynman explanation
     await rewardAction("feynman");
@@ -274,4 +303,53 @@ export async function createCardsFromFeynman(
 
   revalidatePath("/app/review");
   return { success: true, count: cards.length };
+}
+
+export interface TopicScorePoint {
+  score: number;
+  createdAt: string;
+}
+
+/**
+ * Returns the comprehension scores of recent Feynman attempts for a topic,
+ * oldest → newest, for the per-topic progress sparkline.
+ *
+ * Reads the score from `gaps_json` (always present) so it works whether or not
+ * migration 006 (the dedicated `score` column) has been applied.
+ */
+export async function getTopicScoreHistory(
+  topicId: string,
+  limit = 10
+): Promise<{ points: TopicScorePoint[] }> {
+  if (!topicId) return { points: [] };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { points: [] };
+
+  // Fetch the most recent N, then reverse to chronological order.
+  const { data, error } = await supabase
+    .from("feynman_explanations")
+    .select("gaps_json, created_at")
+    .eq("user_id", user.id)
+    .eq("topic_id", topicId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error || !data) return { points: [] };
+
+  const points: TopicScorePoint[] = [];
+  for (const row of data) {
+    const gaps = row.gaps_json as unknown as { score?: { score?: number } } | null;
+    const score = gaps?.score?.score;
+    if (typeof score === "number" && score >= 0 && score <= 100) {
+      points.push({ score, createdAt: row.created_at });
+    }
+  }
+
+  // Reverse to oldest → newest for left-to-right charting.
+  points.reverse();
+  return { points };
 }

@@ -36,7 +36,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <div className="flex min-h-screen bg-[var(--pixel-bg-primary)]">
         <GameSidebar profile={profileWithAvatar} />
         <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
-          <GameTopBar profile={profile} />
+          <GameTopBar profile={profileWithAvatar} />
           <main className="pixel-grid-bg flex-1 overflow-y-auto p-8">
             {children}
           </main>

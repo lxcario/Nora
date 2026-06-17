@@ -2,9 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { PixelCounter } from "@/components/pixel-ui/pixel-counter";
+import { ProfilePopover } from "./profile-popover";
 
 interface GameTopBarProps {
-  profile: { xp: number; coins: number; level: number; display_name?: string | null } | null;
+  profile: {
+    xp: number;
+    coins: number;
+    level: number;
+    display_name?: string | null;
+    avatar_url?: string | null;
+  } | null;
 }
 
 function PixelIcon({ src, alt, size = 16 }: { src: string; alt: string; size?: number }) {
@@ -59,33 +66,12 @@ export function GameTopBar({ profile }: GameTopBarProps) {
       {/* Left: Greeting */}
       <div className="flex items-center gap-2">
         <span className="font-pixel text-sm text-[var(--pixel-text-primary)]">
-          {greeting}, Student! {timeIcon}
+          {greeting}, {profile?.display_name ?? "Student"}! {timeIcon}
         </span>
       </div>
 
-      {/* Right: Level + XP bar + Coins */}
-      <div className="flex items-center gap-5">
-        {/* Star + Level badge */}
-        <div className="flex items-center gap-1.5">
-          <PixelIcon src="/sprites/travel-book/icons/Sun.png" alt="Level" size={16} />
-          <span className="font-pixel text-xs text-[var(--pixel-accent)]">
-            Lv. {level}
-          </span>
-        </div>
-
-        {/* XP Progress bar */}
-        <div className="flex items-center gap-2">
-          <div className="w-28 h-3 overflow-hidden bg-[var(--pixel-bg-primary)] border-2 border-[var(--pixel-border)]">
-            <div
-              className="h-full transition-all bg-[var(--pixel-success)]"
-              style={{ width: `${xpProgress * 100}%` }}
-            />
-          </div>
-          <span className="text-[10px] text-[var(--pixel-text-secondary)]">
-            {xpInLevel} / {xpNeeded} XP
-          </span>
-        </div>
-
+      {/* Right: Coins + compact XP bar + Profile popover */}
+      <div className="flex items-center gap-4">
         {/* Coins */}
         <div className="flex items-center gap-1.5">
           <PixelIcon src="/sprites/travel-book/icons/Coin.png" alt="Coins" size={16} />
@@ -94,6 +80,33 @@ export function GameTopBar({ profile }: GameTopBarProps) {
             className="font-pixel text-xs text-[var(--pixel-text-primary)]"
           />
         </div>
+
+        {/* Compact XP bar + level */}
+        <div className="hidden sm:flex items-center gap-2">
+          <span className="font-pixel text-[10px] text-[var(--pixel-accent)]">
+            Lv.{level}
+          </span>
+          <div
+            className="overflow-hidden"
+            style={{
+              width: "80px",
+              height: "8px",
+              background: "var(--pixel-bg-primary)",
+              border: "2px solid var(--pixel-border)",
+            }}
+          >
+            <div
+              className="h-full transition-all"
+              style={{
+                width: `${xpProgress * 100}%`,
+                backgroundColor: "var(--pixel-success)",
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Profile popover trigger */}
+        <ProfilePopover profile={profile} />
       </div>
     </header>
   );

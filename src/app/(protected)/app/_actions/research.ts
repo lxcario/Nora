@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { callLLM, hasLLMProvider, stripCodeFences } from "@/lib/llm";
 import { rewardBatch } from "./gamification";
 
 export interface ResearchSource {
@@ -76,47 +77,27 @@ export async function performResearch(query: string): Promise<{
 }
 
 async function extractSearchKeywords(query: string): Promise<string> {
-  const groqKey = process.env.GROQ_API_KEY;
-  if (!groqKey) return query; // fallback to raw query
+  if (!process.env.GROQ_API_KEY) return query; // fallback to raw query
 
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000);
-
-    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${groqKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
-        messages: [
-          {
-            role: "system",
-            content: `Extract 2-4 optimal search keywords from the user's research question. Return ONLY the keywords separated by spaces — no explanation, no quotes, no punctuation. Think about what technical terms would return good results on Wikipedia and book searches.
+    const keywords = (
+      await callLLM({
+        system: `Extract 2-4 optimal search keywords from the user's research question. Return ONLY the keywords separated by spaces — no explanation, no quotes, no punctuation. Think about what technical terms would return good results on Wikipedia and book searches.
 
 Examples:
 - "How can I become a good person?" → "ethics morality virtue self-improvement"
 - "What is the difference between x64 and x86?" → "x86-64 architecture processor comparison"
 - "How does spaced repetition work?" → "spaced repetition memory learning science"
 - "Can you explain quantum entanglement?" → "quantum entanglement physics mechanics"`,
-          },
-          { role: "user", content: query },
-        ],
+        user: query,
         temperature: 0.3,
-        max_tokens: 30,
-      }),
-      signal: controller.signal,
-    });
+        maxTokens: 30,
+        groqTimeoutMs: 8000,
+        groqOnly: true,
+      })
+    ).trim();
 
-    clearTimeout(timeout);
-
-    if (res.ok) {
-      const data = await res.json();
-      const keywords = data.choices?.[0]?.message?.content?.trim();
-      if (keywords && keywords.length > 2) return keywords;
-    }
+    if (keywords && keywords.length > 2) return keywords;
   } catch {
     // Fall through
   }
@@ -175,10 +156,7 @@ async function synthesizeResearch(
   query: string,
   sourcesContext: string
 ): Promise<{ answer?: string; suggestedCards?: { front: string; back: string }[]; error?: string }> {
-  const groqKey = process.env.GROQ_API_KEY;
-  const orKey = process.env.OPENROUTER_API_KEY;
-
-  if (!groqKey && !orKey) return { error: "No AI key configured" };
+  if (!hasLLMProvider()) return { error: "No AI key configured" };
 
   const systemPrompt = `You are a deep research assistant for university students. The user needs a THOROUGH, COMPREHENSIVE research report — not a short summary.
 
@@ -203,120 +181,56 @@ Respond ONLY with valid JSON (use \\n for newlines inside strings, NOT actual ne
   const userMessage = `Research question: "${query}"\n\nSources found:\n${sourcesContext}`;
 
   try {
-    // Try Groq first
-    if (groqKey) {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 45000);
+    const content = await callLLM({
+      system: systemPrompt,
+      user: userMessage,
+      temperature: 0.5,
+      maxTokens: 4096,
+      groqTimeoutMs: 45000,
+      openRouterTimeoutMs: 45000,
+    });
 
-      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${groqKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "llama-3.3-70b-versatile",
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userMessage },
-          ],
-          temperature: 0.5,
-          max_tokens: 4096,
-        }),
-        signal: controller.signal,
-      });
+    if (!content.trim()) return { error: "AI synthesis failed" };
 
-      clearTimeout(timeout);
-
-      if (res.ok) {
-        const data = await res.json();
-        const content = data.choices?.[0]?.message?.content?.trim() ?? "";
-        const jsonStr = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-        try {
-          const parsed = JSON.parse(jsonStr);
-          return { answer: parsed.answer, suggestedCards: parsed.suggestedCards ?? [] };
-        } catch {
-          // If JSON parse fails, try to fix common issues (newlines in strings)
-          const fixedJson = jsonStr.replace(/[\x00-\x1F\x7F]/g, (ch: string) => {
-            if (ch === "\n") return "\\n";
-            if (ch === "\r") return "\\r";
-            if (ch === "\t") return "\\t";
-            return "";
-          });
-          try {
-            const parsed = JSON.parse(fixedJson);
-            return { answer: parsed.answer, suggestedCards: parsed.suggestedCards ?? [] };
-          } catch {
-            // Last resort: extract answer text directly
-            const answerMatch = jsonStr.match(/"answer"\s*:\s*"([\s\S]*?)(?:"\s*,\s*"suggestedCards|"\s*})/);
-            if (answerMatch) {
-              return { answer: answerMatch[1].replace(/\\n/g, "\n"), suggestedCards: [] };
-            }
-            return { error: "Failed to parse AI response" };
-          }
-        }
-      }
-    }
-
-    // Fallback: OpenRouter
-    if (orKey) {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 45000);
-
-      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${orKey}`,
-          "Content-Type": "application/json",
-          "HTTP-Referer": "http://localhost:3000",
-          "X-Title": "Nora",
-        },
-        body: JSON.stringify({
-          model: "openrouter/free",
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userMessage },
-          ],
-          temperature: 0.5,
-        }),
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeout);
-
-      if (res.ok) {
-        const data = await res.json();
-        const content = data.choices?.[0]?.message?.content?.trim() ?? "";
-        const jsonStr = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-        try {
-          const parsed = JSON.parse(jsonStr);
-          return { answer: parsed.answer, suggestedCards: parsed.suggestedCards ?? [] };
-        } catch {
-          const fixedJson = jsonStr.replace(/[\x00-\x1F\x7F]/g, (ch: string) => {
-            if (ch === "\n") return "\\n";
-            if (ch === "\r") return "\\r";
-            if (ch === "\t") return "\\t";
-            return "";
-          });
-          try {
-            const parsed = JSON.parse(fixedJson);
-            return { answer: parsed.answer, suggestedCards: parsed.suggestedCards ?? [] };
-          } catch {
-            const answerMatch = jsonStr.match(/"answer"\s*:\s*"([\s\S]*?)(?:"\s*,\s*"suggestedCards|"\s*})/);
-            if (answerMatch) {
-              return { answer: answerMatch[1].replace(/\\n/g, "\n"), suggestedCards: [] };
-            }
-            return { error: "Failed to parse AI response" };
-          }
-        }
-      }
-    }
-
-    return { error: "AI synthesis failed" };
+    return parseSynthesisResponse(content);
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Research failed";
     if (msg.includes("abort")) return { error: "Research timed out. Try a simpler question." };
     return { error: msg };
+  }
+}
+
+/**
+ * Parses the research synthesis JSON, with progressive recovery for the
+ * common failure mode of raw (unescaped) control characters inside strings.
+ */
+function parseSynthesisResponse(
+  content: string
+): { answer?: string; suggestedCards?: { front: string; back: string }[]; error?: string } {
+  const jsonStr = stripCodeFences(content);
+
+  try {
+    const parsed = JSON.parse(jsonStr);
+    return { answer: parsed.answer, suggestedCards: parsed.suggestedCards ?? [] };
+  } catch {
+    // Escape stray control characters (newlines/tabs) that break JSON strings.
+    const fixedJson = jsonStr.replace(/[\x00-\x1F\x7F]/g, (ch: string) => {
+      if (ch === "\n") return "\\n";
+      if (ch === "\r") return "\\r";
+      if (ch === "\t") return "\\t";
+      return "";
+    });
+    try {
+      const parsed = JSON.parse(fixedJson);
+      return { answer: parsed.answer, suggestedCards: parsed.suggestedCards ?? [] };
+    } catch {
+      // Last resort: extract the answer text directly.
+      const answerMatch = jsonStr.match(/"answer"\s*:\s*"([\s\S]*?)(?:"\s*,\s*"suggestedCards|"\s*})/);
+      if (answerMatch) {
+        return { answer: answerMatch[1].replace(/\\n/g, "\n"), suggestedCards: [] };
+      }
+      return { error: "Failed to parse AI response" };
+    }
   }
 }
 

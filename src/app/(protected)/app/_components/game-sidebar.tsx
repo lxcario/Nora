@@ -2,9 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signout } from "@/app/(auth)/_actions/auth";
 import { playNavigate } from "@/lib/sfx";
-import { AvatarUpload } from "./avatar-upload";
 import { MusicPlayer } from "./music-player";
 
 // ---------------------------------------------------------------------------
@@ -14,27 +12,17 @@ import { MusicPlayer } from "./music-player";
 const navItems = [
   { href: "/app", icon: "/sprites/travel-book/icons/Home.png", label: "Home" },
   { href: "/app/review", icon: "/sprites/travel-book/icons/Book.png", label: "Review Cards" },
+  { href: "/app/study", icon: "/sprites/travel-book/icons/Restart.png", label: "Study Mix" },
   { href: "/app/feynman", icon: "/sprites/travel-book/icons/Lightbulb.png", label: "Feynman Mode" },
   { href: "/app/research", icon: "/sprites/travel-book/icons/MagnifyingGlass.png", label: "Research Desk" },
+  { href: "/app/study-room", icon: "/sprites/travel-book/icons/Monitor.png", label: "Study Room" },
   { href: "/app/planner", icon: "/sprites/travel-book/icons/Document.png", label: "Study Planner" },
   { href: "/app/analytics", icon: "/sprites/travel-book/icons/Trophy.png", label: "Analytics" },
+  { href: "/app/history", icon: "/sprites/travel-book/icons/FloppyDisk.png", label: "History" },
   { href: "/app/room", icon: "/sprites/travel-book/icons/Gamepad.png", label: "Pixel Room" },
+  { href: "/app/party", icon: "/sprites/travel-book/icons/Team.png", label: "Party" },
   { href: "/app/collection", icon: "/sprites/travel-book/icons/ChestTreasure.png", label: "Collection" },
 ];
-
-// ---------------------------------------------------------------------------
-// Props
-// ---------------------------------------------------------------------------
-
-interface GameSidebarProps {
-  profile: {
-    xp: number;
-    coins: number;
-    level: number;
-    display_name?: string | null;
-    avatar_url?: string | null;
-  } | null;
-}
 
 // ---------------------------------------------------------------------------
 // Pixel icon helper
@@ -99,17 +87,8 @@ function NavLink({
 // GameSidebar Component
 // ---------------------------------------------------------------------------
 
-export function GameSidebar({ profile }: GameSidebarProps) {
+export function GameSidebar({ profile }: { profile: { display_name?: string | null; avatar_url?: string | null } | null }) {
   const pathname = usePathname();
-  const level = profile?.level ?? 1;
-  const xp = profile?.xp ?? 0;
-
-  // XP progress calculation
-  const currentLevelXp = (level - 1) * (level - 1) * 50;
-  const nextLevelXp = level * level * 50;
-  const xpInLevel = xp - currentLevelXp;
-  const xpNeeded = nextLevelXp - currentLevelXp;
-  const xpProgress = Math.min(xpInLevel / xpNeeded, 1);
 
   return (
     <aside className="hidden md:flex flex-col w-[240px] min-h-screen flex-shrink-0 bg-[var(--pixel-sidebar-bg)] border-r-2 border-[var(--pixel-border)]">
@@ -153,52 +132,6 @@ export function GameSidebar({ profile }: GameSidebarProps) {
 
       {/* ─── Music Player ─── */}
       <MusicPlayer />
-
-      {/* ─── Player Card (bottom) ─── */}
-      <div className="p-2">
-        <div className="pixel-panel">
-          <div className="flex flex-col items-center gap-2 px-1 py-1">
-            {/* Avatar — click to upload a profile photo */}
-            <AvatarUpload currentUrl={profile?.avatar_url} size={72} />
-
-            {/* Name & Level */}
-            <div className="text-center">
-              <p className="font-pixel text-xs text-[var(--pixel-text-primary)]">
-                {profile?.display_name ?? "Student"}
-              </p>
-              <p className="text-[10px] text-[var(--pixel-text-secondary)]">
-                Level {level}
-              </p>
-            </div>
-
-            {/* XP Bar */}
-            <div className="w-full">
-              <div className="flex justify-between mb-1">
-                <span className="text-[9px] text-[var(--pixel-text-secondary)]">
-                  {xpInLevel} / {xpNeeded} XP
-                </span>
-              </div>
-              <div className="w-full h-2 overflow-hidden bg-[var(--pixel-bg-primary)] border border-[var(--pixel-border)]">
-                <div
-                  className="h-full transition-all bg-[var(--pixel-success)]"
-                  style={{ width: `${xpProgress * 100}%` }}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Sign out */}
-        <form action={signout} className="mt-2">
-          <button
-            type="submit"
-            className="flex items-center gap-2 px-3 py-1.5 w-full rounded text-xs font-pixel text-[var(--pixel-text-secondary)] transition-colors hover:text-[var(--pixel-text-primary)] hover:bg-[var(--pixel-bg-elevated)]"
-          >
-            <PixelIcon src="/sprites/travel-book/icons/Exit.png" alt="Sign out" size={14} />
-            Sign out
-          </button>
-        </form>
-      </div>
     </aside>
   );
 }

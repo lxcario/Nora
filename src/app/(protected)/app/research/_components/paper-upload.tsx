@@ -3,6 +3,7 @@
 import { useState, useRef, useTransition, type DragEvent, type ChangeEvent } from "react";
 import { Upload, Link, FileText, Loader2, Check } from "lucide-react";
 import { ingestPdf, ingestFromUrl } from "../../_actions/rag";
+import { DialogFrame } from "@/components/pixel-ui";
 
 interface PaperUploadProps {
   onUploadComplete?: (paperId: string) => void;
@@ -162,12 +163,7 @@ export function PaperUpload({ onUploadComplete }: PaperUploadProps) {
   return (
     <div className="space-y-4">
       {/* PDF File Upload Section */}
-      <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-        <h4 className="mb-3 flex items-center gap-2 text-sm font-semibold text-zinc-700 dark:text-zinc-300">
-          <Upload className="h-4 w-4 text-amber-500" />
-          Upload PDF
-        </h4>
-
+      <DialogFrame title="Upload PDF">
         {/* Drop zone */}
         <div
           role="button"
@@ -179,20 +175,22 @@ export function PaperUpload({ onUploadComplete }: PaperUploadProps) {
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
-          className={`flex cursor-pointer flex-col items-center justify-center rounded-md border-2 border-dashed p-6 transition-colors ${
-            isDragOver
-              ? "border-amber-400 bg-amber-50 dark:border-amber-600 dark:bg-amber-900/20"
-              : "border-zinc-300 hover:border-zinc-400 dark:border-zinc-700 dark:hover:border-zinc-600"
-          }`}
+          className="flex cursor-pointer flex-col items-center justify-center rounded-md border-2 border-dashed p-6 transition-colors"
+          style={{
+            borderColor: isDragOver ? "var(--pixel-accent)" : "var(--pixel-border)",
+            backgroundColor: isDragOver
+              ? "color-mix(in srgb, var(--pixel-accent) 10%, transparent)"
+              : "var(--pixel-bg-secondary)",
+          }}
         >
-          <FileText className="mb-2 h-8 w-8 text-zinc-400" />
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            Drag & drop a PDF here, or{" "}
-            <span className="font-medium text-amber-600 dark:text-amber-400">
-              click to browse
-            </span>
+          <FileText className="mb-2 h-8 w-8 text-[var(--pixel-text-muted)]" />
+          <p className="text-sm text-[var(--pixel-text-secondary)]">
+            Drag &amp; drop a PDF here, or{" "}
+            <span className="font-medium text-[var(--pixel-accent)]">click to browse</span>
           </p>
-          <p className="mt-1 text-xs text-zinc-400">PDF files only, up to 20 MB</p>
+          <p className="mt-1 text-xs text-[var(--pixel-text-muted)]">
+            PDF files only, up to 20 MB
+          </p>
         </div>
 
         <input
@@ -206,20 +204,23 @@ export function PaperUpload({ onUploadComplete }: PaperUploadProps) {
 
         {/* Selected file info */}
         {selectedFile && (
-          <div className="mt-3 flex items-center justify-between rounded-md bg-zinc-50 px-3 py-2 dark:bg-zinc-800">
-            <div className="flex items-center gap-2">
-              <FileText className="h-4 w-4 text-amber-500" />
-              <span className="text-sm text-zinc-700 dark:text-zinc-300">
+          <div
+            className="mt-3 flex items-center justify-between rounded-md px-3 py-2"
+            style={{ backgroundColor: "var(--pixel-bg-secondary)" }}
+          >
+            <div className="flex items-center gap-2 min-w-0">
+              <FileText className="h-4 w-4 shrink-0 text-[var(--pixel-accent)]" />
+              <span className="truncate text-sm text-[var(--pixel-text-primary)]">
                 {selectedFile.name}
               </span>
-              <span className="text-xs text-zinc-400">
+              <span className="text-xs text-[var(--pixel-text-muted)] whitespace-nowrap">
                 ({formatFileSize(selectedFile.size)})
               </span>
             </div>
             <button
               onClick={handleUpload}
               disabled={isUploading}
-              className="inline-flex items-center gap-2 rounded-md bg-amber-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50"
+              className="inline-flex shrink-0 items-center gap-2 !bg-[var(--pixel-accent)] !text-[var(--pixel-bg-primary)] hover:!brightness-110 text-sm"
             >
               {isUploading ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -231,27 +232,20 @@ export function PaperUpload({ onUploadComplete }: PaperUploadProps) {
           </div>
         )}
 
-        {/* File error */}
         {fileError && (
-          <p className="mt-2 text-sm text-red-600 dark:text-red-400">{fileError}</p>
+          <p className="mt-2 text-sm text-[var(--pixel-error)]">{fileError}</p>
         )}
 
-        {/* Upload success */}
         {uploadSuccess && (
-          <div className="mt-2 flex items-center gap-2 text-sm text-emerald-600 dark:text-emerald-400">
+          <div className="mt-2 flex items-center gap-2 text-sm text-[var(--pixel-success)]">
             <Check className="h-4 w-4" />
-            PDF uploaded successfully! Indexing in progress.
+            PDF uploaded! Indexing in progress.
           </div>
         )}
-      </div>
+      </DialogFrame>
 
       {/* URL Input Section */}
-      <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-        <h4 className="mb-3 flex items-center gap-2 text-sm font-semibold text-zinc-700 dark:text-zinc-300">
-          <Link className="h-4 w-4 text-amber-500" />
-          Import from URL
-        </h4>
-
+      <DialogFrame title="Import from URL">
         <div className="flex gap-2">
           <input
             value={url}
@@ -263,12 +257,12 @@ export function PaperUpload({ onUploadComplete }: PaperUploadProps) {
             onKeyDown={(e) => e.key === "Enter" && handleUrlIngest()}
             type="url"
             placeholder="https://example.com/paper.pdf"
-            className="block flex-1 rounded-md border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm placeholder:text-zinc-400 dark:border-zinc-700 dark:bg-zinc-800"
+            className="flex-1"
           />
           <button
             onClick={handleUrlIngest}
             disabled={isDownloading || !url.trim()}
-            className="inline-flex items-center gap-2 rounded-md bg-amber-600 px-3 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50"
+            className="inline-flex shrink-0 items-center gap-2 !bg-[var(--pixel-accent)] !text-[var(--pixel-bg-primary)] hover:!brightness-110 text-sm"
           >
             {isDownloading ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -279,19 +273,17 @@ export function PaperUpload({ onUploadComplete }: PaperUploadProps) {
           </button>
         </div>
 
-        {/* URL error */}
         {urlError && (
-          <p className="mt-2 text-sm text-red-600 dark:text-red-400">{urlError}</p>
+          <p className="mt-2 text-sm text-[var(--pixel-error)]">{urlError}</p>
         )}
 
-        {/* URL success */}
         {urlSuccess && (
-          <div className="mt-2 flex items-center gap-2 text-sm text-emerald-600 dark:text-emerald-400">
+          <div className="mt-2 flex items-center gap-2 text-sm text-[var(--pixel-success)]">
             <Check className="h-4 w-4" />
-            PDF downloaded successfully! Indexing in progress.
+            PDF downloaded! Indexing in progress.
           </div>
         )}
-      </div>
+      </DialogFrame>
     </div>
   );
 }

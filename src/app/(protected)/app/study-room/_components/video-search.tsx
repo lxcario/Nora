@@ -117,32 +117,32 @@ export function VideoSearch({ onSelectVideo }: VideoSearchProps) {
     <div className="space-y-3">
       {/* Search input */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--pixel-text-muted)]" />
         <input
           type="text"
           value={query}
           onChange={handleChange}
           placeholder="Search educational videos…"
           maxLength={210}
-          className={`w-full rounded-lg border bg-white py-2 pl-9 pr-3 text-sm text-zinc-700 placeholder:text-zinc-400 focus:outline-none focus:ring-1 dark:bg-zinc-900 dark:text-zinc-300 dark:placeholder:text-zinc-500 ${
-            validationError
-              ? "border-red-300 focus:border-red-500 focus:ring-red-500 dark:border-red-700"
-              : "border-zinc-200 focus:border-indigo-500 focus:ring-indigo-500 dark:border-zinc-700"
-          }`}
+          className="w-full"
+          style={{
+            paddingLeft: "36px",
+            borderColor: validationError ? "var(--pixel-error)" : undefined,
+          }}
         />
         {isLoading && (
-          <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-indigo-500" />
+          <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-[var(--pixel-accent)]" />
         )}
       </div>
 
       {/* Validation error */}
       {validationError && (
-        <p className="text-xs text-red-500">{validationError}</p>
+        <p className="text-xs text-[var(--pixel-error)]">{validationError}</p>
       )}
 
       {/* API error */}
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
+        <div className="rounded-lg border-2 border-[var(--pixel-error)] bg-[var(--pixel-bg-secondary)] px-3 py-2 text-xs text-[var(--pixel-error)]">
           {error}
         </div>
       )}

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { FileText, ChevronDown, ChevronUp, AlertCircle } from "lucide-react";
 import type { RagAnswer, Citation } from "../../_actions/rag";
+import { DialogFrame } from "@/components/pixel-ui";
 
 interface RagAnswerDisplayProps {
   answer: RagAnswer;
@@ -18,30 +19,32 @@ export function RagAnswerDisplay({ answer }: RagAnswerDisplayProps) {
   return (
     <div className="space-y-4">
       {/* Answer with "From your papers" label */}
-      <div className="rounded-lg border-2 border-indigo-200 bg-white p-5 dark:border-indigo-800 dark:bg-zinc-900">
+      <DialogFrame>
         <div className="mb-3 flex items-center gap-2">
-          <FileText className="h-4 w-4 text-indigo-500" />
-          <span className="rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-medium text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300">
+          <FileText className="h-4 w-4 text-[var(--pixel-accent)]" />
+          <span
+            className="rounded-full px-2.5 py-0.5 text-xs font-medium"
+            style={{
+              backgroundColor: "color-mix(in srgb, var(--pixel-accent) 18%, transparent)",
+              color: "var(--pixel-accent)",
+            }}
+          >
             From your papers
           </span>
         </div>
 
-        {/* Answer text with inline citation superscripts */}
-        <div className="prose prose-sm max-w-none text-zinc-700 dark:text-zinc-300">
+        <div className="text-sm leading-relaxed text-[var(--pixel-text-secondary)]">
           <AnswerWithCitations text={answer.answer} citations={answer.citations} />
         </div>
-      </div>
+      </DialogFrame>
 
       {/* Citations panel */}
-      <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-        <h4 className="mb-3 text-sm font-semibold text-zinc-700 dark:text-zinc-300">
-          {hasCitations
-            ? `Sources (${answer.citations.length})`
-            : "Sources"}
-        </h4>
-
+      <DialogFrame title={hasCitations ? `Sources (${answer.citations.length})` : "Sources"}>
         {!hasCitations && (
-          <div className="flex items-center gap-2 rounded-md bg-zinc-50 p-3 text-sm text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+          <div
+            className="flex items-center gap-2 rounded-md p-3 text-sm text-[var(--pixel-text-muted)]"
+            style={{ backgroundColor: "var(--pixel-bg-secondary)" }}
+          >
             <AlertCircle className="h-4 w-4 flex-shrink-0" />
             No source snippets are available for this answer.
           </div>
@@ -50,37 +53,46 @@ export function RagAnswerDisplay({ answer }: RagAnswerDisplayProps) {
         {hasCitations && (
           <div className="space-y-2">
             {answer.citations.slice(0, 20).map((citation, i) => (
-              <div key={i} className="rounded-md bg-zinc-50 p-3 dark:bg-zinc-800">
+              <div
+                key={i}
+                className="rounded-md p-3"
+                style={{ backgroundColor: "var(--pixel-bg-secondary)" }}
+              >
                 <button
-                  onClick={() =>
-                    setExpandedCitation(expandedCitation === i ? null : i)
-                  }
-                  className="flex w-full items-start justify-between text-left"
+                  onClick={() => setExpandedCitation(expandedCitation === i ? null : i)}
+                  className="flex w-full items-start justify-between gap-2 text-left !bg-transparent !border-none !p-0 hover:!bg-transparent"
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded bg-indigo-100 text-[10px] font-bold text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300">
+                      <span
+                        className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded text-[10px] font-bold"
+                        style={{
+                          backgroundColor:
+                            "color-mix(in srgb, var(--pixel-accent) 18%, transparent)",
+                          color: "var(--pixel-accent)",
+                        }}
+                      >
                         {i + 1}
                       </span>
-                      <span className="truncate text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                      <span className="truncate text-sm font-medium text-[var(--pixel-text-primary)]">
                         {citation.paperTitle}
                       </span>
                     </div>
                     {citation.sectionHeading && (
-                      <p className="mt-0.5 pl-7 text-xs text-zinc-500 dark:text-zinc-400">
+                      <p className="mt-0.5 pl-7 text-xs text-[var(--pixel-text-muted)]">
                         § {citation.sectionHeading}
                       </p>
                     )}
                   </div>
                   {expandedCitation === i ? (
-                    <ChevronUp className="h-4 w-4 flex-shrink-0 text-zinc-400" />
+                    <ChevronUp className="h-4 w-4 flex-shrink-0 text-[var(--pixel-text-muted)]" />
                   ) : (
-                    <ChevronDown className="h-4 w-4 flex-shrink-0 text-zinc-400" />
+                    <ChevronDown className="h-4 w-4 flex-shrink-0 text-[var(--pixel-text-muted)]" />
                   )}
                 </button>
 
                 {expandedCitation === i && (
-                  <div className="mt-2 border-t border-zinc-200 pt-2 dark:border-zinc-700">
+                  <div className="mt-2 border-t border-[var(--pixel-border)] pt-2">
                     <SnippetContent text={citation.snippet} />
                   </div>
                 )}
@@ -88,7 +100,7 @@ export function RagAnswerDisplay({ answer }: RagAnswerDisplayProps) {
             ))}
           </div>
         )}
-      </div>
+      </DialogFrame>
     </div>
   );
 }
@@ -104,18 +116,15 @@ function AnswerWithCitations({
   text: string;
   citations: Citation[];
 }) {
-  // Match citation patterns like [Paper Title, Section]
   const citationPattern = /\[([^\]]+)\]/g;
   const parts: (string | { index: number })[] = [];
   let lastIndex = 0;
   let match: RegExpExecArray | null;
 
-  // Build a map of "PaperTitle, Section" -> index
   const citationMap = new Map<string, number>();
   citations.forEach((c, i) => {
     const key = `${c.paperTitle}, ${c.sectionHeading}`.toLowerCase();
     citationMap.set(key, i + 1);
-    // Also map just the paper title
     citationMap.set(c.paperTitle.toLowerCase(), i + 1);
   });
 
@@ -129,7 +138,6 @@ function AnswerWithCitations({
     const citText = match[1].toLowerCase();
     let citIndex = citationMap.get(citText);
     if (!citIndex) {
-      // Try partial match
       for (const [key, idx] of citationMap) {
         if (citText.includes(key) || key.includes(citText)) {
           citIndex = idx;
@@ -167,7 +175,11 @@ function AnswerWithCitations({
         ) : (
           <sup
             key={i}
-            className="ml-0.5 inline-flex h-4 w-4 items-center justify-center rounded bg-indigo-100 text-[9px] font-bold text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300"
+            className="ml-0.5 inline-flex h-4 w-4 items-center justify-center rounded text-[9px] font-bold"
+            style={{
+              backgroundColor: "color-mix(in srgb, var(--pixel-accent) 18%, transparent)",
+              color: "var(--pixel-accent)",
+            }}
             aria-label={`Citation ${part.index}`}
           >
             {part.index}
@@ -188,14 +200,14 @@ function SnippetContent({ text }: { text: string }) {
 
   return (
     <div>
-      <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
+      <p className="text-xs leading-relaxed text-[var(--pixel-text-secondary)]">
         {displayText}
         {isLong && !showFull && "…"}
       </p>
       {isLong && (
         <button
           onClick={() => setShowFull(!showFull)}
-          className="mt-1 text-xs font-medium text-indigo-600 hover:text-indigo-700 dark:text-indigo-400"
+          className="mt-1 !bg-transparent !border-none !p-0 text-xs font-medium text-[var(--pixel-accent)] hover:!bg-transparent"
         >
           {showFull ? "Show less" : "Show more"}
         </button>

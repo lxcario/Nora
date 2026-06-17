@@ -2,9 +2,17 @@
 
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { createClient } from "@/lib/supabase/server";
+import { callLLM, hasLLMProvider } from "@/lib/llm";
 
 /**
- * Generates an inline completion suggestion for the Feynman explanation editor.
+ * Generates an inline *scaffold* for the Feynman explanation editor.
+ *
+ * Pedagogy note: the Feynman technique depends on retrieval practice — the
+ * student must produce the explanation themselves. So this intentionally does
+ * NOT write the factual answer. It offers a short sentence-starter / guiding
+ * lead-in (e.g. "A common misconception here is…") that nudges the student to
+ * continue elaborating in their own words.
+ *
  * Uses Groq for speed (~1-2s), falls back to OpenRouter.
  */
 export async function getCompletionSuggestion(
@@ -22,97 +30,40 @@ export async function getCompletionSuggestion(
     }
   }
 
-  const groqKey = process.env.GROQ_API_KEY;
-  const orKey = process.env.OPENROUTER_API_KEY;
-
-  if (!groqKey && !orKey) {
+  if (!hasLLMProvider()) {
     return { error: "No AI key configured" };
   }
 
-  const systemPrompt = `You are a writing assistant helping a student write a Feynman-style explanation about "${topicName}" (Subject: ${subjectName}).
+  const systemPrompt = `You are a Socratic study coach helping a student write a Feynman-style explanation about "${topicName}" (Subject: ${subjectName}).
 
-Your job: Continue their text naturally with 1-2 short sentences that demonstrate understanding of the topic. 
+Your job is to nudge the student to keep explaining IN THEIR OWN WORDS — never to write the explanation for them.
 
-RULES:
-- If the text is EMPTY, suggest an opening sentence to start explaining the topic.
-- If they've written something, continue from where they left off.
-- Write in first person as if YOU are the student explaining.
-- Keep it factual and technically accurate.
-- Output ONLY the continuation text (no quotes, no labels, no explanation of what you're doing).
-- Maximum 1-2 sentences. Be concise.
-- Do NOT repeat what they already wrote.`;
+Output a SHORT sentence-starter or guiding lead-in (a scaffold) that the student will complete themselves.
+
+STRICT RULES:
+- Output ONLY the scaffold phrase — no quotes, no labels, no meta-commentary.
+- Maximum 8 words. It must be an unfinished lead-in, ending so the student continues it.
+- Do NOT state any facts, definitions, numbers, or the actual answer. Provide the *prompt*, not the content.
+- Prefer lead-ins that push for deeper thinking: causes ("This happens because…"), mechanisms ("The way this works is…"), examples ("For instance,…"), contrasts ("Unlike …, this…"), or significance ("This matters because…").
+- If the text is EMPTY, return a neutral opening scaffold such as "In my own words," or "The core idea is that…".
+- Never repeat what the student already wrote.`;
 
   const userMessage = currentText.trim()
-    ? `Continue this explanation naturally (1-2 sentences only):\n\n"${currentText}"`
-    : `Suggest an opening sentence to start explaining "${topicName}" in simple terms.`;
+    ? `The student has written so far:\n\n"${currentText.slice(-600)}"\n\nGive ONE short lead-in (max 8 words) that prompts them to continue explaining in their own words. Do not include any facts.`
+    : `Give ONE short opening lead-in (max 8 words) to help the student start explaining "${topicName}" in their own words. Do not include any facts.`;
 
   try {
-    // Try Groq first
-    if (groqKey) {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 8000);
-
-      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${groqKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "llama-3.3-70b-versatile",
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userMessage },
-          ],
-          temperature: 0.4,
-          max_tokens: 100,
-        }),
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeout);
-
-      if (res.ok) {
-        const data = await res.json();
-        const content = data.choices?.[0]?.message?.content?.trim();
-        if (content) return { suggestion: content };
-      }
-    }
-
-    // Fallback: OpenRouter
-    if (orKey) {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 20000);
-
-      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${orKey}`,
-          "Content-Type": "application/json",
-          "HTTP-Referer": "http://localhost:3000",
-          "X-Title": "Nora",
-        },
-        body: JSON.stringify({
-          model: "openrouter/free",
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userMessage },
-          ],
-          temperature: 0.4,
-          max_tokens: 100,
-        }),
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeout);
-
-      if (res.ok) {
-        const data = await res.json();
-        const content = data.choices?.[0]?.message?.content?.trim();
-        if (content) return { suggestion: content };
-      }
-    }
-
+    const suggestion = await callLLM({
+      system: systemPrompt,
+      user: userMessage,
+      temperature: 0.5,
+      maxTokens: 24,
+      groqTimeoutMs: 8000,
+      openRouterTimeoutMs: 20000,
+    });
+    // Defensively trim to a short scaffold and strip wrapping quotes.
+    const trimmed = suggestion.trim().replace(/^["'`]|["'`]$/g, "").trim();
+    if (trimmed) return { suggestion: trimmed };
     return { error: "Failed to get suggestion" };
   } catch {
     return { error: "Suggestion request failed" };

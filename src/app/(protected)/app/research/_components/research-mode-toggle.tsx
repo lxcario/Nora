@@ -9,29 +9,58 @@ interface ResearchModeToggleProps {
 
 export function ResearchModeToggle({ mode, onModeChange }: ResearchModeToggleProps) {
   return (
-    <div className="inline-flex rounded-lg border border-zinc-200 bg-zinc-100 p-1 dark:border-zinc-700 dark:bg-zinc-800">
-      <button
+    <div
+      role="tablist"
+      aria-label="Research mode"
+      className="inline-flex rounded-lg p-1"
+      style={{
+        backgroundColor: "var(--pixel-bg-surface)",
+        border: "2px solid var(--pixel-border)",
+      }}
+    >
+      <ModeButton
+        active={mode === "web"}
         onClick={() => onModeChange("web")}
-        className={`inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors ${
-          mode === "web"
-            ? "bg-indigo-600 font-bold text-white shadow-sm"
-            : "text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
-        }`}
-      >
-        <Globe className="h-4 w-4" />
-        From web sources
-      </button>
-      <button
+        icon={<Globe className="h-4 w-4" />}
+        label="From web sources"
+      />
+      <ModeButton
+        active={mode === "papers"}
         onClick={() => onModeChange("papers")}
-        className={`inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors ${
-          mode === "papers"
-            ? "bg-indigo-600 font-bold text-white shadow-sm"
-            : "text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
-        }`}
-      >
-        <FileText className="h-4 w-4" />
-        From your papers
-      </button>
+        icon={<FileText className="h-4 w-4" />}
+        label="From your papers"
+      />
     </div>
+  );
+}
+
+function ModeButton({
+  active,
+  onClick,
+  icon,
+  label,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+  label: string;
+}) {
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active}
+      onClick={onClick}
+      className="inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-pixel transition-colors"
+      style={{
+        backgroundColor: active ? "var(--pixel-accent)" : "transparent",
+        color: active ? "var(--pixel-bg-primary)" : "var(--pixel-text-secondary)",
+        border: "none",
+        letterSpacing: "0.5px",
+      }}
+    >
+      {icon}
+      {label}
+    </button>
   );
 }

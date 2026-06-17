@@ -1,5 +1,7 @@
 "use server";
 
+import { callLLM } from "@/lib/llm";
+
 /**
  * Generates an inline completion suggestion for the note editor.
  * Uses Groq for speed, falls back to OpenRouter.
@@ -37,72 +39,16 @@ RULES:
     : `Suggest an opening line for study notes about "${videoTitle}".`;
 
   try {
-    // Try Groq first (fast)
-    if (groqKey) {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 6000);
-
-      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${groqKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "llama-3.3-70b-versatile",
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userMessage },
-          ],
-          temperature: 0.4,
-          max_tokens: 80,
-        }),
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeout);
-
-      if (res.ok) {
-        const data = await res.json();
-        const content = data.choices?.[0]?.message?.content?.trim();
-        if (content) return { suggestion: content };
-      }
-    }
-
-    // Fallback: OpenRouter
-    if (orKey) {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 15000);
-
-      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${orKey}`,
-          "Content-Type": "application/json",
-          "HTTP-Referer": "http://localhost:3000",
-          "X-Title": "Nora",
-        },
-        body: JSON.stringify({
-          model: "openrouter/free",
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userMessage },
-          ],
-          temperature: 0.4,
-          max_tokens: 80,
-        }),
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeout);
-
-      if (res.ok) {
-        const data = await res.json();
-        const content = data.choices?.[0]?.message?.content?.trim();
-        if (content) return { suggestion: content };
-      }
-    }
-
+    const suggestion = await callLLM({
+      system: systemPrompt,
+      user: userMessage,
+      temperature: 0.4,
+      maxTokens: 80,
+      groqTimeoutMs: 6000,
+      openRouterTimeoutMs: 15000,
+    });
+    const trimmed = suggestion.trim();
+    if (trimmed) return { suggestion: trimmed };
     return { error: "Failed to get suggestion" };
   } catch {
     return { error: "Suggestion request failed" };

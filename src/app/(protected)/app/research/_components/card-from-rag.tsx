@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { Layers, Check, Loader2 } from "lucide-react";
 import { createCardsFromResearch } from "../../_actions/research";
 import { SuccessCheck } from "../../_components/success-check";
+import { DialogFrame } from "@/components/pixel-ui";
 
 interface SuggestedCard {
   front: string;
@@ -55,18 +56,14 @@ export function CardFromRag({ suggestedCards, topicId }: CardFromRagProps) {
   }
 
   return (
-    <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+    <DialogFrame title={`Suggested Study Cards (${suggestedCards.length})`}>
       <SuccessCheck message="Cards saved from your papers!" visible={showSuccess} />
-      <div className="mb-3 flex items-center justify-between">
-        <h4 className="flex items-center gap-2 text-sm font-semibold text-zinc-700 dark:text-zinc-300">
-          <Layers className="h-4 w-4 text-sky-500" />
-          Suggested Study Cards ({suggestedCards.length})
-        </h4>
+      <div className="mb-3 flex items-center justify-end">
         {topicId && !allSaved && (
           <button
             onClick={handleSaveAll}
             disabled={isPending}
-            className="inline-flex items-center gap-2 rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+            className="inline-flex items-center gap-2 !bg-[var(--pixel-success)] !text-white hover:!brightness-110 text-sm"
           >
             {isPending ? (
               <Loader2 className="h-3 w-3 animate-spin" />
@@ -77,7 +74,7 @@ export function CardFromRag({ suggestedCards, topicId }: CardFromRagProps) {
           </button>
         )}
         {allSaved && (
-          <span className="inline-flex items-center gap-1 text-sm text-emerald-600">
+          <span className="inline-flex items-center gap-1 text-sm text-[var(--pixel-success)]">
             <Check className="h-4 w-4" />
             All cards saved!
           </span>
@@ -85,26 +82,25 @@ export function CardFromRag({ suggestedCards, topicId }: CardFromRagProps) {
       </div>
 
       {!topicId && (
-        <p className="mb-3 text-xs text-amber-500">
-          Select a topic in web research mode to save cards.
+        <p className="mb-3 text-xs text-[var(--pixel-warning)]">
+          Pick a topic in &ldquo;Save cards to&rdquo; above to save these cards.
         </p>
       )}
 
-      {error && (
-        <p className="mb-3 text-sm text-red-600 dark:text-red-400">{error}</p>
-      )}
+      {error && <p className="mb-3 text-sm text-[var(--pixel-error)]">{error}</p>}
 
       <div className="space-y-2">
         {suggestedCards.map((card, i) => (
           <div
             key={i}
-            className="flex items-start justify-between gap-3 rounded-md bg-zinc-50 p-3 dark:bg-zinc-800"
+            className="flex items-start justify-between gap-3 rounded-md p-3"
+            style={{ backgroundColor: "var(--pixel-bg-secondary)" }}
           >
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              <p className="text-sm font-medium text-[var(--pixel-text-primary)]">
                 Q: {card.front}
               </p>
-              <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+              <p className="mt-1 text-sm text-[var(--pixel-text-secondary)]">
                 A: {card.back}
               </p>
             </div>
@@ -112,17 +108,17 @@ export function CardFromRag({ suggestedCards, topicId }: CardFromRagProps) {
               <button
                 onClick={() => handleSaveOne(i)}
                 disabled={isPending}
-                className="flex-shrink-0 rounded-md bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-100 disabled:opacity-50 dark:bg-emerald-900/20 dark:text-emerald-400"
+                className="flex-shrink-0 !bg-transparent !border-none text-xs !px-2 !py-1 text-[var(--pixel-success)] hover:!bg-[var(--pixel-bg-elevated)]"
               >
                 Save
               </button>
             )}
             {savedCards.has(i) && (
-              <Check className="h-4 w-4 flex-shrink-0 text-emerald-500" />
+              <Check className="h-4 w-4 flex-shrink-0 text-[var(--pixel-success)]" />
             )}
           </div>
         ))}
       </div>
-    </div>
+    </DialogFrame>
   );
 }

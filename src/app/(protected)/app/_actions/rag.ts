@@ -6,6 +6,8 @@ import { validateUploadInput, validateUrl, validateQuestion } from "./rag/valida
 import { parsePdf } from "./rag/parser";
 import { chunkText } from "./rag/chunker";
 import { generateEmbeddings, generateQueryEmbedding, hasEmbeddingSupport } from "./rag/embedder";
+import { callLLM, hasLLMProvider } from "@/lib/llm";
+import { assertPublicHttpUrl } from "@/lib/ssrf";
 
 // --- Types ---
 
@@ -229,9 +231,13 @@ export async function ingestFromUrl(
   } = await supabase.auth.getUser();
   if (!user) return { error: "Not authenticated" };
 
-  // Validate URL
+  // Validate URL (syntactic) then guard against SSRF (resolves DNS and
+  // blocks private/loopback/link-local/metadata addresses before fetching).
   const urlValidation = validateUrl(url);
   if (!urlValidation.valid) return { error: urlValidation.error };
+
+  const ssrfCheck = await assertPublicHttpUrl(url);
+  if (!ssrfCheck.ok) return { error: ssrfCheck.error ?? "URL is not allowed" };
 
   // Download PDF with 30-second timeout
   let buffer: Buffer;
@@ -243,6 +249,9 @@ export async function ingestFromUrl(
     try {
       response = await fetch(url, {
         signal: controller.signal,
+        // Do not auto-follow redirects: a redirect could point at an internal
+        // address that bypassed the initial SSRF check.
+        redirect: "manual",
         headers: {
           "User-Agent": "PixelStudyOS/1.0",
         },
@@ -259,6 +268,11 @@ export async function ingestFromUrl(
     }
 
     clearTimeout(timeoutId);
+
+    // Reject redirects outright (opaqueredirect/3xx) to avoid SSRF via redirect.
+    if (response.type === "opaqueredirect" || (response.status >= 300 && response.status < 400)) {
+      return { error: "URL redirects are not allowed for security reasons" };
+    }
 
     // Check for non-2xx response
     if (!response.ok) {
@@ -666,59 +680,37 @@ interface RetrievedChunk {
  * Used in FTS mode (no OPENAI_API_KEY).
  */
 async function extractSearchKeywordsForRag(question: string): Promise<string[]> {
-  const groqKey = process.env.GROQ_API_KEY;
-  if (!groqKey) {
-    // Fallback: split question into words and take top terms
-    return question
+  const naiveFallback = () =>
+    question
       .split(/\s+/)
       .filter((w) => w.length > 3)
       .slice(0, 5);
+
+  if (!process.env.GROQ_API_KEY) {
+    return naiveFallback();
   }
 
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), KEYWORD_TIMEOUT_MS);
-
-    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${groqKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
-        messages: [
-          {
-            role: "system",
-            content:
-              "Extract 3-5 search keywords from the following question. Return only the keywords separated by spaces, no explanation.",
-          },
-          { role: "user", content: question },
-        ],
+    const keywordsStr = (
+      await callLLM({
+        system:
+          "Extract 3-5 search keywords from the following question. Return only the keywords separated by spaces, no explanation.",
+        user: question,
         temperature: 0.3,
-        max_tokens: 30,
-      }),
-      signal: controller.signal,
-    });
+        maxTokens: 30,
+        groqTimeoutMs: KEYWORD_TIMEOUT_MS,
+        groqOnly: true,
+      })
+    ).trim();
 
-    clearTimeout(timeout);
-
-    if (res.ok) {
-      const data = await res.json();
-      const keywordsStr = data.choices?.[0]?.message?.content?.trim();
-      if (keywordsStr && keywordsStr.length > 2) {
-        return keywordsStr.split(/\s+/).filter((w: string) => w.length > 0);
-      }
+    if (keywordsStr && keywordsStr.length > 2) {
+      return keywordsStr.split(/\s+/).filter((w: string) => w.length > 0);
     }
   } catch {
     // Fall through to fallback
   }
 
-  // Fallback: naive word extraction
-  return question
-    .split(/\s+/)
-    .filter((w) => w.length > 3)
-    .slice(0, 5);
+  return naiveFallback();
 }
 
 /**
@@ -857,117 +849,37 @@ async function synthesizeRagAnswer(
   question: string,
   chunks: RetrievedChunk[]
 ): Promise<RagAnswer> {
-  const groqKey = process.env.GROQ_API_KEY;
-  const orKey = process.env.OPENROUTER_API_KEY;
-
-  if (!groqKey && !orKey) {
+  if (!hasLLMProvider()) {
     throw new Error("No AI key configured. Cannot synthesize answer.");
   }
 
   const { systemPrompt, userMessage } = buildRagPrompt(question, chunks);
 
-  // Try Groq first
-  if (groqKey) {
-    try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), LLM_TIMEOUT_MS);
-
-      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${groqKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "llama-3.3-70b-versatile",
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userMessage },
-          ],
-          temperature: 0.3,
-          max_tokens: 4096,
-        }),
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeout);
-
-      if (res.ok) {
-        const data = await res.json();
-        const content = data.choices?.[0]?.message?.content?.trim() ?? "";
-        if (content) {
-          return parseRagResponse(content, chunks);
-        }
-      }
-
-      // If Groq returns rate limit (429), fall through to OpenRouter (Req 12.2)
-      if (res.status === 429 && orKey) {
-        // Fall through to OpenRouter
-      } else if (!res.ok && !orKey) {
-        throw new Error("AI synthesis temporarily unavailable, please retry in 60 seconds");
-      }
-    } catch (groqError: unknown) {
-      if (!orKey) {
-        if (
-          groqError instanceof Error &&
-          (groqError.name === "AbortError" || groqError.message.includes("abort"))
-        ) {
-          throw new Error("AI synthesis temporarily unavailable, please retry in 60 seconds");
-        }
-        throw groqError;
-      }
-      // Fall through to OpenRouter
+  let content: string;
+  try {
+    content = await callLLM({
+      system: systemPrompt,
+      user: userMessage,
+      temperature: 0.3,
+      maxTokens: 4096,
+      groqTimeoutMs: LLM_TIMEOUT_MS,
+      openRouterTimeoutMs: LLM_TIMEOUT_MS,
+    });
+  } catch (err) {
+    if (
+      err instanceof Error &&
+      (err.name === "AbortError" || err.message.includes("abort"))
+    ) {
+      throw new Error("AI synthesis temporarily unavailable, please retry in 60 seconds");
     }
+    throw err;
   }
 
-  // Fallback: OpenRouter (Req 12.2, 12.3)
-  if (orKey) {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), LLM_TIMEOUT_MS);
-
-    try {
-      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${orKey}`,
-          "Content-Type": "application/json",
-          "HTTP-Referer": "http://localhost:3000",
-          "X-Title": "Nora",
-        },
-        body: JSON.stringify({
-          model: "openrouter/free",
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userMessage },
-          ],
-          temperature: 0.3,
-        }),
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeout);
-
-      if (res.ok) {
-        const data = await res.json();
-        const content = data.choices?.[0]?.message?.content?.trim() ?? "";
-        if (content) {
-          return parseRagResponse(content, chunks);
-        }
-      }
-    } catch (orError: unknown) {
-      if (
-        orError instanceof Error &&
-        (orError.name === "AbortError" || orError.message.includes("abort"))
-      ) {
-        throw new Error("AI synthesis temporarily unavailable, please retry in 60 seconds");
-      }
-      throw orError;
-    } finally {
-      clearTimeout(timeout);
-    }
+  if (content && content.trim()) {
+    return parseRagResponse(content, chunks);
   }
 
-  // Both providers failed (Req 12.3)
+  // Both providers failed or returned empty (Req 12.3)
   throw new Error("AI synthesis temporarily unavailable, please retry in 60 seconds");
 }
 
@@ -1371,35 +1283,22 @@ export async function generateSuggestedQuestions(
   // Combine chunk content (truncate to ~2000 chars to keep prompt small)
   const combinedContent = chunks.map((c) => c.content).join("\n\n").slice(0, 2000);
 
-  const groqKey = process.env.GROQ_API_KEY;
-  if (!groqKey) return { data: [] };
+  if (!process.env.GROQ_API_KEY) return { data: [] };
 
   try {
-    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${groqKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
-        messages: [
-          {
-            role: "system",
-            content: "Generate exactly 5 short questions (max 60 chars each) that a student could ask about the following document content. Return ONLY the questions, one per line, no numbering.",
-          },
-          { role: "user", content: combinedContent },
-        ],
+    const text = (
+      await callLLM({
+        system:
+          "Generate exactly 5 short questions (max 60 chars each) that a student could ask about the following document content. Return ONLY the questions, one per line, no numbering.",
+        user: combinedContent,
         temperature: 0.7,
-        max_tokens: 300,
-      }),
-    });
+        maxTokens: 300,
+        groqOnly: true,
+      })
+    ).trim();
 
-    if (!res.ok) return { data: [] };
+    if (!text) return { data: [] };
 
-    const data = await res.json();
-    const text = data.choices?.[0]?.message?.content?.trim() ?? "";
-    
     const questions = text
       .split("\n")
       .map((line: string) => line.replace(/^\d+[\.\)]\s*/, "").trim())

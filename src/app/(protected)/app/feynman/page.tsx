@@ -1,11 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "../_components/page-header";
 import { FeynmanEditor } from "./_components/feynman-editor";
+import { DialogFrame } from "@/components/pixel-ui";
 
 export default async function FeynmanPage() {
   const supabase = await createClient();
 
-  // Fetch topics grouped by subject for the selector
   const { data: subjects } = await supabase
     .from("subjects")
     .select("id, name, color, topics(id, name)")
@@ -29,18 +29,15 @@ export default async function FeynmanPage() {
       />
 
       {topicOptions.length === 0 ? (
-        <div className="rounded-lg border border-zinc-200 bg-white p-6 text-center dark:border-zinc-800 dark:bg-zinc-900">
-          <p className="text-sm text-zinc-500">
+        <DialogFrame>
+          <p className="text-sm text-center text-[var(--pixel-text-secondary)]">
             No topics found. Go to{" "}
-            <a
-              href="/app/settings"
-              className="font-medium text-indigo-600 hover:text-indigo-500"
-            >
+            <a href="/app/settings" className="font-medium">
               Settings
             </a>{" "}
             to create subjects and topics first.
           </p>
-        </div>
+        </DialogFrame>
       ) : (
         <FeynmanEditor topics={topicOptions} />
       )}

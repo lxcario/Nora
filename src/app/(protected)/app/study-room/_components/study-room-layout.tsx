@@ -300,20 +300,20 @@ export function StudyRoomLayout({
       <div className="mx-auto max-w-2xl space-y-6 py-12">
         <XpToast xp={xpToastData.xp} coins={xpToastData.coins} visible={xpToastData.visible} />
         <div className="text-center">
-          <MonitorPlay className="mx-auto h-12 w-12 text-zinc-300 dark:text-zinc-600" />
-          <h2 className="mt-4 text-lg font-semibold text-zinc-700 dark:text-zinc-300">
+          <MonitorPlay className="mx-auto h-12 w-12 text-[var(--pixel-text-muted)]" />
+          <h2 className="mt-4 text-lg font-semibold font-pixel text-[var(--pixel-text-primary)]">
             Start Studying
           </h2>
-          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+          <p className="mt-1 text-sm text-[var(--pixel-text-secondary)]">
             Search for an educational video or paste a YouTube URL to begin.
           </p>
         </div>
-        <div className="space-y-4 rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="pixel-panel" style={{ padding: "24px" }}>
           <VideoSearch onSelectVideo={handleSearchSelect} />
-          <div className="flex items-center gap-3">
-            <div className="h-px flex-1 bg-zinc-200 dark:bg-zinc-700" />
-            <span className="text-xs text-zinc-400">or</span>
-            <div className="h-px flex-1 bg-zinc-200 dark:bg-zinc-700" />
+          <div className="my-4 flex items-center gap-3">
+            <div className="h-px flex-1 bg-[var(--pixel-border)]" />
+            <span className="text-xs text-[var(--pixel-text-muted)]">or</span>
+            <div className="h-px flex-1 bg-[var(--pixel-border)]" />
           </div>
           <UrlInput onVideoId={handleUrlInput} />
         </div>

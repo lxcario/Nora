@@ -22,6 +22,9 @@ import {
 } from "./study-room/transcript-utils";
 import { rewardAction, rewardBatch } from "./gamification";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { callLLM } from "@/lib/llm";
+import { computeComprehensionScore, normalizeSegmentStatus } from "@/lib/feynman-score";
+import type { GapAnalysis } from "./feynman";
 
 // === Constants ===
 
@@ -507,84 +510,19 @@ interface GeneratedNotes {
 
 // === LLM Call Helper (Groq primary, OpenRouter fallback) ===
 
-/**
- * Calls an LLM with structured prompts.
- * Primary: Groq (fast, 15s timeout)
- * Fallback: OpenRouter (45s timeout)
- */
-async function callLLM(systemPrompt: string, userMessage: string): Promise<string> {
-  // Try Groq first (much faster)
-  const groqKey = process.env.GROQ_API_KEY;
-  if (groqKey) {
-    try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 15000);
-
-      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${groqKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "llama-3.3-70b-versatile",
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userMessage },
-          ],
-          temperature: 0.7,
-        }),
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeout);
-
-      if (res.ok) {
-        const data = await res.json();
-        const content = data.choices?.[0]?.message?.content;
-        if (content) return content;
-      }
-      console.warn("Groq failed, falling back to OpenRouter:", res.status);
-    } catch (err) {
-      console.warn("Groq error, falling back to OpenRouter:", err);
-    }
-  }
-
-  // Fallback: OpenRouter
-  const orKey = process.env.OPENROUTER_API_KEY;
-  if (!orKey) throw new Error("No AI API key configured");
-
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 45000);
-
-  const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${orKey}`,
-      "Content-Type": "application/json",
-      "HTTP-Referer": "http://localhost:3000",
-      "X-Title": "Nora",
-    },
-    body: JSON.stringify({
-      model: "openrouter/free",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userMessage },
-      ],
-      temperature: 0.7,
-    }),
-    signal: controller.signal,
+// Note: the Groq → OpenRouter call logic now lives in the shared `@/lib/llm`
+// module (callLLM). The wrapper below preserves this file's previous call
+// signature and timeouts.
+async function callLLM_(systemPrompt: string, userMessage: string): Promise<string> {
+  const content = await callLLM({
+    system: systemPrompt,
+    user: userMessage,
+    temperature: 0.7,
+    groqTimeoutMs: 15000,
+    openRouterTimeoutMs: 45000,
   });
-
-  clearTimeout(timeout);
-
-  if (!res.ok) {
-    const errText = await res.text();
-    throw new Error(`OpenRouter error (${res.status}): ${errText.slice(0, 200)}`);
-  }
-
-  const data = await res.json();
-  return data.choices?.[0]?.message?.content ?? "";
+  if (!content) throw new Error("No AI API key configured");
+  return content;
 }
 
 // === generateNotes ===
@@ -672,7 +610,7 @@ export async function generateNotes(
   // Call LLM
   let responseText: string;
   try {
-    responseText = await callLLM(systemPrompt, userMessage);
+    responseText = await callLLM_(systemPrompt, userMessage);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     if (message.includes("abort") || message.includes("aborted")) {
@@ -1155,14 +1093,6 @@ Respond ONLY with valid JSON (no markdown, no code fences, no extra text):
   ]
 }`;
 
-/** GapAnalysis type for Feynman evaluation results */
-interface GapAnalysis {
-  questions: string[];
-  paraphrase: string;
-  segments: { text: string; status: "green" | "amber" | "red"; feedback: string }[];
-  suggestedCards: { front: string; back: string }[];
-}
-
 /**
  * Evaluates a Feynman explanation of a video segment with transcript context.
  *
@@ -1261,7 +1191,7 @@ export async function evaluateWithTranscript(
   // Call LLM (Groq primary, OpenRouter fallback)
   let responseText: string;
   try {
-    responseText = await callLLM(systemPrompt, explanation.trim());
+    responseText = await callLLM_(systemPrompt, explanation.trim());
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     if (message.includes("abort") || message.includes("aborted")) {
@@ -1298,7 +1228,28 @@ export async function evaluateWithTranscript(
       return { error: "AI returned an invalid response structure. Please try again." };
     }
 
-    analysis = parsed as GapAnalysis;
+    // Normalize segments (coerce status to enum, drop empty text) and attach
+    // a deterministic comprehension score — consistent with text Feynman mode.
+    const segments = (parsed.segments as unknown[])
+      .map((s) => {
+        const seg = (s ?? {}) as Record<string, unknown>;
+        return {
+          text: typeof seg.text === "string" ? seg.text.trim() : "",
+          status: normalizeSegmentStatus(seg.status),
+          feedback: typeof seg.feedback === "string" ? seg.feedback.trim() : "",
+        };
+      })
+      .filter((s) => s.text.length > 0);
+
+    analysis = {
+      questions: (parsed.questions as unknown[]).filter(
+        (q): q is string => typeof q === "string" && q.trim().length > 0
+      ),
+      paraphrase: parsed.paraphrase,
+      segments,
+      suggestedCards: (parsed.suggestedCards as { front: string; back: string }[]) ?? [],
+      score: computeComprehensionScore(segments),
+    };
   } catch {
     console.error("evaluateWithTranscript JSON parse error:", jsonStr.slice(0, 500));
     return { error: "AI returned invalid JSON. Please try again." };

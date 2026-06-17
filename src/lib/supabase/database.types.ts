@@ -184,6 +184,7 @@ export interface Database {
           raw_text: string;
           ai_summary: string | null;
           gaps_json: Json | null;
+          score: number | null;
           created_at: string;
         };
         Insert: {
@@ -193,12 +194,14 @@ export interface Database {
           raw_text: string;
           ai_summary?: string | null;
           gaps_json?: Json | null;
+          score?: number | null;
           created_at?: string;
         };
         Update: {
           raw_text?: string;
           ai_summary?: string | null;
           gaps_json?: Json | null;
+          score?: number | null;
         };
       };
       cards: {

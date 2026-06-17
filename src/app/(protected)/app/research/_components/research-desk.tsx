@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
+import { useState, useEffect, useRef, useTransition } from "react";
 import {
   performResearch,
   createCardsFromResearch,
@@ -25,7 +25,9 @@ import {
   Layers,
   Check,
   Brain,
+  AlertTriangle,
 } from "lucide-react";
+import { DialogFrame } from "@/components/pixel-ui";
 import { ResearchModeToggle } from "./research-mode-toggle";
 import { PaperUpload } from "./paper-upload";
 import { PaperLibrary } from "./paper-library";
@@ -54,7 +56,7 @@ export function ResearchDesk({ topics }: { topics: TopicOption[] }) {
   // Mode toggle state
   const [mode, setMode] = useState<"web" | "papers">("web");
 
-  // --- Web research state (unchanged) ---
+  // --- Web research state ---
   const [query, setQuery] = useState("");
   const [result, setResult] = useState<ResearchResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -67,6 +69,7 @@ export function ResearchDesk({ topics }: { topics: TopicOption[] }) {
   const [ragAnswer, setRagAnswer] = useState<RagAnswer | null>(null);
   const [ragLoading, setRagLoading] = useState(false);
   const [ragError, setRagError] = useState<string | null>(null);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Fetch papers when switching to "papers" mode
   useEffect(() => {
@@ -74,6 +77,35 @@ export function ResearchDesk({ topics }: { topics: TopicOption[] }) {
       fetchPapers();
     }
   }, [mode]);
+
+  // Live ingestion status: while any paper is still pending/processing, poll
+  // the library every 3s so statuses update to "Ready" without a manual reload.
+  useEffect(() => {
+    const hasInflight = papers.some(
+      (p) => p.parseStatus === "pending" || p.parseStatus === "processing"
+    );
+
+    if (mode === "papers" && hasInflight && !pollRef.current) {
+      pollRef.current = setInterval(fetchPapers, 3000);
+    } else if ((!hasInflight || mode !== "papers") && pollRef.current) {
+      clearInterval(pollRef.current);
+      pollRef.current = null;
+    }
+
+    return () => {
+      if (pollRef.current && (mode !== "papers" || !hasInflight)) {
+        clearInterval(pollRef.current);
+        pollRef.current = null;
+      }
+    };
+  }, [papers, mode]);
+
+  // Clean up the poller on unmount.
+  useEffect(() => {
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
+  }, []);
 
   async function fetchPapers() {
     try {
@@ -84,7 +116,7 @@ export function ResearchDesk({ topics }: { topics: TopicOption[] }) {
     }
   }
 
-  // --- Web research handlers (unchanged) ---
+  // --- Web research handlers ---
   function handleResearch() {
     setError(null);
     setResult(null);
@@ -117,12 +149,8 @@ export function ResearchDesk({ topics }: { topics: TopicOption[] }) {
 
     try {
       const res = await queryRag(question, scope as RagScope);
-      if (res.error) {
-        setRagError(res.error);
-      }
-      if (res.data) {
-        setRagAnswer(res.data);
-      }
+      if (res.error) setRagError(res.error);
+      if (res.data) setRagAnswer(res.data);
     } catch (err) {
       setRagError(err instanceof Error ? err.message : "Query failed");
     } finally {
@@ -131,18 +159,12 @@ export function ResearchDesk({ topics }: { topics: TopicOption[] }) {
   }
 
   async function handleRetry(paperId: string) {
-    const res = await retryIngestion(paperId);
-    if (res.error) {
-      // Could show toast; for now just refresh list
-    }
+    await retryIngestion(paperId);
     fetchPapers();
   }
 
   async function handleDelete(paperId: string) {
-    const res = await deleteFullPaper(paperId);
-    if (res.error && !res.success) {
-      // Could show toast; for now just refresh list
-    }
+    await deleteFullPaper(paperId);
     fetchPapers();
   }
 
@@ -153,39 +175,57 @@ export function ResearchDesk({ topics }: { topics: TopicOption[] }) {
     fetchPapers();
   }
 
-  function handleUploadComplete(_paperId: string) {
+  function handleUploadComplete() {
     fetchPapers();
   }
+
+  const topicSelect = (
+    <div className="flex items-center gap-2">
+      <label className="text-xs text-[var(--pixel-text-muted)] whitespace-nowrap">
+        Save cards to:
+      </label>
+      <select
+        value={selectedTopic}
+        onChange={(e) => setSelectedTopic(e.target.value)}
+        className="text-xs"
+      >
+        <option value="">No topic</option>
+        {topics.map((t) => (
+          <option key={t.id} value={t.id}>
+            {t.subjectName} → {t.name}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
 
   return (
     <div className="space-y-6">
       {/* Mode toggle at the top */}
       <ResearchModeToggle mode={mode} onModeChange={setMode} />
 
-      {/* Web research mode (existing UI, completely unchanged) */}
+      {/* Web research mode */}
       {mode === "web" && (
         <div className="space-y-6">
           {/* Research input */}
-          <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-              Research Question
-            </label>
-            <div className="mt-1 flex gap-2">
+          <DialogFrame title="Research Question">
+            <div className="flex gap-2">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--pixel-text-muted)]" />
                 <input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleResearch()}
                   type="text"
-                  placeholder="Ask a research question (e.g., 'What are the psychological benefits of spaced repetition?')"
-                  className="block w-full rounded-md border border-zinc-300 bg-zinc-50 py-2 pl-9 pr-3 text-sm placeholder:text-zinc-400 dark:border-zinc-700 dark:bg-zinc-800"
+                  placeholder="e.g. What are the psychological benefits of spaced repetition?"
+                  className="w-full"
+                  style={{ paddingLeft: "36px" }}
                 />
               </div>
               <button
                 onClick={handleResearch}
                 disabled={isPending || query.length < 5}
-                className="inline-flex items-center gap-2 rounded-md bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50"
+                className="inline-flex items-center gap-2 !bg-[var(--pixel-accent)] !text-[var(--pixel-bg-primary)] hover:!brightness-110"
               >
                 {isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -195,43 +235,34 @@ export function ResearchDesk({ topics }: { topics: TopicOption[] }) {
                 {isPending ? "Researching..." : "Research"}
               </button>
             </div>
-            <div className="mt-2 flex items-center gap-2">
-              <label className="text-xs text-zinc-400">Save cards to:</label>
-              <select
-                value={selectedTopic}
-                onChange={(e) => setSelectedTopic(e.target.value)}
-                className="rounded border border-zinc-300 px-2 py-1 text-xs dark:border-zinc-700 dark:bg-zinc-800"
-              >
-                <option value="">No topic</option>
-                {topics.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.subjectName} → {t.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
+            <div className="mt-3">{topicSelect}</div>
+            <p className="mt-2 flex items-start gap-1.5 text-xs text-[var(--pixel-text-muted)]">
+              <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0 text-[var(--pixel-warning)]" />
+              AI-generated overview drawing on books, Wikipedia, and the model&apos;s
+              own knowledge. Treat it as a starting point and verify key claims.
+            </p>
+          </DialogFrame>
 
           {/* Loading */}
           {isPending && (
-            <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-900/20">
+            <DialogFrame state="warning">
               <div className="flex items-center gap-3">
-                <Loader2 className="h-5 w-5 animate-spin text-amber-500" />
+                <Loader2 className="h-5 w-5 animate-spin text-[var(--pixel-accent)]" />
                 <div>
-                  <p className="text-sm font-medium text-amber-700 dark:text-amber-300">
+                  <p className="text-sm font-medium text-[var(--pixel-text-primary)]">
                     Researching your question...
                   </p>
-                  <p className="text-xs text-amber-500 dark:text-amber-400">
-                    Searching books & Wikipedia, then synthesizing with AI.
+                  <p className="text-xs text-[var(--pixel-text-secondary)]">
+                    Searching books &amp; Wikipedia, then synthesizing with AI.
                   </p>
                 </div>
               </div>
-            </div>
+            </DialogFrame>
           )}
 
           {/* Error */}
           {error && (
-            <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
+            <div className="rounded-lg border-2 border-[var(--pixel-error)] bg-[var(--pixel-bg-secondary)] p-3 text-sm text-[var(--pixel-error)]">
               {error}
             </div>
           )}
@@ -240,69 +271,74 @@ export function ResearchDesk({ topics }: { topics: TopicOption[] }) {
           {result && (
             <div className="space-y-6">
               {/* AI synthesized answer */}
-              <div className="rounded-lg border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
-                <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold">
-                  <Brain className="h-4 w-4 text-amber-500" />
-                  Research Analysis
-                </h3>
-                <div className="prose prose-sm max-w-none text-zinc-700 dark:text-zinc-300">
+              <DialogFrame title="Research Analysis">
+                <div className="space-y-3 text-sm leading-relaxed text-[var(--pixel-text-secondary)]">
                   {result.answer.split("\n").map((paragraph, i) => (
-                    <p key={i} className="mb-3 last:mb-0 leading-relaxed">
+                    <p key={i} className="text-[var(--pixel-text-secondary)]">
                       {paragraph}
                     </p>
                   ))}
                 </div>
-              </div>
+              </DialogFrame>
 
               {/* Sources */}
-              <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-                <h3 className="mb-3 text-sm font-semibold">
-                  Sources ({result.sources.length})
-                </h3>
+              <DialogFrame title={`Sources (${result.sources.length})`}>
                 <div className="space-y-2">
+                  {result.sources.length === 0 && (
+                    <p className="text-sm text-[var(--pixel-text-muted)]">
+                      No external sources matched — answer is from the model&apos;s
+                      own knowledge.
+                    </p>
+                  )}
                   {result.sources.map((source, i) => (
                     <SourceItem key={i} source={source} index={i + 1} />
                   ))}
                 </div>
-              </div>
+              </DialogFrame>
 
               {/* Suggested cards */}
               {result.suggestedCards.length > 0 && (
-                <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-                  <div className="mb-3 flex items-center justify-between">
-                    <h3 className="flex items-center gap-2 text-sm font-semibold">
-                      <Layers className="h-4 w-4 text-sky-500" />
-                      Study Cards from Research ({result.suggestedCards.length})
-                    </h3>
+                <DialogFrame title={`Study Cards from Research (${result.suggestedCards.length})`}>
+                  <div className="mb-3 flex items-center justify-between gap-2">
+                    {topicSelect}
                     {!cardsSaved ? (
                       <button
                         onClick={handleSaveCards}
-                        disabled={isPending}
-                        className="inline-flex items-center gap-2 rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+                        disabled={isPending || !selectedTopic}
+                        className="inline-flex items-center gap-2 !bg-[var(--pixel-success)] !text-white hover:!brightness-110 text-sm"
                       >
                         <Layers className="h-3 w-3" />
                         Save All Cards
                       </button>
                     ) : (
-                      <span className="inline-flex items-center gap-1 text-sm text-emerald-600">
+                      <span className="inline-flex items-center gap-1 text-sm text-[var(--pixel-success)]">
                         <Check className="h-4 w-4" />
                         Cards saved!
                       </span>
                     )}
                   </div>
+                  {!selectedTopic && (
+                    <p className="mb-2 text-xs text-[var(--pixel-warning)]">
+                      Pick a topic above to save these cards.
+                    </p>
+                  )}
                   <div className="space-y-2">
                     {result.suggestedCards.map((card, i) => (
-                      <div key={i} className="rounded-md bg-zinc-50 p-3 dark:bg-zinc-800">
-                        <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                      <div
+                        key={i}
+                        className="rounded-md p-3"
+                        style={{ backgroundColor: "var(--pixel-bg-secondary)" }}
+                      >
+                        <p className="text-sm font-medium text-[var(--pixel-text-primary)]">
                           Q: {card.front}
                         </p>
-                        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                        <p className="mt-1 text-sm text-[var(--pixel-text-secondary)]">
                           A: {card.back}
                         </p>
                       </div>
                     ))}
                   </div>
-                </div>
+                </DialogFrame>
               )}
             </div>
           )}
@@ -324,31 +360,34 @@ export function ResearchDesk({ topics }: { topics: TopicOption[] }) {
           />
 
           {/* RAG query panel */}
-          <RagQueryPanel
-            papers={papers
-              .filter((p) => p.parseStatus === "ready")
-              .map((p) => ({ id: p.id, title: p.title, topicId: p.topicId }))}
-            topics={topics.map((t) => ({ id: t.id, name: t.name }))}
-            onQuery={handleRagQuery}
-            isLoading={ragLoading}
-          />
+          <DialogFrame title="Ask Your Papers">
+            <div className="mb-3">{topicSelect}</div>
+            <RagQueryPanel
+              papers={papers
+                .filter((p) => p.parseStatus === "ready")
+                .map((p) => ({ id: p.id, title: p.title, topicId: p.topicId }))}
+              topics={topics.map((t) => ({ id: t.id, name: t.name }))}
+              onQuery={handleRagQuery}
+              isLoading={ragLoading}
+            />
+          </DialogFrame>
 
           {/* RAG loading steps */}
           {ragLoading && (
-            <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-4 dark:border-indigo-800 dark:bg-indigo-900/20">
+            <DialogFrame>
               <div className="flex items-center gap-3">
-                <Loader2 className="h-5 w-5 animate-spin text-indigo-500" />
-                <p className="text-sm font-medium text-indigo-700 dark:text-indigo-300">
+                <Loader2 className="h-5 w-5 animate-spin text-[var(--pixel-accent)]" />
+                <p className="text-sm font-medium text-[var(--pixel-text-primary)]">
                   Searching your papers...
                 </p>
               </div>
               <RagSearchSteps />
-            </div>
+            </DialogFrame>
           )}
 
           {/* RAG error */}
           {ragError && (
-            <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
+            <div className="rounded-lg border-2 border-[var(--pixel-error)] bg-[var(--pixel-bg-secondary)] p-3 text-sm text-[var(--pixel-error)]">
               {ragError}
             </div>
           )}
@@ -373,16 +412,27 @@ function SourceItem({ source, index }: { source: ResearchSource; index: number }
   const TypeIcon = source.type === "wiki" ? Globe : BookOpen;
 
   return (
-    <div className="flex items-start gap-3 rounded-md bg-zinc-50 p-2.5 dark:bg-zinc-800">
-      <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded bg-zinc-200 text-[10px] font-bold dark:bg-zinc-700">
+    <div
+      className="flex items-start gap-3 rounded-md p-2.5"
+      style={{ backgroundColor: "var(--pixel-bg-secondary)" }}
+    >
+      <span
+        className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded text-[10px] font-bold"
+        style={{
+          backgroundColor: "var(--pixel-bg-elevated)",
+          color: "var(--pixel-text-secondary)",
+        }}
+      >
         {index}
       </span>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5">
-          <TypeIcon className="h-3 w-3 flex-shrink-0 text-zinc-400" />
-          <span className="truncate text-sm font-medium">{source.title}</span>
+          <TypeIcon className="h-3 w-3 flex-shrink-0 text-[var(--pixel-text-muted)]" />
+          <span className="truncate text-sm font-medium text-[var(--pixel-text-primary)]">
+            {source.title}
+          </span>
         </div>
-        <p className="mt-0.5 text-xs text-zinc-500">
+        <p className="mt-0.5 text-xs text-[var(--pixel-text-muted)]">
           {source.authors.slice(0, 2).join(", ")}
           {source.year ? ` · ${source.year}` : ""}
         </p>
@@ -392,7 +442,7 @@ function SourceItem({ source, index }: { source: ResearchSource; index: number }
           href={source.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex-shrink-0 rounded p-1 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
+          className="flex-shrink-0 rounded p-1 text-[var(--pixel-text-muted)] hover:text-[var(--pixel-accent)]"
         >
           <ExternalLink className="h-3.5 w-3.5" />
         </a>
@@ -430,13 +480,19 @@ function RagSearchSteps() {
           }`}
         >
           {i < step ? (
-            <Check className="h-3 w-3 text-indigo-500" />
+            <Check className="h-3 w-3 text-[var(--pixel-accent)]" />
           ) : i === step ? (
-            <Loader2 className="h-3 w-3 animate-spin text-indigo-400" />
+            <Loader2 className="h-3 w-3 animate-spin text-[var(--pixel-accent)]" />
           ) : (
-            <div className="h-3 w-3 rounded-full border border-indigo-300/50" />
+            <div className="h-3 w-3 rounded-full border border-[var(--pixel-border-light)]" />
           )}
-          <span className={i <= step ? "text-indigo-600 dark:text-indigo-300" : "text-indigo-400/60"}>
+          <span
+            className={
+              i <= step
+                ? "text-[var(--pixel-text-primary)]"
+                : "text-[var(--pixel-text-muted)]"
+            }
+          >
             {label}
           </span>
         </div>

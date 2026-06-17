@@ -94,7 +94,7 @@ export function AvatarUpload({
         type="button"
         onClick={() => inputRef.current?.click()}
         title="Change profile photo"
-        className="relative flex items-center justify-center overflow-hidden rounded-full border-2 border-[var(--pixel-accent)] bg-[var(--pixel-bg-primary)]"
+        className="relative flex items-center justify-center overflow-hidden rounded-full border-3 border-[var(--pixel-accent)] bg-[var(--pixel-bg-primary)]"
         style={{ width: size, height: size }}
       >
         {url ? (
@@ -104,15 +104,15 @@ export function AvatarUpload({
             alt="Profile"
             width={size}
             height={size}
-            className="h-full w-full object-cover pixel-art"
+            className="h-full w-full object-cover"
             draggable={false}
           />
         ) : (
           <img
             src="/sprites/travel-book/icons/CatHead.png"
             alt="Profile"
-            width={size * 0.58}
-            height={size * 0.58}
+            width={size * 0.75}
+            height={size * 0.75}
             className="pixel-art"
             draggable={false}
           />
