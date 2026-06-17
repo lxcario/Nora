@@ -233,7 +233,7 @@ input[type="submit"] {
   100% { background-position: 200% 0; }
 }
 
-/* Stardew-style warm parchment texture for main content area */
+/* Stardew-style warm parchment texture for main content area (light mode only) */
 .pixel-content-area {
   background-color: var(--pixel-bg-primary);
   background-image: 
@@ -244,6 +244,12 @@ input[type="submit"] {
       color-mix(in srgb, var(--pixel-border-light) 15%, transparent) 31px,
       color-mix(in srgb, var(--pixel-border-light) 15%, transparent) 32px
     );
+}
+
+@media (prefers-color-scheme: dark) {
+  .pixel-content-area {
+    background-image: none;
+  }
 }
 
 /* Scrollbar hiding utility */
