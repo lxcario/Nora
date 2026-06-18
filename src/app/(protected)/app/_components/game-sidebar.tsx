@@ -396,21 +396,11 @@ export function GameSidebar({
       {/* ─── Logo ─── */}
       <div className="px-4 pt-5 pb-4 flex items-center justify-center">
         <img
-          src="/sprites/travel-book/icons/Sun.png"
-          alt=""
-          width={14}
-          height={14}
-          className="pixel-art mr-2 opacity-70"
-        />
-        <h1 className="font-pixel text-xl tracking-wider text-[var(--pixel-accent)]">
-          NORA
-        </h1>
-        <img
-          src="/sprites/travel-book/icons/Sun.png"
-          alt=""
-          width={14}
-          height={14}
-          className="pixel-art ml-2 opacity-70"
+          src="/noralogo.png"
+          alt="NORA"
+          className="pixel-art"
+          style={{ height: "32px", width: "auto" }}
+          draggable={false}
         />
       </div>
 

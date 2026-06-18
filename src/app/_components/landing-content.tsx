@@ -2,7 +2,6 @@
 
 import { useEffect, useRef } from "react";
 import Link from "next/link";
-import { NoraLogo } from "@/components/pixel-ui/nora-logo";
 
 // ---------------------------------------------------------------------------
 // Intersection Observer hook for scroll-triggered animations
@@ -144,8 +143,14 @@ export function LandingContent() {
         style={{ backgroundColor: "rgba(26, 20, 16, 0.9)", borderBottom: "2px solid #3d2817" }}
       >
         <div className="mx-auto flex max-w-6xl items-center justify-between">
-          <Link href="/" className="flex items-center gap-2" style={{ textDecoration: "none" }}>
-            <NoraLogo size={3} />
+          <Link href="/" className="flex items-center" style={{ textDecoration: "none" }}>
+            <img
+              src="/noralogo.png"
+              alt="NORA"
+              className="pixel-art"
+              style={{ height: "42px", width: "auto" }}
+              draggable={false}
+            />
           </Link>
           <div className="flex items-center gap-3">
             <Link
@@ -414,8 +419,15 @@ export function LandingContent() {
           ═══════════════════════════════════════════════════════════════════ */}
       <footer className="px-6 py-8" style={{ borderTop: "2px solid #3d2817" }}>
         <div className="mx-auto max-w-6xl text-center">
-          <div className="flex items-center justify-center gap-2 mb-3">
-            <NoraLogo size={2} />
+          <div className="flex items-center justify-center mb-3">
+            <img
+              src="/noralogo.png"
+              alt="NORA"
+              height={16}
+              className="pixel-art opacity-60"
+              style={{ height: "16px", width: "auto" }}
+              draggable={false}
+            />
           </div>
           <p className="text-[11px]" style={{ color: "#3d2817" }}>
             Art: Sprout Lands (Cup Nooble) and Travel Book (Crusenho, CC BY 4.0)
