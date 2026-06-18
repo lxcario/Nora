@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="public/nora-logo.png" alt="Nora — Pixel Study OS" width="220" />
+  <img src="public/noralogo.png" alt="Nora — Pixel Study OS" width="220" />
 </p>
 
 <h1 align="center">Nora</h1>
