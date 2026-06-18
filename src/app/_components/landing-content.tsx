@@ -168,16 +168,19 @@ export function LandingContent() {
           HERO
           ═══════════════════════════════════════════════════════════════════ */}
       <section className="pixel-grid-bg relative overflow-hidden">
-        {/* Hero background GIF — low opacity, fades to transparent at bottom */}
-        <div
-          className="pointer-events-none absolute inset-0"
+        {/* Hero background GIF — GPU-composited layer for performance */}
+        <img
+          src="/mejwh.gif"
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover"
           style={{
-            backgroundImage: "url('/mejwh.gif')",
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            opacity: 0.15,
+            opacity: 0.12,
             imageRendering: "pixelated",
+            willChange: "transform",
+            transform: "translateZ(0)",
           }}
+          draggable={false}
         />
         {/* Fade to dark at bottom */}
         <div
