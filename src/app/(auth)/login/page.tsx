@@ -24,7 +24,7 @@ export default function LoginPage() {
             Welcome back
           </h1>
           <p className="mt-1 text-sm" style={{ color: "#8b7355" }}>
-            Your study room is waiting ✨
+            Your study room is waiting
           </p>
         </div>
 

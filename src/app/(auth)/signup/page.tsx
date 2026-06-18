@@ -24,7 +24,7 @@ export default function SignupPage() {
             Create your account
           </h1>
           <p className="mt-1 text-sm" style={{ color: "#8b7355" }}>
-            Your Pokémon companion is ready to meet you 🐾
+            Your companion is ready to meet you
           </p>
         </div>
 
@@ -112,7 +112,7 @@ export default function SignupPage() {
               disabled={pending}
               className="pixel-btn pixel-btn-primary w-full"
             >
-              {pending ? "Creating account..." : "Enter Nora ✨"}
+              {pending ? "Creating account..." : "Enter Nora"}
             </button>
 
             <p className="text-center text-xs" style={{ color: "#5a4a35" }}>

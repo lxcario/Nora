@@ -23,12 +23,12 @@ export interface PetSidebarData {
 
 const MOOD_CONFIG: Record<
   PetSidebarData["state"],
-  { emoji: string; label: string; color: string }
+  { emoji: string; label: string; color: string; icon: string }
 > = {
-  happy:         { emoji: "😊", label: "Happy",   color: "var(--pixel-success)" },
-  neutral:       { emoji: "😐", label: "Neutral",  color: "var(--pixel-warning)" },
-  sad:           { emoji: "😢", label: "Sad",      color: "var(--pixel-error)"   },
-  forest_rescue: { emoji: "🌲", label: "Lost in forest", color: "var(--pixel-warning)" },
+  happy:         { emoji: "", label: "Happy",   color: "var(--pixel-success)", icon: "Flower" },
+  neutral:       { emoji: "", label: "Neutral",  color: "var(--pixel-warning)", icon: "Sleep" },
+  sad:           { emoji: "", label: "Sad",      color: "var(--pixel-error)", icon: "PotionRed" },
+  forest_rescue: { emoji: "", label: "Lost in forest", color: "var(--pixel-warning)", icon: "FlowerPot" },
 };
 
 function PetWidget({ pet }: { pet: PetSidebarData | null }) {
@@ -86,10 +86,17 @@ function PetWidget({ pet }: { pet: PetSidebarData | null }) {
 
       {/* Mood badge */}
       <span
-        className="font-pixel text-[9px]"
+        className="font-pixel text-[9px] flex items-center gap-1"
         style={{ color: mood.color }}
       >
-        {mood.emoji} {mood.label}
+        <img
+          src={`/sprites/travel-book/icons/${mood.icon}.png`}
+          alt=""
+          width={10}
+          height={10}
+          className="pixel-art"
+        />
+        {mood.label}
       </span>
     </Link>
   );

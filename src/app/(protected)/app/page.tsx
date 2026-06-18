@@ -267,7 +267,7 @@ export default async function DashboardPage() {
         {allQuestsDone ? (
           <div className="flex flex-col items-center py-4 gap-2">
             <span className="font-pixel text-base text-[var(--pixel-success)]">
-              All done today! 🎉
+              All done today!
             </span>
             <div className="flex items-center gap-3 mt-1">
               <div className="flex items-center gap-1.5">

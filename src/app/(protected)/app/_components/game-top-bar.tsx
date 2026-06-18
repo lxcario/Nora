@@ -37,13 +37,13 @@ function getGreeting(): string {
 
 function getTimeIcon(): string {
   const hour = new Date().getHours();
-  if (hour >= 6 && hour < 18) return "☀️";
-  return "🌙";
+  if (hour >= 6 && hour < 18) return "Sun";
+  return "Sleep";
 }
 
 export function GameTopBar({ profile }: GameTopBarProps) {
   const [greeting, setGreeting] = useState("Good evening");
-  const [timeIcon, setTimeIcon] = useState("🌙");
+  const [timeIcon, setTimeIcon] = useState("Sleep");
 
   useEffect(() => {
     setGreeting(getGreeting());
@@ -66,7 +66,14 @@ export function GameTopBar({ profile }: GameTopBarProps) {
       {/* Left: Greeting */}
       <div className="flex items-center gap-2">
         <span className="font-pixel text-sm text-[var(--pixel-text-primary)]">
-          {greeting}, {profile?.display_name ?? "Student"}! {timeIcon}
+          {greeting}, {profile?.display_name ?? "Student"}!
+          <img
+            src={`/sprites/travel-book/icons/${timeIcon}.png`}
+            alt=""
+            width={14}
+            height={14}
+            className="pixel-art inline-block ml-1"
+          />
         </span>
       </div>
 
