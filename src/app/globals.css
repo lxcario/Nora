@@ -12,6 +12,16 @@
 :root {
   --font-pixel: "SproutLands", monospace;
 
+  /* ══════════════════════════════════════════════════════════════════════
+     Grid background vars (defined here so [data-theme] can override them)
+     ══════════════════════════════════════════════════════════════════════ */
+  --grid-bg-base: #160f0a;
+  --grid-bg-base-2: #1f1610;
+  --grid-line: rgba(120, 88, 50, 0.12);
+  --grid-line-strong: rgba(150, 110, 64, 0.22);
+  --grid-star: rgba(212, 165, 38, 0.28);
+  --grid-glow: rgba(120, 78, 30, 0.20);
+
   /* ═══════════════════════════════════════════════════════════════════════
      Dark Pixel Theme (always-on, matching reference image)
      Deep brown/charcoal base with warm amber/gold accents
@@ -358,14 +368,6 @@ body {
    for depth + contrast (amber-CRT-on-deep-blue retro combo). Kept low-contrast
    so content panels remain readable. All offsets are integer px for crisp edges.
    ═══════════════════════════════════════════════════════════════════════════ */
-:root {
-  --grid-bg-base: #160f0a;        /* deep cozy brown-black base */
-  --grid-bg-base-2: #1f1610;      /* slightly lighter toward horizon */
-  --grid-line: rgba(120, 88, 50, 0.12);    /* faint warm-brown grid lines */
-  --grid-line-strong: rgba(150, 110, 64, 0.22);
-  --grid-star: rgba(212, 165, 38, 0.28);   /* faint amber dust motes */
-  --grid-glow: rgba(120, 78, 30, 0.20);     /* warm hearth glow */
-}
 
 .pixel-grid-bg {
   background-color: var(--grid-bg-base);
