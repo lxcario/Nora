@@ -1,15 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Crown, Globe, Lock, LogOut, Users } from "lucide-react";
 import type { PartyStateResult } from "../../_actions/party";
 import { leaveParty } from "../../_actions/party";
 import { PartyQuests } from "./party-quests";
 import { PartyMembers } from "./party-members";
 import { PartyCheers } from "./party-cheers";
-
 import { PartyMessages } from "./party-messages";
 import { PartyAdmin } from "./party-admin";
+import { DialogFrame, PixelButton, PixelConfirmDialog } from "@/components/pixel-ui";
 
 // ─── Props ────────────────────────────────────────────────────────────
 
@@ -22,19 +21,14 @@ interface PartyPageProps {
  * Main party view — rendered when the user is a member of a party.
  * Displays party header, members, quests, messages, cheers, admin (owner only),
  * and a leave button for all members.
- *
- * Requirements: 9.1, 9.2, 9.3, 9.4
  */
 export function PartyPage({ state, currentUserId }: PartyPageProps) {
   const [leaving, setLeaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [confirmLeave, setConfirmLeave] = useState(false);
 
-  const handleLeave = async () => {
-    const confirmed = window.confirm(
-      "Are you sure you want to leave this group? This action cannot be undone."
-    );
-    if (!confirmed) return;
-
+  const handleLeaveConfirm = async () => {
+    setConfirmLeave(false);
     setLeaving(true);
     setError(null);
 
@@ -48,64 +42,70 @@ export function PartyPage({ state, currentUserId }: PartyPageProps) {
 
   return (
     <div className="space-y-6">
+      {/* Leave confirmation dialog */}
+      <PixelConfirmDialog
+        open={confirmLeave}
+        title="Leave this group?"
+        message="Are you sure you want to leave? You'll need a new invite to rejoin."
+        confirmLabel="Leave"
+        cancelLabel="Stay"
+        variant="danger"
+        onConfirm={handleLeaveConfirm}
+        onCancel={() => setConfirmLeave(false)}
+      />
+
       {/* 1. Party Header */}
-      <div className="flex items-center gap-3">
-        <h2 className="text-lg font-semibold">{state.party?.name}</h2>
-        <span className="flex items-center gap-1 rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
-          <Users className="h-3 w-3" />
+      <div className="flex items-center gap-3 flex-wrap">
+        <h2 className="font-pixel text-lg" style={{ color: "var(--pixel-accent)" }}>
+          {state.party?.name}
+        </h2>
+        <span
+          className="pixel-panel pixel-panel-inset flex items-center gap-1 px-2 py-0.5 font-pixel text-[9px]"
+          style={{ color: "var(--pixel-text-secondary)" }}
+        >
+          <img src="/sprites/travel-book/icons/Team.png" alt="" width={12} height={12} className="pixel-art" />
           {state.members.length}
         </span>
-        <span className="flex items-center gap-1 rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
-          {state.party?.visibility === "public" ? (
-            <>
-              <Globe className="h-3 w-3" />
-              Public
-            </>
-          ) : (
-            <>
-              <Lock className="h-3 w-3" />
-              Private
-            </>
-          )}
+        <span
+          className="pixel-panel pixel-panel-inset flex items-center gap-1 px-2 py-0.5 font-pixel text-[9px]"
+          style={{ color: "var(--pixel-text-secondary)" }}
+        >
+          {state.party?.visibility === "public" ? "Public" : "Private"}
         </span>
         {state.isOwner && (
-          <span className="flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-700 dark:bg-amber-900 dark:text-amber-300">
-            <Crown className="h-3 w-3" />
+          <span
+            className="pixel-panel pixel-panel-inset flex items-center gap-1 px-2 py-0.5 font-pixel text-[9px]"
+            style={{ color: "var(--pixel-accent)" }}
+          >
+            <img src="/sprites/travel-book/icons/Trophy.png" alt="" width={10} height={10} className="pixel-art" />
             Owner
           </span>
         )}
       </div>
 
       {/* 2. Members Section */}
-      <section>
-        <h3 className="mb-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">Members</h3>
+      <DialogFrame title="MEMBERS">
         <PartyMembers members={state.members} />
-      </section>
+      </DialogFrame>
 
       {/* 3. Quests Section */}
-      <section>
-        <h3 className="mb-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">Quests</h3>
+      <DialogFrame title="QUESTS">
         <PartyQuests quests={state.quests} helpQuests={state.helpQuests} />
-      </section>
+      </DialogFrame>
 
       {/* 4. Messages Section */}
-      <section>
-        <h3 className="mb-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">Messages</h3>
+      <DialogFrame title="MESSAGES">
         <PartyMessages messages={state.recentMessages} />
-      </section>
+      </DialogFrame>
 
       {/* 5. Cheers Section */}
-      <section>
-        <h3 className="mb-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">Cheers</h3>
+      <DialogFrame title="CHEERS">
         <PartyCheers members={state.members} cheerTotals={state.cheerTotals} currentUserId={currentUserId} />
-      </section>
+      </DialogFrame>
 
       {/* 6. Admin Section (owner only) */}
       {state.isOwner && state.party && (
-        <section>
-          <h3 className="mb-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">
-            Administration
-          </h3>
+        <DialogFrame title="ADMINISTRATION">
           <PartyAdmin
             partyName={state.party.name}
             visibility={state.party.visibility}
@@ -114,20 +114,25 @@ export function PartyPage({ state, currentUserId }: PartyPageProps) {
               .filter((m) => m.userId !== state.party!.owner_id)
               .map((m) => ({ userId: m.userId, displayName: m.displayName }))}
           />
-        </section>
+        </DialogFrame>
       )}
 
       {/* 7. Leave Button */}
-      <div className="border-t border-zinc-200 pt-4 dark:border-zinc-700">
-        {error && <p className="mb-2 text-sm text-red-500">{error}</p>}
-        <button
-          onClick={handleLeave}
+      <div className="pt-4" style={{ borderTop: "2px solid var(--pixel-border)" }}>
+        {error && (
+          <p className="mb-2 font-pixel text-[10px]" style={{ color: "var(--pixel-error)" }}>
+            {error}
+          </p>
+        )}
+        <PixelButton
+          variant="danger"
+          size="small"
+          onClick={() => setConfirmLeave(true)}
           disabled={leaving}
-          className="flex items-center gap-2 rounded-md border border-red-200 px-3 py-2 text-sm text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950"
+          loading={leaving}
         >
-          <LogOut className="h-4 w-4" />
-          {leaving ? "Leaving…" : "Leave Group"}
-        </button>
+          Leave Group
+        </PixelButton>
       </div>
     </div>
   );

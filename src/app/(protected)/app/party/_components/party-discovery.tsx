@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Users, UserPlus, Search } from "lucide-react";
 import Link from "next/link";
 import {
   discoverParties,
@@ -10,6 +9,13 @@ import {
   type DiscoverableParty,
 } from "../../_actions/party";
 import { CreatePartyForm } from "./create-party-form";
+import {
+  DialogFrame,
+  PixelButton,
+  PixelInput,
+  LoadingSkeleton,
+  EmptyState,
+} from "@/components/pixel-ui";
 
 interface PartyDiscoveryProps {
   currentParty?: { name: string; memberCount: number } | null;
@@ -89,19 +95,23 @@ export function PartyDiscovery({ currentParty: propCurrentParty }: PartyDiscover
     <div className="space-y-6">
       {/* Current party info banner */}
       {currentParty && (
-        <div className="flex items-center justify-between rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-3 dark:border-indigo-800 dark:bg-indigo-950/30">
+        <div
+          className="pixel-panel flex items-center justify-between gap-3 p-3"
+          style={{ backgroundColor: "color-mix(in srgb, var(--pixel-accent) 12%, var(--pixel-bg-surface))" }}
+        >
           <div className="flex items-center gap-2">
-            <Users className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
-            <span className="text-sm font-medium text-indigo-900 dark:text-indigo-100">
+            <img src="/sprites/travel-book/icons/Team.png" alt="" width={16} height={16} className="pixel-art" />
+            <span className="font-pixel text-xs" style={{ color: "var(--pixel-text-primary)" }}>
               {currentParty.name}
             </span>
-            <span className="text-xs text-indigo-600 dark:text-indigo-400">
+            <span className="text-xs" style={{ color: "var(--pixel-text-secondary)" }}>
               ({currentParty.memberCount} members)
             </span>
           </div>
           <Link
             href="/app/party"
-            className="text-xs font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-200"
+            className="font-pixel text-[10px]"
+            style={{ color: "var(--pixel-accent)" }}
           >
             View Group →
           </Link>
@@ -109,85 +119,84 @@ export function PartyDiscovery({ currentParty: propCurrentParty }: PartyDiscover
       )}
 
       {/* Create Party section */}
-      <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-        <button
+      <DialogFrame title="CREATE A GROUP">
+        <PixelButton
+          variant="primary"
           onClick={() => setShowCreateForm(!showCreateForm)}
-          className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-700"
         >
-          <UserPlus className="h-4 w-4" />
-          Create Group
-        </button>
+          {showCreateForm ? "Cancel" : "Create Group"}
+        </PixelButton>
 
         {showCreateForm && (
           <div className="mt-4">
             <CreatePartyForm />
           </div>
         )}
-      </div>
+      </DialogFrame>
 
       {/* Join with invite code */}
-      <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-        <h3 className="mb-3 text-sm font-medium text-zinc-700 dark:text-zinc-300">
-          Or join with invite code
-        </h3>
+      <DialogFrame title="JOIN WITH INVITE CODE">
         <div className="flex gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
-            <input
-              type="text"
-              value={inviteCode}
-              onChange={(e) => setInviteCode(e.target.value)}
+          <div className="flex-1">
+            <PixelInput
+              type="search"
               placeholder="Enter invite code..."
-              className="w-full rounded-lg border border-zinc-200 bg-zinc-50 py-2 pl-9 pr-3 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500"
+              value={inviteCode}
+              onChange={(v) => setInviteCode(v as string)}
             />
           </div>
-          <button
+          <PixelButton
+            variant="primary"
+            size="small"
             onClick={handleJoinByCode}
             disabled={joinCodeLoading || !inviteCode.trim() || !!currentParty}
-            className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+            loading={joinCodeLoading}
           >
             Join
-          </button>
+          </PixelButton>
         </div>
         {joinCodeError && (
-          <p className="mt-2 text-xs text-red-500">{joinCodeError}</p>
+          <p className="mt-2 font-pixel text-[10px]" style={{ color: "var(--pixel-error)" }}>
+            {joinCodeError}
+          </p>
         )}
-      </div>
+      </DialogFrame>
 
       {/* Discoverable public parties */}
-      <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-        <h3 className="mb-4 flex items-center gap-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">
-          <Users className="h-4 w-4" />
-          Public Groups
-        </h3>
-
+      <DialogFrame title="PUBLIC GROUPS">
         {loading ? (
-          <p className="text-sm text-zinc-500">Loading groups...</p>
+          <LoadingSkeleton lines={4} />
         ) : parties.length === 0 ? (
-          <div className="py-8 text-center">
-            <Users className="mx-auto h-8 w-8 text-zinc-300 dark:text-zinc-600" />
-            <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
-              No groups available. Create one!
-            </p>
-          </div>
+          <EmptyState
+            icon="team"
+            message="No groups available yet. Create one and invite friends!"
+          />
         ) : (
           <>
             {joinError && (
-              <p className="mb-3 text-xs text-red-500">{joinError}</p>
+              <p className="mb-3 font-pixel text-[10px]" style={{ color: "var(--pixel-error)" }}>
+                {joinError}
+              </p>
             )}
 
-            <div className="space-y-3">
+            <div className="space-y-2">
               {parties.map((party) => (
                 <div
                   key={party.id}
-                  className="flex items-center justify-between rounded-lg border border-zinc-100 bg-zinc-50 px-4 py-3 dark:border-zinc-800 dark:bg-zinc-900"
+                  className="pixel-panel pixel-panel-inset flex items-center justify-between gap-3 p-3"
                 >
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                      <span className="text-sm font-medium" style={{ color: "var(--pixel-text-primary)" }}>
                         {party.name}
                       </span>
-                      <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                      <span
+                        className="font-pixel text-[9px] px-1.5 py-0.5"
+                        style={{
+                          color: "var(--pixel-text-secondary)",
+                          border: "1px solid var(--pixel-border)",
+                        }}
+                      >
                         {party.memberCount}/5
                       </span>
                     </div>
@@ -196,7 +205,8 @@ export function PartyDiscovery({ currentParty: propCurrentParty }: PartyDiscover
                         {party.questSummary.map((quest, i) => (
                           <span
                             key={i}
-                            className="text-xs text-zinc-500 dark:text-zinc-400"
+                            className="text-xs"
+                            style={{ color: "var(--pixel-text-muted)" }}
                           >
                             {formatQuestType(quest.type)}: {quest.progress}/{quest.target}
                           </span>
@@ -205,13 +215,15 @@ export function PartyDiscovery({ currentParty: propCurrentParty }: PartyDiscover
                     )}
                   </div>
 
-                  <button
+                  <PixelButton
+                    variant="primary"
+                    size="small"
                     onClick={() => handleJoinPublic(party.id)}
                     disabled={!!currentParty || joiningPartyId === party.id}
-                    className="ml-3 shrink-0 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+                    loading={joiningPartyId === party.id}
                   >
-                    {joiningPartyId === party.id ? "Joining..." : "Join"}
-                  </button>
+                    Join
+                  </PixelButton>
                 </div>
               ))}
             </div>
@@ -219,28 +231,30 @@ export function PartyDiscovery({ currentParty: propCurrentParty }: PartyDiscover
             {/* Pagination */}
             {totalPages > 1 && (
               <div className="mt-4 flex items-center justify-between">
-                <button
+                <PixelButton
+                  variant="secondary"
+                  size="small"
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page <= 1}
-                  className="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-700 transition-colors hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
                 >
                   Previous
-                </button>
-                <span className="text-xs text-zinc-500">
+                </PixelButton>
+                <span className="font-pixel text-[10px]" style={{ color: "var(--pixel-text-secondary)" }}>
                   Page {page} of {totalPages}
                 </span>
-                <button
+                <PixelButton
+                  variant="secondary"
+                  size="small"
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page >= totalPages}
-                  className="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-700 transition-colors hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
                 >
                   Next
-                </button>
+                </PixelButton>
               </div>
             )}
           </>
         )}
-      </div>
+      </DialogFrame>
     </div>
   );
 }

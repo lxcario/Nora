@@ -1,4 +1,5 @@
 import { PageHeader } from "../_components/page-header";
+import { DialogFrame } from "@/components/pixel-ui";
 import { getRoomState } from "../_actions/room";
 import { getDailyQuote } from "../_actions/quotes";
 import { getPartyPresence } from "../_actions/party-presence";
@@ -15,9 +16,11 @@ export default async function RoomPage() {
     return (
       <div className="space-y-6">
         <PageHeader title="Pixel Room" description="Your cozy study room." />
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
-          {error ?? "Failed to load room state"}
-        </div>
+        <DialogFrame state="error">
+          <p className="text-sm" style={{ color: "var(--pixel-error)" }}>
+            {error ?? "Failed to load room state. Try refreshing."}
+          </p>
+        </DialogFrame>
       </div>
     );
   }

@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "../_components/page-header";
 import { FeynmanEditor } from "./_components/feynman-editor";
-import { DialogFrame } from "@/components/pixel-ui";
+import { EmptyState } from "@/components/pixel-ui";
 
 export default async function FeynmanPage() {
   const supabase = await createClient();
@@ -29,15 +29,12 @@ export default async function FeynmanPage() {
       />
 
       {topicOptions.length === 0 ? (
-        <DialogFrame>
-          <p className="text-sm text-center text-[var(--pixel-text-secondary)]">
-            No topics found. Go to{" "}
-            <a href="/app/settings" className="font-medium">
-              Settings
-            </a>{" "}
-            to create subjects and topics first.
-          </p>
-        </DialogFrame>
+        <EmptyState
+          icon="pen"
+          message="No topics found. Create subjects and topics in Settings to get started."
+          actionLabel="Go to Settings"
+          actionHref="/app/settings"
+        />
       ) : (
         <FeynmanEditor topics={topicOptions} />
       )}

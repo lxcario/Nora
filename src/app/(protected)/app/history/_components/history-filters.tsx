@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback } from "react";
-import { PenLine, MonitorPlay, FlaskConical, Layers } from "lucide-react";
+import { PixelInput } from "@/components/pixel-ui";
 
 interface Topic {
   id: string;
@@ -14,17 +14,17 @@ interface HistoryFiltersProps {
 }
 
 const typeOptions = [
-  { value: "all", label: "All", icon: Layers },
-  { value: "feynman", label: "Feynman", icon: PenLine },
-  { value: "video", label: "Video Notes", icon: MonitorPlay },
-  { value: "research", label: "Research", icon: FlaskConical },
+  { value: "all", label: "All", icon: "Book.png" },
+  { value: "feynman", label: "Feynman", icon: "Lightbulb.png" },
+  { value: "video", label: "Video", icon: "Monitor.png" },
+  { value: "research", label: "Research", icon: "MagnifyingGlass.png" },
 ] as const;
 
 const dayOptions = [
   { value: "7", label: "7d" },
   { value: "30", label: "30d" },
   { value: "90", label: "90d" },
-  { value: "all", label: "All time" },
+  { value: "all", label: "All" },
 ] as const;
 
 export function HistoryFilters({ topics }: HistoryFiltersProps) {
@@ -53,19 +53,27 @@ export function HistoryFilters({ topics }: HistoryFiltersProps) {
       {/* Type chips */}
       <div className="flex flex-wrap gap-1.5">
         {typeOptions.map((opt) => {
-          const Icon = opt.icon;
           const isActive = currentType === opt.value;
           return (
             <button
               key={opt.value}
               onClick={() => updateParam("type", opt.value)}
-              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                isActive
-                  ? "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300"
-                  : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
-              }`}
+              className="pixel-panel pixel-panel-inset inline-flex items-center gap-1.5 px-2.5 py-1.5 font-pixel text-[10px] transition-colors"
+              style={{
+                color: isActive ? "var(--pixel-accent)" : "var(--pixel-text-secondary)",
+                backgroundColor: isActive
+                  ? "color-mix(in srgb, var(--pixel-accent) 14%, var(--pixel-bg-surface))"
+                  : undefined,
+                borderColor: isActive ? "var(--pixel-accent)" : undefined,
+              }}
             >
-              <Icon className="h-3.5 w-3.5" />
+              <img
+                src={`/sprites/travel-book/icons/${opt.icon}`}
+                alt=""
+                width={12}
+                height={12}
+                className="pixel-art"
+              />
               {opt.label}
             </button>
           );
@@ -73,18 +81,15 @@ export function HistoryFilters({ topics }: HistoryFiltersProps) {
       </div>
 
       {/* Topic dropdown */}
-      <select
+      <PixelInput
+        type="select"
         value={currentTopic}
-        onChange={(e) => updateParam("topic", e.target.value)}
-        className="rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300"
-      >
-        <option value="">All topics</option>
-        {topics.map((t) => (
-          <option key={t.id} value={t.id}>
-            {t.name}
-          </option>
-        ))}
-      </select>
+        onChange={(v) => updateParam("topic", v as string)}
+        options={[
+          { label: "All topics", value: "" },
+          ...topics.map((t) => ({ label: t.name, value: t.id })),
+        ]}
+      />
 
       {/* Day range chips */}
       <div className="flex flex-wrap gap-1.5">
@@ -94,11 +99,13 @@ export function HistoryFilters({ topics }: HistoryFiltersProps) {
             <button
               key={opt.value}
               onClick={() => updateParam("days", opt.value)}
-              className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                isActive
-                  ? "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300"
-                  : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
-              }`}
+              className="pixel-panel pixel-panel-inset px-2.5 py-1.5 font-pixel text-[10px] transition-colors"
+              style={{
+                color: isActive ? "var(--pixel-accent)" : "var(--pixel-text-secondary)",
+                backgroundColor: isActive
+                  ? "color-mix(in srgb, var(--pixel-accent) 14%, var(--pixel-bg-surface))"
+                  : undefined,
+              }}
             >
               {opt.label}
             </button>

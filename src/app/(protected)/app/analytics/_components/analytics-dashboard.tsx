@@ -1,130 +1,171 @@
 "use client";
 
 import { type AnalyticsData } from "@/app/(protected)/app/_actions/analytics";
-import {
-  Clock,
-  Layers,
-  FilePlus,
-  Timer,
-  Flame,
-  TrendingUp,
-  BarChart3,
-  Award,
-} from "lucide-react";
+import { formatStreak } from "@/lib/format-streak";
+import { DialogFrame, PixelProgressBar } from "@/components/pixel-ui";
+
+// ---------------------------------------------------------------------------
+// Stat icon sprites
+// ---------------------------------------------------------------------------
+
+const STAT_ICONS: Record<string, string> = {
+  sessions: "Restart.png",
+  reviews: "Book.png",
+  cards: "Document.png",
+  minutes: "Sun.png",
+  streak: "PotionRed.png",
+};
+
+// ---------------------------------------------------------------------------
+// AnalyticsDashboard
+// ---------------------------------------------------------------------------
 
 export function AnalyticsDashboard({ data }: { data: AnalyticsData }) {
   return (
     <div className="space-y-6">
       {/* Summary stats */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        <StatCard icon={Clock} label="Sessions (7d)" value={data.sessionsThisWeek.toString()} />
-        <StatCard icon={Layers} label="Reviews (30d)" value={data.cardsReviewed.toString()} />
-        <StatCard icon={FilePlus} label="Cards Created" value={data.cardsCreated.toString()} />
-        <StatCard icon={Timer} label="Minutes (7d)" value={data.studyMinutes.toString()} />
-        <StatCard icon={Flame} label="Streak" value={`${data.streak}d`} accent />
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <StatCard icon={STAT_ICONS.sessions} label="Sessions (7d)" value={data.sessionsThisWeek.toString()} />
+        <StatCard icon={STAT_ICONS.reviews} label="Reviews (30d)" value={data.cardsReviewed.toString()} />
+        <StatCard icon={STAT_ICONS.cards} label="Cards Created" value={data.cardsCreated.toString()} />
+        <StatCard icon={STAT_ICONS.minutes} label="Minutes (7d)" value={data.studyMinutes.toString()} />
+        <StatCard
+          icon={STAT_ICONS.streak}
+          label="Streak"
+          value={data.streak === 0 ? formatStreak(0, "analytics") : `${data.streak}d`}
+          accent
+        />
       </div>
 
       {/* Charts */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {/* Sessions chart */}
-        <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-          <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold">
-            <TrendingUp className="h-4 w-4 text-zinc-400" />
-            Sessions per Day (30d)
-          </h3>
-          <BarChartSimple
+        <DialogFrame title="SESSIONS PER DAY (30D)">
+          <BarChartPixel
             data={data.dailySessions}
-            color="bg-indigo-500"
+            color="var(--pixel-accent)"
             emptyMessage="No sessions yet"
           />
-        </div>
+        </DialogFrame>
 
         {/* Reviews chart */}
-        <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-          <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold">
-            <BarChart3 className="h-4 w-4 text-zinc-400" />
-            Cards Reviewed per Day (30d)
-          </h3>
-          <BarChartSimple
+        <DialogFrame title="CARDS REVIEWED PER DAY (30D)">
+          <BarChartPixel
             data={data.dailyReviews}
-            color="bg-emerald-500"
+            color="var(--pixel-success)"
             emptyMessage="No reviews yet"
           />
-        </div>
+        </DialogFrame>
       </div>
 
       {/* Consistency heatmap */}
-      <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-        <h3 className="mb-3 text-sm font-semibold">Consistency (last 30 days)</h3>
+      <DialogFrame title="CONSISTENCY (LAST 30 DAYS)">
         <ConsistencyHeatmap sessions={data.dailySessions} reviews={data.dailyReviews} />
-      </div>
+      </DialogFrame>
 
       {/* Topic mastery */}
-      <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-        <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold">
-          <Award className="h-4 w-4 text-zinc-400" />
-          Topic Mastery
-        </h3>
+      <DialogFrame title="TOPIC MASTERY">
         {data.topicMastery.length === 0 ? (
-          <p className="text-sm text-zinc-400">
+          <p className="text-sm" style={{ color: "var(--pixel-text-secondary)" }}>
             Review some cards to see mastery data per topic.
           </p>
         ) : (
           <div className="space-y-3">
-            {data.topicMastery.map((topic) => (
-              <div key={topic.name} className="flex items-center gap-3">
-                <span className="w-32 truncate text-sm">{topic.name}</span>
-                <div className="flex-1">
-                  <div className="h-3 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+            {data.topicMastery.map((topic) => {
+              const color =
+                topic.avgGrade >= 4
+                  ? "var(--pixel-success)"
+                  : topic.avgGrade >= 3
+                    ? "var(--pixel-warning)"
+                    : "var(--pixel-error)";
+              return (
+                <div key={topic.name} className="flex items-center gap-3">
+                  <span
+                    className="w-32 truncate text-sm"
+                    style={{ color: "var(--pixel-text-primary)" }}
+                  >
+                    {topic.name}
+                  </span>
+                  <div className="flex-1">
                     <div
-                      className={`h-full rounded-full transition-all ${
-                        topic.avgGrade >= 4
-                          ? "bg-emerald-500"
-                          : topic.avgGrade >= 3
-                            ? "bg-amber-500"
-                            : "bg-red-500"
-                      }`}
-                      style={{ width: `${(topic.avgGrade / 5) * 100}%` }}
-                    />
+                      className="h-3 overflow-hidden"
+                      style={{
+                        backgroundColor: "var(--pixel-bg-secondary)",
+                        border: "1px solid var(--pixel-border)",
+                      }}
+                    >
+                      <div
+                        className="h-full transition-all"
+                        style={{
+                          width: `${(topic.avgGrade / 5) * 100}%`,
+                          backgroundColor: color,
+                        }}
+                      />
+                    </div>
                   </div>
+                  <span
+                    className="w-16 text-right text-xs"
+                    style={{ color: "var(--pixel-text-secondary)" }}
+                  >
+                    {topic.avgGrade}/5 ({topic.totalReviews})
+                  </span>
                 </div>
-                <span className="w-16 text-right text-xs text-zinc-500">
-                  {topic.avgGrade}/5 ({topic.totalReviews})
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
-      </div>
+      </DialogFrame>
     </div>
   );
 }
 
+// ---------------------------------------------------------------------------
+// StatCard — pixel-themed stat tile
+// ---------------------------------------------------------------------------
+
 function StatCard({
-  icon: Icon,
+  icon,
   label,
   value,
   accent,
 }: {
-  icon: React.ComponentType<{ className?: string }>;
+  icon: string;
   label: string;
   value: string;
   accent?: boolean;
 }) {
   return (
-    <div className="flex items-center gap-3 rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-      <Icon className={`h-5 w-5 ${accent ? "text-amber-500" : "text-zinc-400"}`} />
+    <div className="pixel-panel flex items-center gap-3 p-3">
+      <img
+        src={`/sprites/travel-book/icons/${icon}`}
+        alt=""
+        width={20}
+        height={20}
+        className="pixel-art shrink-0"
+      />
       <div>
-        <p className="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+        <p
+          className="text-xs uppercase tracking-wider"
+          style={{ color: "var(--pixel-text-secondary)", letterSpacing: "0.5px" }}
+        >
           {label}
         </p>
-        <p className={`mt-0.5 text-xl font-bold ${accent ? "text-amber-500" : ""}`}>{value}</p>
+        <p
+          className="mt-0.5 font-pixel text-lg"
+          style={{ color: accent ? "var(--pixel-accent)" : "var(--pixel-text-primary)" }}
+        >
+          {value}
+        </p>
       </div>
     </div>
   );
 }
 
-function BarChartSimple({
+// ---------------------------------------------------------------------------
+// BarChartPixel — pixel-themed bar chart
+// ---------------------------------------------------------------------------
+
+function BarChartPixel({
   data,
   color,
   emptyMessage,
@@ -135,7 +176,10 @@ function BarChartSimple({
 }) {
   if (data.length === 0) {
     return (
-      <div className="flex h-32 items-center justify-center text-xs text-zinc-400">
+      <div
+        className="flex h-32 items-center justify-center text-xs"
+        style={{ color: "var(--pixel-text-muted)" }}
+      >
         {emptyMessage}
       </div>
     );
@@ -152,10 +196,22 @@ function BarChartSimple({
           title={`${d.date}: ${d.count}`}
         >
           <div
-            className={`w-full rounded-t ${color} transition-all hover:opacity-80`}
-            style={{ height: `${(d.count / maxCount) * 100}%`, minHeight: "2px" }}
+            className="w-full transition-all hover:opacity-80"
+            style={{
+              height: `${(d.count / maxCount) * 100}%`,
+              minHeight: "2px",
+              backgroundColor: color,
+              imageRendering: "pixelated",
+            }}
           />
-          <div className="pointer-events-none absolute -top-6 left-1/2 -translate-x-1/2 rounded bg-zinc-800 px-1.5 py-0.5 text-[9px] text-white opacity-0 group-hover:opacity-100">
+          <div
+            className="pointer-events-none absolute -top-6 left-1/2 -translate-x-1/2 px-1.5 py-0.5 font-pixel text-[9px] opacity-0 group-hover:opacity-100"
+            style={{
+              backgroundColor: "var(--pixel-bg-surface)",
+              border: "1px solid var(--pixel-border)",
+              color: "var(--pixel-text-primary)",
+            }}
+          >
             {d.count}
           </div>
         </div>
@@ -164,6 +220,10 @@ function BarChartSimple({
   );
 }
 
+// ---------------------------------------------------------------------------
+// ConsistencyHeatmap — pixel-themed 30-day grid
+// ---------------------------------------------------------------------------
+
 function ConsistencyHeatmap({
   sessions,
   reviews,
@@ -171,7 +231,6 @@ function ConsistencyHeatmap({
   sessions: { date: string; count: number }[];
   reviews: { date: string; count: number }[];
 }) {
-  // Build a 30-day grid
   const days: { date: string; level: number }[] = [];
   const activityMap = new Map<string, number>();
 
@@ -189,10 +248,10 @@ function ConsistencyHeatmap({
   }
 
   const COLORS = [
-    "bg-zinc-200 dark:bg-zinc-800",
-    "bg-emerald-200 dark:bg-emerald-900",
-    "bg-emerald-400 dark:bg-emerald-700",
-    "bg-emerald-600 dark:bg-emerald-500",
+    "var(--pixel-bg-secondary)",
+    "color-mix(in srgb, var(--pixel-success) 30%, var(--pixel-bg-secondary))",
+    "color-mix(in srgb, var(--pixel-success) 60%, var(--pixel-bg-secondary))",
+    "var(--pixel-success)",
   ];
 
   return (
@@ -200,7 +259,12 @@ function ConsistencyHeatmap({
       {days.map((d) => (
         <div
           key={d.date}
-          className={`h-4 w-4 rounded-sm ${COLORS[d.level]}`}
+          className="h-4 w-4"
+          style={{
+            backgroundColor: COLORS[d.level],
+            border: "1px solid var(--pixel-border)",
+            imageRendering: "pixelated",
+          }}
           title={`${d.date}: level ${d.level}`}
         />
       ))}

@@ -1,6 +1,7 @@
 import { PageHeader } from "../_components/page-header";
 import { getWeeklyPlan } from "../_actions/planner";
 import { WeeklyCalendar } from "./_components/weekly-calendar";
+import { EmptyState, DialogFrame } from "@/components/pixel-ui";
 
 const STATUS_COLOR: Record<string, string> = {
   verified: "var(--pixel-success)",
@@ -19,9 +20,11 @@ export default async function PlannerPage() {
       />
 
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
-          {error}
-        </div>
+        <DialogFrame state="error">
+          <p className="text-sm" style={{ color: "var(--pixel-error)" }}>
+            {error || "Your planner couldn't load. Refresh to try again."}
+          </p>
+        </DialogFrame>
       )}
 
       {academicLoad.message && (
@@ -67,6 +70,15 @@ export default async function PlannerPage() {
             ))}
           </ul>
         </div>
+      )}
+
+      {sessions.length === 0 && academicEvents.length === 0 && !error && (
+        <EmptyState
+          icon="calendar"
+          message="Your planner is empty this week. Add topics in Settings or upload your academic calendar to get started."
+          actionLabel="Add Topics"
+          actionHref="/app/settings"
+        />
       )}
 
       <WeeklyCalendar

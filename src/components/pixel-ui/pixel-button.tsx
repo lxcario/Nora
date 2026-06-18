@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { forwardRef, type ReactNode } from "react";
 import { playClick } from "@/lib/sfx";
 
 // ---------------------------------------------------------------------------
@@ -28,50 +28,57 @@ export interface PixelButtonProps {
  * sprite supplies the beveled highlight/shadow caps. Press = 2px down offset.
  *
  * Native <button> for full keyboard support (Enter/Space) and 44×44 min target.
+ * Supports ref forwarding for focus management.
  */
-export function PixelButton({
-  size = "default",
-  variant = "primary",
-  disabled = false,
-  loading = false,
-  onClick,
-  type = "button",
-  className = "",
-  children,
-}: PixelButtonProps) {
-  const classes = [
-    "pixel-btn",
-    `pixel-btn-${variant}`,
-    size === "small" ? "pixel-btn-sm" : "",
-    className,
-  ]
-    .filter(Boolean)
-    .join(" ");
+export const PixelButton = forwardRef<HTMLButtonElement, PixelButtonProps>(
+  function PixelButton(
+    {
+      size = "default",
+      variant = "primary",
+      disabled = false,
+      loading = false,
+      onClick,
+      type = "button",
+      className = "",
+      children,
+    },
+    ref
+  ) {
+    const classes = [
+      "pixel-btn",
+      `pixel-btn-${variant}`,
+      size === "small" ? "pixel-btn-sm" : "",
+      className,
+    ]
+      .filter(Boolean)
+      .join(" ");
 
-  function handleClick() {
-    if (disabled || loading) return;
-    playClick();
-    onClick?.();
+    function handleClick() {
+      if (disabled || loading) return;
+      playClick();
+      onClick?.();
+    }
+
+    return (
+      <button
+        ref={ref}
+        type={type}
+        disabled={disabled || loading}
+        aria-disabled={disabled || loading || undefined}
+        aria-busy={loading || undefined}
+        data-state={disabled ? "disabled" : loading ? "loading" : undefined}
+        onClick={handleClick}
+        className={classes}
+      >
+        {loading ? (
+          <span className="inline-flex items-center gap-1">
+            <span className="animate-pixel-blink">...</span>
+            {children}
+          </span>
+        ) : (
+          children
+        )}
+      </button>
+    );
   }
-
-  return (
-    <button
-      type={type}
-      disabled={disabled || loading}
-      aria-disabled={disabled || loading || undefined}
-      aria-busy={loading || undefined}
-      data-state={disabled ? "disabled" : loading ? "loading" : undefined}
-      onClick={handleClick}
-      className={classes}
-    >
-      {loading ? (
-        <span className="inline-flex items-center gap-1">
-          <span className="animate-pixel-blink">...</span>
-          {children}
-        </span>
-      ) : (
-        children
-      )}
-    </button>
-  );
-}
+);

@@ -30,6 +30,8 @@ export { ErrorState } from "./error-state";
 export type { ErrorStateProps } from "./error-state";
 export { LoadingSkeleton } from "./loading-skeleton";
 export type { LoadingSkeletonProps } from "./loading-skeleton";
+export { PixelConfirmDialog } from "./confirm-dialog";
+export type { PixelConfirmDialogProps } from "./confirm-dialog";
 
 // Toast
 export { ToastProvider, useToast } from "./toast-provider";
@@ -50,6 +52,9 @@ export type { PixelHeatmapProps } from "./pixel-heatmap";
 // Navigation
 export { PixelSidebar } from "./pixel-sidebar";
 export { BottomNav } from "./bottom-nav";
+
+// Skeleton helpers
+export { PageHeaderSkeleton, PanelSkeleton, StatTileSkeleton } from "./skeleton-helpers";
 
 // Preferences
 export { PreferencesProvider, usePreferences } from "./preferences-provider";

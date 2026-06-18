@@ -7,7 +7,7 @@ import {
   createTopic,
   deleteTopic,
 } from "@/app/(protected)/app/_actions/subjects";
-import { Plus, Trash2, BookOpen, Tag } from "lucide-react";
+import { PixelButton, PixelInput, PixelConfirmDialog, EmptyState } from "@/components/pixel-ui";
 
 interface Topic {
   id: string;
@@ -25,57 +25,73 @@ interface Subject {
 export function SubjectsManager({ subjects }: { subjects: Subject[] }) {
   const [showAddSubject, setShowAddSubject] = useState(false);
   const [addingTopicFor, setAddingTopicFor] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<{ type: "subject" | "topic"; id: string; name: string } | null>(null);
+
+  async function handleConfirmDelete() {
+    if (!confirmDelete) return;
+    if (confirmDelete.type === "subject") {
+      await deleteSubject(confirmDelete.id);
+    } else {
+      await deleteTopic(confirmDelete.id);
+    }
+    setConfirmDelete(null);
+  }
 
   return (
     <div className="space-y-4">
+      {/* Confirm delete dialog */}
+      <PixelConfirmDialog
+        open={!!confirmDelete}
+        title={confirmDelete?.type === "subject" ? "Delete subject?" : "Delete topic?"}
+        message={`"${confirmDelete?.name ?? ""}" and all its data will be permanently removed.`}
+        confirmLabel="Delete"
+        cancelLabel="Keep"
+        variant="danger"
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setConfirmDelete(null)}
+      />
+
       {/* Existing subjects */}
       {subjects.length === 0 ? (
-        <p className="text-sm text-zinc-400">
-          No subjects yet. Add one to start studying.
-        </p>
+        <EmptyState
+          icon="book"
+          message="No subjects yet. Add one to start organizing your studies."
+          actionLabel="Add Subject"
+          onAction={() => setShowAddSubject(true)}
+        />
       ) : (
         <div className="space-y-3">
           {subjects.map((subject) => (
-            <div
-              key={subject.id}
-              className="rounded-lg border border-zinc-200 p-3 dark:border-zinc-700"
-            >
+            <div key={subject.id} className="pixel-panel pixel-panel-inset" style={{ padding: "12px" }}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div
-                    className="h-3 w-3 rounded-full"
-                    style={{ backgroundColor: subject.color }}
+                    className="h-3 w-3"
+                    style={{ backgroundColor: subject.color, border: "1px solid var(--pixel-border)" }}
                   />
-                  <span className="text-sm font-medium">{subject.name}</span>
-                  <span className="text-xs text-zinc-400">
+                  <span className="text-sm font-medium" style={{ color: "var(--pixel-text-primary)" }}>
+                    {subject.name}
+                  </span>
+                  <span className="font-pixel text-[9px]" style={{ color: "var(--pixel-text-muted)" }}>
                     ({subject.topics.length} topics)
                   </span>
                 </div>
                 <div className="flex items-center gap-1">
+                  <PixelButton
+                    variant="secondary"
+                    size="small"
+                    onClick={() => setAddingTopicFor(addingTopicFor === subject.id ? null : subject.id)}
+                  >
+                    + Topic
+                  </PixelButton>
                   <button
-                    onClick={() =>
-                      setAddingTopicFor(
-                        addingTopicFor === subject.id ? null : subject.id
-                      )
-                    }
-                    className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800"
-                    title="Add topic"
+                    type="button"
+                    onClick={() => setConfirmDelete({ type: "subject", id: subject.id, name: subject.name })}
+                    className="font-pixel text-[9px] px-2 py-1"
+                    style={{ color: "var(--pixel-error)", border: "none", background: "none" }}
                   >
-                    <Plus className="h-4 w-4" />
+                    Delete
                   </button>
-                  <form
-                    action={async () => {
-                      await deleteSubject(subject.id);
-                    }}
-                  >
-                    <button
-                      type="submit"
-                      className="rounded p-1 text-zinc-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20"
-                      title="Delete subject"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </form>
                 </div>
               </div>
 
@@ -85,29 +101,26 @@ export function SubjectsManager({ subjects }: { subjects: Subject[] }) {
                   {subject.topics.map((topic) => (
                     <div
                       key={topic.id}
-                      className="flex items-center justify-between rounded px-2 py-1 text-sm"
+                      className="flex items-center justify-between py-1 px-2"
+                      style={{ borderBottom: "1px solid var(--pixel-border)" }}
                     >
                       <div className="flex items-center gap-2">
-                        <Tag className="h-3 w-3 text-zinc-400" />
-                        <span>{topic.name}</span>
+                        <img src="/sprites/travel-book/icons/Book.png" alt="" width={10} height={10} className="pixel-art" />
+                        <span className="text-sm" style={{ color: "var(--pixel-text-primary)" }}>{topic.name}</span>
                         {topic.exam_date && (
-                          <span className="text-xs text-zinc-400">
+                          <span className="font-pixel text-[8px]" style={{ color: "var(--pixel-text-muted)" }}>
                             (exam: {topic.exam_date})
                           </span>
                         )}
                       </div>
-                      <form
-                        action={async () => {
-                          await deleteTopic(topic.id);
-                        }}
+                      <button
+                        type="button"
+                        onClick={() => setConfirmDelete({ type: "topic", id: topic.id, name: topic.name })}
+                        className="font-pixel text-[8px] px-1"
+                        style={{ color: "var(--pixel-error)", border: "none", background: "none" }}
                       >
-                        <button
-                          type="submit"
-                          className="rounded p-0.5 text-zinc-300 hover:text-red-500 dark:text-zinc-600"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </button>
-                      </form>
+                        ✕
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -120,26 +133,32 @@ export function SubjectsManager({ subjects }: { subjects: Subject[] }) {
                     await createTopic(formData);
                     setAddingTopicFor(null);
                   }}
-                  className="mt-2 flex items-end gap-2 pl-5"
+                  className="mt-3 flex items-end gap-2 pl-5"
                 >
                   <input type="hidden" name="subject_id" value={subject.id} />
-                  <input
-                    name="name"
-                    placeholder="Topic name"
-                    required
-                    className="flex-1 rounded-md border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-800"
-                  />
+                  <div className="flex-1">
+                    <PixelInput
+                      type="text"
+                      label="Topic name"
+                      placeholder="e.g. Quantum Mechanics"
+                      onChange={() => {}}
+                    />
+                    {/* Hidden native input for form submission */}
+                    <input name="name" placeholder="Topic name" required className="sr-only" />
+                  </div>
                   <input
                     name="exam_date"
                     type="date"
-                    className="rounded-md border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-800"
+                    className="text-sm px-2 py-1"
+                    style={{
+                      border: "2px solid var(--pixel-border)",
+                      backgroundColor: "var(--pixel-bg-surface)",
+                      color: "var(--pixel-text-primary)",
+                    }}
                   />
-                  <button
-                    type="submit"
-                    className="rounded-md bg-indigo-600 px-3 py-1 text-sm font-medium text-white hover:bg-indigo-700"
-                  >
+                  <PixelButton type="submit" variant="primary" size="small">
                     Add
-                  </button>
+                  </PixelButton>
                 </form>
               )}
             </div>
@@ -157,41 +176,32 @@ export function SubjectsManager({ subjects }: { subjects: Subject[] }) {
           className="flex items-end gap-2"
         >
           <div className="flex-1">
-            <input
-              name="name"
-              placeholder="Subject name (e.g., Computer Science)"
-              required
-              className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800"
+            <PixelInput
+              type="text"
+              label="Subject name"
+              placeholder="e.g. Computer Science"
+              onChange={() => {}}
             />
+            <input name="name" placeholder="Subject name" required className="sr-only" />
           </div>
           <input
             name="color"
             type="color"
-            defaultValue="#6366f1"
-            className="h-9 w-9 cursor-pointer rounded-md border border-zinc-300"
+            defaultValue="#d4a526"
+            className="h-9 w-9 cursor-pointer"
+            style={{ border: "2px solid var(--pixel-border)" }}
           />
-          <button
-            type="submit"
-            className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
-          >
+          <PixelButton type="submit" variant="primary" size="small">
             Add
-          </button>
-          <button
-            type="button"
-            onClick={() => setShowAddSubject(false)}
-            className="rounded-md border border-zinc-300 px-4 py-2 text-sm dark:border-zinc-700"
-          >
+          </PixelButton>
+          <PixelButton variant="secondary" size="small" onClick={() => setShowAddSubject(false)}>
             Cancel
-          </button>
+          </PixelButton>
         </form>
       ) : (
-        <button
-          onClick={() => setShowAddSubject(true)}
-          className="inline-flex items-center gap-2 rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
-        >
-          <BookOpen className="h-4 w-4" />
-          Add Subject
-        </button>
+        <PixelButton variant="secondary" onClick={() => setShowAddSubject(true)}>
+          + Add Subject
+        </PixelButton>
       )}
     </div>
   );

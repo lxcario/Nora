@@ -10,6 +10,10 @@ export default function CollectionPage() {
       />
 
       {/* Cursor packs */}
+      <p className="text-sm" style={{ color: "var(--pixel-text-secondary)" }}>
+        Earn coins from daily quests and spend them on cursors, themes, and decorations as they unlock.
+      </p>
+
       <DialogFrame title="CURSORS">
         <p className="mb-3 text-xs text-[var(--pixel-text-secondary)]">
           Pick the pixel cursor that follows you around the app. Your choice is

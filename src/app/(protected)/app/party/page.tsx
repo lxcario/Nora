@@ -2,6 +2,7 @@ import { getPartyState } from "../_actions/party";
 import { PartyDiscovery } from "./_components/party-discovery";
 import { PartyPage } from "./_components/party-page";
 import { PageHeader } from "../_components/page-header";
+import { DialogFrame } from "@/components/pixel-ui";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function PartyRoutePage() {
@@ -16,7 +17,11 @@ export default async function PartyRoutePage() {
       <PageHeader title="Friends" description="Study together with friends" />
 
       {result.error ? (
-        <p className="text-sm text-red-500">{result.error}</p>
+        <DialogFrame state="error">
+          <p className="text-sm" style={{ color: "var(--pixel-error)" }}>
+            {result.error || "We couldn't load your group info. Try again in a moment."}
+          </p>
+        </DialogFrame>
       ) : result.data?.party === null ? (
         <PartyDiscovery />
       ) : (

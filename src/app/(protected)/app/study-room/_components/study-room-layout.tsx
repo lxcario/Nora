@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import { ChevronDown, ChevronUp, Search, MonitorPlay } from "lucide-react";
+import { MonitorPlay } from "lucide-react";
 import { YouTubePlayer, type PlayerController } from "./youtube-player";
 import { VideoSearch } from "./video-search";
 import { UrlInput } from "./url-input";
@@ -328,23 +328,21 @@ export function StudyRoomLayout({
       <XpToast xp={xpToastData.xp} coins={xpToastData.coins} visible={xpToastData.visible} />
 
       {/* Collapsible Search Panel */}
-      <div className="rounded-lg border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="pixel-panel" style={{ padding: 0 }}>
         <button
           onClick={() => setSearchExpanded(!searchExpanded)}
           className="flex w-full items-center justify-between px-4 py-2.5"
         >
-          <div className="flex items-center gap-2 text-sm font-medium text-zinc-600 dark:text-zinc-400">
-            <Search className="h-4 w-4" />
+          <div className="flex items-center gap-2 text-sm font-medium" style={{ color: "var(--pixel-text-secondary)" }}>
+            <img src="/sprites/travel-book/icons/MagnifyingGlass.png" alt="" width={14} height={14} className="pixel-art" />
             Search or load another video
           </div>
-          {searchExpanded ? (
-            <ChevronUp className="h-4 w-4 text-zinc-400" />
-          ) : (
-            <ChevronDown className="h-4 w-4 text-zinc-400" />
-          )}
+          <span className="font-pixel text-[10px]" style={{ color: "var(--pixel-text-secondary)" }}>
+            {searchExpanded ? "▲" : "▼"}
+          </span>
         </button>
         {searchExpanded && (
-          <div className="space-y-3 border-t border-zinc-200 px-4 pb-4 pt-3 dark:border-zinc-700">
+          <div className="space-y-3 px-4 pb-4 pt-3" style={{ borderTop: "2px solid var(--pixel-border)" }}>
             <VideoSearch onSelectVideo={handleSearchSelect} />
             <UrlInput onVideoId={handleUrlInput} />
           </div>

@@ -1,0 +1,532 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "2.1 Read `layout.tsx` in full to understand current prop-passing pattern": [
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784342667
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784367871
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784400499
+      }
+    ],
+    "2.2 Read `src/lib/pokeapi.ts` to understand how sprite URLs are constructed": [
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784343023
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784410112
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784468003
+      }
+    ],
+    "2.3 In `layout.tsx`: add a pet fetch query (`pets` table: `pet_type, name, state, affinity`) alongside the existing profile query; construct the PokéAPI GIF URL from `pet_type`; handle null (no pet row)": [
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784343370
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784475465
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784519602
+      }
+    ],
+    "2.4 Update `GameSidebarProps` to accept `pet: PetSidebarData | null`": [
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784343520
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784523991
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784562592
+      }
+    ],
+    "2.5 In `game-sidebar.tsx`: add `PetWidget` inline component:": [
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784343676
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784566477
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784604590
+      }
+    ],
+    "2.6 Check `globals.css` for `animate-pixel-float` — if it doesn't produce a 0px→-3px bob, add `animate-pet-bob` keyframe": [
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784343820
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784608788
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784643726
+      }
+    ],
+    "2.7 Verify `npx tsc --noEmit` passes": [
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784343990
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784647621
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784678129
+      }
+    ],
+    "2.8 Commit: `feat(ui): surface pet companion in sidebar`": [
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784344118
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784682615
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784709887
+      }
+    ],
+    "3.1 Read `party/page.tsx` — identify `PageHeader title` prop": [
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784344312
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784718983
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784740835
+      }
+    ],
+    "3.2 Read `party/_components/party-page.tsx` — find all visible headings containing \"Party\"": [
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784344471
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784746472
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784774398
+      }
+    ],
+    "3.3 Read `party/_components/party-discovery.tsx` — find all visible headings containing \"Party\"": [
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784344615
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784778513
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784808527
+      }
+    ],
+    "3.4 In `party/page.tsx`: change `PageHeader title=\"Party\"` → `title=\"Friends\"`": [
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784344749
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784812724
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784839467
+      }
+    ],
+    "3.5 In `party-page.tsx`: update any section headers or display strings (NOT TypeScript identifiers, action names, or prop names)": [
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784344904
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784843740
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784868460
+      }
+    ],
+    "3.6 In `party-discovery.tsx`: update any section headers or display strings": [
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784345069
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784873994
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781785122306
+      }
+    ],
+    "3.7 Verify `npx tsc --noEmit` passes": [
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784345229
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781785127283
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781785161992
+      }
+    ],
+    "3.8 Commit: `feat(ui): rename Party → Friends in all user-visible labels`": [
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784345415
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781785166253
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781785234793
+      }
+    ],
+    "4.1 Create `src/lib/format-streak.ts` with `StreakContext` type and `formatStreak` function as specified in design.md": [
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784345582
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781785240033
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781785272614
+      }
+    ],
+    "4.2 In `app/page.tsx`: find the `StatTile` that renders streak. Import `formatStreak`. When `streak === 0`, pass `formatStreak(0, 'home')` as `value` (as a string) and apply `var(--pixel-accent)` color; when `streak > 0` keep existing display with suffix": [
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784345756
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781785277517
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781785316788
+      }
+    ],
+    "4.3 Read `analytics/_components/analytics-dashboard.tsx` — if streak is displayed as a number, apply `formatStreak(streak, 'analytics')`": [
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784345900
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781785321302
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781785392747
+      }
+    ],
+    "4.4 Verify `npx tsc --noEmit` passes": [
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784346073
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781785397091
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781785433753
+      }
+    ],
+    "4.5 Commit: `feat(ui): add formatStreak utility, fix zero-streak display on homepage`": [
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784346225
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781785437748
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781785520626
+      }
+    ],
+    "5.1 Read `_components/academic-timeline-widget.tsx` to confirm it is safe to remove from page.tsx (widget page at `/app/academic` is unaffected)": [
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784346366
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781785529853
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781785585092
+      }
+    ],
+    "5.2 Remove from `page.tsx`: `AcademicTimelineWidget` import and usage, Study Modes grid section, footer tip": [
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784346574
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781785589414
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781785614612
+      }
+    ],
+    "5.3 Add `DailyBriefing` sub-component: contextual subtitle from `cardsDue` + server-side hour": [
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784346715
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781785619791
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781785650807
+      }
+    ],
+    "5.4 Add `PrimaryCTA` sub-component: single large link card (Review Cards or Feynman Mode)": [
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784346863
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781785655506
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781785692989
+      }
+    ],
+    "5.5 Redesign `StatRow`: keep all 4 stats but give Cards Due + Streak large visual weight and XP + Coins smaller weight; integrate `formatStreak` for streak zero state": [
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784347008
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781785697348
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781785738646
+      }
+    ],
+    "5.6 Polish Today's Quests: add \"Fresh start\" label when all progress is 0; add celebratory state label when `allQuestsDone === true`": [
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784347153
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781785743589
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781785789627
+      }
+    ],
+    "5.7 Add server-side `FriendsFeed` query in `page.tsx` (see design.md for query structure); wrap in try/catch": [
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784347296
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781785794347
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781785832152
+      }
+    ],
+    "5.8 Add `FriendsActivity` sub-component: section header \"YOUR STUDY CIRCLE\", feed items with sprite icons, empty state with link to `/app/party`": [
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784347441
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781785836839
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781785884022
+      }
+    ],
+    "5.9 Verify `npx tsc --noEmit` passes": [
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784347603
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781785888517
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781785921601
+      }
+    ],
+    "5.10 Commit: `feat(ui): restructure homepage — briefing, CTA, stat row, friends activity`": [
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781784347756
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781785926512
+      },
+      {
+        "executionId": "ecbda4a6-faff-466b-8c1c-196a33b10202",
+        "chatSessionId": "sess_25de0720-f2cd-4fd7-8022-2be99042136d",
+        "timestamp": 1781785965734
+      }
+    ]
+  }
+}

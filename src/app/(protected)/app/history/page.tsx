@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "../_components/page-header";
+import { DialogFrame } from "@/components/pixel-ui";
 import { getHistory, type HistoryType, type HistoryDays } from "../_actions/history";
 import { HistoryFilters } from "./_components/history-filters";
 import { HistoryList } from "./_components/history-list";
@@ -47,9 +48,11 @@ export default async function HistoryPage({ searchParams }: HistoryPageProps) {
       />
 
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
-          {error}
-        </div>
+        <DialogFrame state="error">
+          <p className="text-sm" style={{ color: "var(--pixel-error)" }}>
+            {error || "Couldn't load your history. Try refreshing."}
+          </p>
+        </DialogFrame>
       )}
 
       <HistoryFilters topics={topics ?? []} />

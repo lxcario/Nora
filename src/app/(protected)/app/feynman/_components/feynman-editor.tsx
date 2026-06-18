@@ -30,7 +30,7 @@ import {
 } from "lucide-react";
 import { XpToast } from "@/app/(protected)/app/_components/xp-toast";
 import { SuccessCheck } from "@/app/(protected)/app/_components/success-check";
-import { DialogFrame } from "@/components/pixel-ui";
+import { DialogFrame, PixelButton } from "@/components/pixel-ui";
 
 interface TopicOption {
   id: string;
@@ -297,18 +297,14 @@ export function FeynmanEditor({ topics }: { topics: TopicOption[] }) {
               </span>
             )}
           </div>
-          <button
+          <PixelButton
+            variant="primary"
             onClick={handleEvaluate}
             disabled={isPending || explanation.length < 50}
-            className="inline-flex items-center gap-2 !bg-[var(--pixel-accent)] !text-[var(--pixel-bg-primary)] hover:!bg-[var(--pixel-accent-hover)]"
+            loading={isPending}
           >
-            {isPending ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Send className="h-4 w-4" />
-            )}
             {isPending ? "Evaluating..." : isRefining ? "Re-evaluate" : "Evaluate with AI"}
-          </button>
+          </PixelButton>
         </div>
       </DialogFrame>
       </div>
@@ -726,14 +722,15 @@ function SuggestedCardsEditor({
           </span>
         </div>
         {!saved ? (
-          <button
+          <PixelButton
+            variant="success"
+            size="small"
             onClick={handleSaveSelected}
             disabled={saving || selectedCount === 0}
-            className="inline-flex items-center gap-2 !bg-[var(--pixel-success)] !text-white hover:!brightness-110 text-sm"
+            loading={saving}
           >
-            {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
             Save Selected ({selectedCount})
-          </button>
+          </PixelButton>
         ) : (
           <span className="inline-flex items-center gap-1 text-sm text-[var(--pixel-success)]">
             <Check className="h-4 w-4" />
@@ -779,7 +776,8 @@ function SuggestedCardsEditor({
                 </div>
                 <button
                   onClick={() => toggleEdit(i)}
-                  className="text-xs !bg-transparent !border-none !p-0 text-[var(--pixel-accent)] hover:!bg-transparent"
+                  className="text-xs"
+                  style={{ color: "var(--pixel-accent)", background: "none", border: "none", padding: 0, cursor: "pointer" }}
                 >
                   Done editing
                 </button>
@@ -798,18 +796,20 @@ function SuggestedCardsEditor({
                   <button
                     onClick={() => toggleEdit(i)}
                     title="Edit card"
-                    className="!p-1 !bg-transparent !border-none text-[var(--pixel-text-muted)] hover:!bg-[var(--pixel-bg-elevated)] hover:text-[var(--pixel-text-primary)]"
+                    className="p-1 transition-colors"
+                    style={{ color: "var(--pixel-text-muted)", background: "none", border: "none" }}
                   >
                     <Edit2 className="h-3.5 w-3.5" />
                   </button>
                   <button
                     onClick={() => toggleSelect(i)}
                     title={card.selected ? "Reject card" : "Include card"}
-                    className={`!p-1 !bg-transparent !border-none ${
-                      card.selected
-                        ? "text-[var(--pixel-success)] hover:text-[var(--pixel-error)]"
-                        : "text-[var(--pixel-text-muted)] hover:text-[var(--pixel-success)]"
-                    }`}
+                    className="p-1 transition-colors"
+                    style={{
+                      color: card.selected ? "var(--pixel-success)" : "var(--pixel-text-muted)",
+                      background: "none",
+                      border: "none",
+                    }}
                   >
                     {card.selected ? <X className="h-3.5 w-3.5" /> : <Check className="h-3.5 w-3.5" />}
                   </button>

@@ -28,7 +28,7 @@ const MOOD_CONFIG: Record<
   happy:         { emoji: "😊", label: "Happy",   color: "var(--pixel-success)" },
   neutral:       { emoji: "😐", label: "Neutral",  color: "var(--pixel-warning)" },
   sad:           { emoji: "😢", label: "Sad",      color: "var(--pixel-error)"   },
-  forest_rescue: { emoji: "😢", label: "Sad",      color: "var(--pixel-error)"   },
+  forest_rescue: { emoji: "🌲", label: "Lost in forest", color: "var(--pixel-warning)" },
 };
 
 function PetWidget({ pet }: { pet: PetSidebarData | null }) {

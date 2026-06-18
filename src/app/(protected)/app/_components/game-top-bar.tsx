@@ -73,7 +73,10 @@ export function GameTopBar({ profile }: GameTopBarProps) {
       {/* Right: Coins + compact XP bar + Profile popover */}
       <div className="flex items-center gap-4">
         {/* Coins */}
-        <div className="flex items-center gap-1.5">
+        <div
+          className="flex items-center gap-1.5"
+          title="Earn coins from daily quests. Spend them on cursors, themes, and decorations in the Collection."
+        >
           <PixelIcon src="/sprites/travel-book/icons/Coin.png" alt="Coins" size={16} />
           <PixelCounter
             value={coins}
@@ -82,7 +85,10 @@ export function GameTopBar({ profile }: GameTopBarProps) {
         </div>
 
         {/* Compact XP bar + level */}
-        <div className="hidden sm:flex items-center gap-2">
+        <div
+          className="hidden sm:flex items-center gap-2"
+          title="Earn XP by studying. Level up to unlock new pets, themes, and decorations!"
+        >
           <span className="font-pixel text-[10px] text-[var(--pixel-accent)]">
             Lv.{level}
           </span>

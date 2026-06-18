@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { GameSidebar } from "./_components/game-sidebar";
 import { GameTopBar } from "./_components/game-top-bar";
+import { BottomNav } from "@/components/pixel-ui";
 import { PreferencesProvider } from "@/components/pixel-ui/preferences-provider";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -87,9 +88,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <GameSidebar profile={profileWithAvatar} pet={petSidebarData} />
         <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
           <GameTopBar profile={profileWithAvatar} />
-          <main className="pixel-grid-bg flex-1 overflow-y-auto p-8">
+          <main className="pixel-grid-bg flex-1 overflow-y-auto p-8 pb-20 md:pb-8">
             {children}
           </main>
+          <BottomNav />
         </div>
       </div>
     </PreferencesProvider>

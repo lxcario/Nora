@@ -524,6 +524,40 @@ body {
   animation: pixel-blink 0.8s steps(1) infinite;
 }
 
+/* ─── Range Input (Volume Slider) ─── */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+input[type="range"]::-webkit-slider-track {
+  height: 4px;
+  background: var(--pixel-bg-elevated);
+  border: 1px solid var(--pixel-border);
+}
+input[type="range"]::-moz-range-track {
+  height: 4px;
+  background: var(--pixel-bg-elevated);
+  border: 1px solid var(--pixel-border);
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  margin-top: -4px;
+  background: var(--pixel-accent);
+  border: 2px solid var(--pixel-border);
+  image-rendering: pixelated;
+}
+input[type="range"]::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  background: var(--pixel-accent);
+  border: 2px solid var(--pixel-border);
+  border-radius: 0;
+}
+
 /* Stepped hop — pixel-art bounce in 3 discrete steps (no smooth easing).
    Used on nav icons on hover / active. */
 @keyframes pixel-hop {

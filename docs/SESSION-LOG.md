@@ -808,3 +808,180 @@ c0fa0a5 feat: add History & Journals page with filterable timeline
 ---
 
 *Session ended June 17, 2026.*
+
+
+---
+
+# Session 4 — June 18, 2026
+
+## Overview
+
+Deep UX audit of the entire app, followed by full implementation of all 24 improvement tasks across 3 sprints. Resolved the "split personality" problem — half the app was using legacy SaaS-white styling while the other half used the pixel-art theme. Every page now uses the pixel-ui design system consistently.
+
+---
+
+## Phase 1 — UX Audit (Analysis Only)
+
+Conducted a full codebase read of all 15 pages, their _components subdirectories, the pixel-ui library, and utility files. Produced two deliverables:
+
+### Audit Report (`.kiro/specs/ux-audit/audit-report.md`)
+- Scored every page across 8 dimensions (First Impression, Task Clarity, Emotional Tone, Feedback, Empty States, Wayfinding, Mobile, Consistency)
+- Identified 23 issues: 5 P0 (Critical), 6 P1 (High), 7 P2 (Medium), 5 P3 (Low)
+- Documented 10 things working well
+- Page-by-page detailed notes
+
+### Improvement Spec (`.kiro/specs/ux-audit/improvement-spec.md`)
+- 24 implementation-ready tasks across 3 sprints
+- Empty State Catalog (16 entries)
+- Error Message Catalog (9 entries)
+- 10 Tone & Copy Consistency Rules
+
+### Spec Documents
+- `requirements.md` — 7 functional + 5 non-functional requirements
+- `design.md` — PixelConfirmDialog spec, re-skin pattern table, grade button color mapping, layout changes
+- `tasks.md` — 24 tasks with files, steps, acceptance criteria
+
+---
+
+## Phase 2 — Sprint 1: Pre-Demo (P0 Fixes) ✅
+
+| Task | Files | Change |
+|------|-------|--------|
+| UX-001 | `layout.tsx` | Rendered BottomNav for mobile navigation (was built but never mounted) |
+| UX-002 | `error.tsx` | Full rewrite → DialogFrame + PixelButton (was lucide + indigo) |
+| UX-003 | `loading.tsx` | Full rewrite → LoadingSkeleton (was Loader2 + indigo) |
+| UX-004 | `confirm-dialog.tsx`, `pixel-button.tsx`, `index.ts` | New PixelConfirmDialog + forwardRef on PixelButton |
+| UX-005 | `review-session.tsx` | Delete card now requires PixelConfirmDialog confirmation |
+| UX-006 | `review/page.tsx`, `review-session.tsx` | Full pixel-ui reskin (DialogFrame, PixelButton, PixelProgressBar, grade buttons with CSS vars) |
+| UX-007 | `study/page.tsx`, `study-session.tsx` | Full pixel-ui reskin (same treatment as review) |
+
+---
+
+## Phase 3 — Sprint 2: Pre-Ship (P1 Fixes) ✅
+
+| Task | Files | Change |
+|------|-------|--------|
+| Task 8 | `party-discovery.tsx` | Full reskin → DialogFrame, PixelButton, PixelInput, LoadingSkeleton, EmptyState |
+| Task 9 | `party-page.tsx` | Removed window.confirm → PixelConfirmDialog, DialogFrame wrappers, sprite badges |
+| Task 10 | `analytics-dashboard.tsx` | Removed lucide → sprite icons, pixel-panel stats, BarChartPixel, pixel heatmap |
+| Task 11 | `history-filters.tsx`, `history-list.tsx` | pixel-panel-inset filter chips, pixel-panel cards, EmptyState |
+| Task 12 | `weekly-calendar.tsx` | pixel-panel nav, PixelButton, pixel-panel-inset day cells, accent today |
+| Task 13 | `game-top-bar.tsx`, `collection/page.tsx` | Title tooltips on XP/coins, intro sentence |
+| Task 14 | `study-room-layout.tsx` | pixel-panel search panel, removed unused lucide imports |
+
+---
+
+## Phase 4 — Sprint 3: Polish (P2+P3) ✅
+
+| Task | Files | Change |
+|------|-------|--------|
+| Task 15 | `subjects-manager.tsx` | pixel-panel-inset, PixelButton, PixelInput, PixelConfirmDialog for deletes |
+| Task 16 | `feynman-editor.tsx` | Replaced !bg-/!text- overrides with PixelButton components |
+| Task 17 | (already fixed) | Review stats simplified in Sprint 1 |
+| Task 18 | (already fixed) | LoadingSkeleton in Sprint 2 |
+| Task 19 | `planner/page.tsx` | EmptyState when week has no sessions/events |
+| Task 20 | `party/page.tsx`, `planner/page.tsx`, `history/page.tsx`, `room/page.tsx` | All red-text errors → DialogFrame state="error" |
+| Task 21 | `feynman/page.tsx` | EmptyState component with action link |
+| Task 22 | `globals.css` | Pixel-themed range input (track + thumb styling) |
+| Task 23 | `game-sidebar.tsx` | forest_rescue → "🌲 Lost in forest" in warning color |
+| Task 24 | `profile-popover.tsx` | Removed dead Settings/LogOut lucide imports |
+
+---
+
+## Phase 5 — Per-Page Loading Skeletons ✅
+
+Created layout-matched `loading.tsx` for every page route. Each skeleton mirrors the exact structure of its page content:
+
+| Page | Skeleton matches |
+|------|-----------------|
+| Homepage (`/app`) | Briefing + CTA + 4-stat grid + quests panel + friends feed |
+| Review | Stat tile + card panel + meta row |
+| Study Mix | Type badge + progress + card panel + skip |
+| Feynman | Topic selector + textarea editor |
+| Research | Mode toggle + search input panel |
+| Study Room | Centered "Start Studying" empty state layout |
+| Planner | Week nav + 7-column grid + legend |
+| Academic | University header + progress + events + documents |
+| Analytics | 5-stat row + 2 charts + heatmap + mastery bars |
+| History | Filter chips + date-grouped cards |
+| Pixel Room | 360px scene + pet status + quote + missions |
+| Party | Header badges + members + quests + messages |
+| Collection | Cursor grid + themes/decorations 2-col |
+| Settings | Tab bar + profile form |
+
+Also created `src/components/pixel-ui/skeleton-helpers.tsx` with reusable `PageHeaderSkeleton`, `PanelSkeleton`, `StatTileSkeleton`.
+
+---
+
+## New Files Created
+
+```
+.kiro/specs/ux-audit/audit-report.md
+.kiro/specs/ux-audit/improvement-spec.md
+.kiro/specs/ux-audit/requirements.md
+.kiro/specs/ux-audit/design.md
+.kiro/specs/ux-audit/tasks.md
+src/components/pixel-ui/confirm-dialog.tsx
+src/components/pixel-ui/skeleton-helpers.tsx
+src/app/(protected)/app/review/loading.tsx
+src/app/(protected)/app/study/loading.tsx
+src/app/(protected)/app/feynman/loading.tsx
+src/app/(protected)/app/research/loading.tsx
+src/app/(protected)/app/study-room/loading.tsx
+src/app/(protected)/app/planner/loading.tsx
+src/app/(protected)/app/academic/loading.tsx
+src/app/(protected)/app/analytics/loading.tsx
+src/app/(protected)/app/history/loading.tsx
+src/app/(protected)/app/room/loading.tsx
+src/app/(protected)/app/party/loading.tsx
+src/app/(protected)/app/collection/loading.tsx
+src/app/(protected)/app/settings/loading.tsx
+```
+
+## Modified Files
+
+```
+src/app/(protected)/app/layout.tsx (BottomNav + mobile padding)
+src/app/(protected)/app/error.tsx (full rewrite)
+src/app/(protected)/app/loading.tsx (full rewrite — homepage skeleton)
+src/app/(protected)/app/review/page.tsx (pixel-ui reskin)
+src/app/(protected)/app/review/_components/review-session.tsx (full reskin + confirm dialog)
+src/app/(protected)/app/study/page.tsx (pixel-ui reskin)
+src/app/(protected)/app/study/_components/study-session.tsx (full reskin)
+src/app/(protected)/app/party/_components/party-discovery.tsx (full reskin)
+src/app/(protected)/app/party/_components/party-page.tsx (full reskin + confirm dialog)
+src/app/(protected)/app/party/page.tsx (error standardization)
+src/app/(protected)/app/analytics/_components/analytics-dashboard.tsx (full reskin)
+src/app/(protected)/app/history/_components/history-filters.tsx (full reskin)
+src/app/(protected)/app/history/_components/history-list.tsx (full reskin)
+src/app/(protected)/app/history/page.tsx (error standardization)
+src/app/(protected)/app/planner/_components/weekly-calendar.tsx (full reskin)
+src/app/(protected)/app/planner/page.tsx (empty state + error fix)
+src/app/(protected)/app/feynman/_components/feynman-editor.tsx (button overrides → PixelButton)
+src/app/(protected)/app/feynman/page.tsx (EmptyState)
+src/app/(protected)/app/room/page.tsx (error standardization)
+src/app/(protected)/app/collection/page.tsx (coins intro)
+src/app/(protected)/app/settings/_components/subjects-manager.tsx (full reskin)
+src/app/(protected)/app/study-room/_components/study-room-layout.tsx (search panel fix)
+src/app/(protected)/app/_components/game-top-bar.tsx (XP/coins tooltips)
+src/app/(protected)/app/_components/game-sidebar.tsx (forest_rescue label)
+src/app/(protected)/app/_components/profile-popover.tsx (dead imports removed)
+src/app/globals.css (range input styling)
+src/components/pixel-ui/index.ts (exports: PixelConfirmDialog, skeleton-helpers)
+src/components/pixel-ui/pixel-button.tsx (forwardRef support)
+```
+
+---
+
+## Key Outcomes
+
+1. **Split personality resolved** — No more bg-white/zinc/indigo pages. Every route uses pixel-ui exclusively.
+2. **Mobile navigation fixed** — BottomNav now renders on mobile (was built but never wired).
+3. **Destructive actions safe** — PixelConfirmDialog replaces all window.confirm() and unprotected deletes.
+4. **Error states cozy** — All raw red-text errors replaced with DialogFrame state="error" + warm copy.
+5. **Loading states branded** — Every page has a layout-matched LoadingSkeleton instead of generic spinners.
+6. **Gamification explained** — XP bar and coins now have tooltip explanations for new users.
+
+---
+
+*Session ended June 18, 2026.*

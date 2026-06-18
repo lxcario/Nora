@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { PenLine, MonitorPlay, FlaskConical, ChevronDown, ChevronUp } from "lucide-react";
 import type { HistoryItem } from "../../_actions/history";
+import { EmptyState } from "@/components/pixel-ui";
 
 interface HistoryListProps {
   items: HistoryItem[];
@@ -37,32 +37,32 @@ function groupByDate(items: HistoryItem[]): Map<string, HistoryItem[]> {
   return groups;
 }
 
-function TypeBadge({ type }: { type: HistoryItem["type"] }) {
-  const config = {
-    feynman: {
-      label: "Feynman",
-      icon: PenLine,
-      className: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300",
-    },
-    video: {
-      label: "Video",
-      icon: MonitorPlay,
-      className: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
-    },
-    research: {
-      label: "Research",
-      icon: FlaskConical,
-      className: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300",
-    },
-  }[type];
+// ---------------------------------------------------------------------------
+// Type badge config
+// ---------------------------------------------------------------------------
 
-  const Icon = config.icon;
+const TYPE_CONFIG: Record<string, { label: string; icon: string; color: string }> = {
+  feynman: { label: "Feynman", icon: "Lightbulb.png", color: "var(--pixel-success)" },
+  video: { label: "Video", icon: "Monitor.png", color: "var(--pixel-accent)" },
+  research: { label: "Research", icon: "MagnifyingGlass.png", color: "#8b5cf6" },
+};
+
+function TypeBadge({ type }: { type: HistoryItem["type"] }) {
+  const config = TYPE_CONFIG[type];
+  if (!config) return null;
 
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${config.className}`}
+      className="pixel-panel pixel-panel-inset inline-flex items-center gap-1 px-2 py-0.5 font-pixel text-[9px]"
+      style={{ color: config.color }}
     >
-      <Icon className="h-3 w-3" />
+      <img
+        src={`/sprites/travel-book/icons/${config.icon}`}
+        alt=""
+        width={10}
+        height={10}
+        className="pixel-art"
+      />
       {config.label}
     </span>
   );
@@ -73,41 +73,45 @@ function GapDots({ summary }: { summary: { green: number; amber: number; red: nu
     <span className="inline-flex items-center gap-1.5 text-xs">
       {summary.green > 0 && (
         <span className="flex items-center gap-0.5">
-          <span className="h-2 w-2 rounded-full bg-emerald-500" />
-          <span className="text-zinc-500">{summary.green}</span>
+          <span className="h-2 w-2" style={{ backgroundColor: "var(--pixel-success)" }} />
+          <span style={{ color: "var(--pixel-text-muted)" }}>{summary.green}</span>
         </span>
       )}
       {summary.amber > 0 && (
         <span className="flex items-center gap-0.5">
-          <span className="h-2 w-2 rounded-full bg-amber-500" />
-          <span className="text-zinc-500">{summary.amber}</span>
+          <span className="h-2 w-2" style={{ backgroundColor: "var(--pixel-warning)" }} />
+          <span style={{ color: "var(--pixel-text-muted)" }}>{summary.amber}</span>
         </span>
       )}
       {summary.red > 0 && (
         <span className="flex items-center gap-0.5">
-          <span className="h-2 w-2 rounded-full bg-red-500" />
-          <span className="text-zinc-500">{summary.red}</span>
+          <span className="h-2 w-2" style={{ backgroundColor: "var(--pixel-error)" }} />
+          <span style={{ color: "var(--pixel-text-muted)" }}>{summary.red}</span>
         </span>
       )}
     </span>
   );
 }
 
+// ---------------------------------------------------------------------------
+// HistoryItemCard
+// ---------------------------------------------------------------------------
+
 function HistoryItemCard({ item }: { item: HistoryItem }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="rounded-lg border border-zinc-200 bg-white p-4 transition-colors hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700">
+    <div className="pixel-panel" style={{ padding: "12px 16px" }}>
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <TypeBadge type={item.type} />
             {item.topicName && (
-              <span className="text-xs text-zinc-500 dark:text-zinc-400">
+              <span className="text-xs" style={{ color: "var(--pixel-text-muted)" }}>
                 {item.topicName}
               </span>
             )}
-            <span className="text-xs text-zinc-400 dark:text-zinc-500">
+            <span className="text-xs" style={{ color: "var(--pixel-text-muted)" }}>
               {formatTime(item.date)}
             </span>
           </div>
@@ -116,7 +120,7 @@ function HistoryItemCard({ item }: { item: HistoryItem }) {
           <div className="mt-1.5">
             {item.type === "feynman" && (
               <div className="flex items-center gap-2">
-                <p className="text-sm text-zinc-700 dark:text-zinc-300 truncate">
+                <p className="text-sm truncate" style={{ color: "var(--pixel-text-primary)" }}>
                   {item.preview}…
                 </p>
                 {item.gapSummary && <GapDots summary={item.gapSummary} />}
@@ -124,22 +128,24 @@ function HistoryItemCard({ item }: { item: HistoryItem }) {
             )}
             {item.type === "video" && (
               <div>
-                <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300 truncate">
+                <p className="text-sm font-medium truncate" style={{ color: "var(--pixel-text-primary)" }}>
                   {item.videoTitle}
                 </p>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 truncate">
+                <p className="text-xs mt-0.5 truncate" style={{ color: "var(--pixel-text-secondary)" }}>
                   {item.preview}…
                   {item.timeSegment && (
-                    <span className="ml-2 text-zinc-400">⏱ {item.timeSegment}</span>
+                    <span className="ml-2" style={{ color: "var(--pixel-text-muted)" }}>
+                      ⏱ {item.timeSegment}
+                    </span>
                   )}
                 </p>
               </div>
             )}
             {item.type === "research" && (
-              <p className="text-sm text-zinc-700 dark:text-zinc-300">
+              <p className="text-sm" style={{ color: "var(--pixel-text-primary)" }}>
                 {item.preview}
                 {item.durationMinutes && (
-                  <span className="ml-2 text-xs text-zinc-400">
+                  <span className="ml-2 text-xs" style={{ color: "var(--pixel-text-muted)" }}>
                     {item.durationMinutes} min
                   </span>
                 )}
@@ -152,28 +158,33 @@ function HistoryItemCard({ item }: { item: HistoryItem }) {
         {item.fullText && item.fullText.length > 100 && (
           <button
             onClick={() => setExpanded(!expanded)}
-            className="flex-shrink-0 rounded-md p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
+            className="flex-shrink-0 p-1 font-pixel text-[10px] transition-colors"
+            style={{ color: "var(--pixel-text-secondary)" }}
             aria-label={expanded ? "Collapse" : "Expand"}
           >
-            {expanded ? (
-              <ChevronUp className="h-4 w-4" />
-            ) : (
-              <ChevronDown className="h-4 w-4" />
-            )}
+            {expanded ? "▲" : "▼"}
           </button>
         )}
       </div>
 
       {/* Expanded content */}
       {expanded && item.fullText && (
-        <div className="mt-3 border-t border-zinc-100 pt-3 dark:border-zinc-800">
-          <p className="whitespace-pre-wrap text-sm text-zinc-600 dark:text-zinc-400">
+        <div className="mt-3 pt-3" style={{ borderTop: "2px solid var(--pixel-border)" }}>
+          <p
+            className="whitespace-pre-wrap text-sm"
+            style={{ color: "var(--pixel-text-secondary)", lineHeight: 1.6 }}
+          >
             {item.fullText}
           </p>
           {item.aiSummary && (
-            <div className="mt-2 rounded-md bg-zinc-50 p-2 dark:bg-zinc-800/50">
-              <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">AI Summary</p>
-              <p className="mt-0.5 text-sm text-zinc-600 dark:text-zinc-300">
+            <div
+              className="mt-2 p-2"
+              style={{ backgroundColor: "var(--pixel-bg-secondary)", border: "1px solid var(--pixel-border)" }}
+            >
+              <p className="font-pixel text-[9px]" style={{ color: "var(--pixel-text-muted)" }}>
+                AI Summary
+              </p>
+              <p className="mt-0.5 text-sm" style={{ color: "var(--pixel-text-primary)" }}>
                 {item.aiSummary}
               </p>
             </div>
@@ -184,16 +195,19 @@ function HistoryItemCard({ item }: { item: HistoryItem }) {
   );
 }
 
+// ---------------------------------------------------------------------------
+// HistoryList
+// ---------------------------------------------------------------------------
+
 export function HistoryList({ items }: HistoryListProps) {
   if (items.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-lg border border-zinc-200 bg-white p-12 dark:border-zinc-800 dark:bg-zinc-900">
-        <PenLine className="mb-3 h-10 w-10 text-zinc-300 dark:text-zinc-600" />
-        <p className="text-sm font-medium text-zinc-500">No history yet</p>
-        <p className="mt-1 text-center text-xs text-zinc-400 max-w-xs">
-          Start studying with Feynman mode, watch videos, or do research — your activity will show up here.
-        </p>
-      </div>
+      <EmptyState
+        icon="pen"
+        message="No history yet. Start studying with Feynman mode, watch videos, or do research — your activity will show up here."
+        actionLabel="Feynman Mode"
+        actionHref="/app/feynman"
+      />
     );
   }
 
@@ -203,7 +217,10 @@ export function HistoryList({ items }: HistoryListProps) {
     <div className="space-y-6">
       {Array.from(grouped.entries()).map(([dateLabel, dateItems]) => (
         <section key={dateLabel}>
-          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+          <h3
+            className="mb-2 font-pixel text-[10px] uppercase tracking-wider"
+            style={{ color: "var(--pixel-text-muted)" }}
+          >
             {dateLabel}
           </h3>
           <div className="space-y-2">

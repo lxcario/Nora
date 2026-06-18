@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { Settings, LogOut } from "lucide-react";
 import { signout } from "@/app/(auth)/_actions/auth";
 import { AvatarUpload } from "./avatar-upload";
 import { playClick } from "@/lib/sfx";

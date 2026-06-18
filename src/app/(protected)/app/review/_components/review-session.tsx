@@ -3,27 +3,36 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { submitReview, deleteCard, type DueCard } from "@/app/(protected)/app/_actions/review";
-import {
-  Eye,
-  RotateCcw,
-  Loader2,
-  Trophy,
-  Tag,
-  Trash2,
-  MonitorPlay,
-} from "lucide-react";
 import { XpToast } from "@/app/(protected)/app/_components/xp-toast";
 import { SuccessCheck } from "@/app/(protected)/app/_components/success-check";
 import { playSessionComplete } from "@/lib/sfx";
+import {
+  DialogFrame,
+  PixelButton,
+  PixelProgressBar,
+  PixelConfirmDialog,
+} from "@/components/pixel-ui";
 
-const GRADE_LABELS = [
-  { grade: 0, label: "Blackout", color: "bg-red-600 hover:bg-red-700" },
-  { grade: 1, label: "Wrong", color: "bg-red-500 hover:bg-red-600" },
-  { grade: 2, label: "Hard", color: "bg-orange-500 hover:bg-orange-600" },
-  { grade: 3, label: "OK", color: "bg-amber-500 hover:bg-amber-600" },
-  { grade: 4, label: "Good", color: "bg-emerald-500 hover:bg-emerald-600" },
-  { grade: 5, label: "Easy", color: "bg-emerald-600 hover:bg-emerald-700" },
+// ---------------------------------------------------------------------------
+// Grade button config — pixel theme colors
+// ---------------------------------------------------------------------------
+
+const GRADE_LABELS: {
+  grade: number;
+  label: string;
+  color: string;
+}[] = [
+  { grade: 0, label: "Blackout", color: "var(--pixel-error)" },
+  { grade: 1, label: "Wrong", color: "color-mix(in srgb, var(--pixel-error) 85%, var(--pixel-bg-primary))" },
+  { grade: 2, label: "Hard", color: "var(--pixel-warning)" },
+  { grade: 3, label: "OK", color: "var(--pixel-accent)" },
+  { grade: 4, label: "Good", color: "color-mix(in srgb, var(--pixel-success) 85%, var(--pixel-bg-primary))" },
+  { grade: 5, label: "Easy", color: "var(--pixel-success)" },
 ];
+
+// ---------------------------------------------------------------------------
+// ReviewSession
+// ---------------------------------------------------------------------------
 
 export function ReviewSession({ initialCards }: { initialCards: DueCard[] }) {
   const router = useRouter();
@@ -33,6 +42,9 @@ export function ReviewSession({ initialCards }: { initialCards: DueCard[] }) {
   const [isPending, startTransition] = useTransition();
   const [reviewedCount, setReviewedCount] = useState(0);
   const [sessionComplete, setSessionComplete] = useState(false);
+
+  // Confirm delete state
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   // Reward feedback
   const [xpToastData, setXpToastData] = useState({ xp: 0, coins: 0, visible: false });
@@ -59,7 +71,6 @@ export function ReviewSession({ initialCards }: { initialCards: DueCard[] }) {
 
       if (currentIndex + 1 >= totalCards) {
         setSessionComplete(true);
-        // Show session complete success check
         setShowComplete(true);
         setTimeout(() => setShowComplete(false), 100);
         playSessionComplete();
@@ -69,65 +80,120 @@ export function ReviewSession({ initialCards }: { initialCards: DueCard[] }) {
     });
   }
 
-  // Session complete screen
+  function handleDeleteConfirm() {
+    setConfirmDelete(false);
+    startTransition(async () => {
+      await deleteCard(currentCard.id);
+      setReviewedCount((c) => c + 1);
+      setRevealed(false);
+      if (currentIndex + 1 >= totalCards) {
+        setSessionComplete(true);
+      } else {
+        setCurrentIndex((i) => i + 1);
+      }
+    });
+  }
+
+  // ─── Session Complete ───────────────────────────────────────────────────
+
   if (sessionComplete) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-lg border border-zinc-200 bg-white p-12 dark:border-zinc-800 dark:bg-zinc-900">
-        <SuccessCheck message="Review session complete!" visible={showComplete} />
-        <XpToast xp={10} coins={3} visible={showComplete} />
-        <Trophy className="mb-4 h-12 w-12 text-amber-500" />
-        <h2 className="text-xl font-bold">Session Complete!</h2>
-        <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
-          You reviewed {reviewedCount} card{reviewedCount !== 1 ? "s" : ""}. Nice work.
-        </p>
-        <a
-          href="/app/review"
-          className="mt-4 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
-        >
-          Done
-        </a>
-      </div>
+      <DialogFrame>
+        <div className="flex flex-col items-center gap-4 py-6 text-center">
+          <SuccessCheck message="Review session complete!" visible={showComplete} />
+          <XpToast xp={10} coins={3} visible={showComplete} />
+
+          <img
+            src="/sprites/travel-book/icons/Trophy.png"
+            alt=""
+            width={48}
+            height={48}
+            className="pixel-art"
+          />
+
+          <h2 className="font-pixel text-lg" style={{ color: "var(--pixel-accent)" }}>
+            Session Complete!
+          </h2>
+          <p className="text-sm" style={{ color: "var(--pixel-text-secondary)" }}>
+            You reviewed {reviewedCount} card{reviewedCount !== 1 ? "s" : ""}. Nice work.
+          </p>
+
+          <PixelButton variant="primary" onClick={() => router.push("/app/review")}>
+            Done
+          </PixelButton>
+        </div>
+      </DialogFrame>
     );
   }
+
+  // ─── Active Review ──────────────────────────────────────────────────────
 
   return (
     <div className="space-y-4">
       {/* Reward feedback */}
       <XpToast xp={xpToastData.xp} coins={xpToastData.coins} visible={xpToastData.visible} />
 
-      {/* Progress bar */}
-      <div className="flex items-center justify-between text-sm text-zinc-500 dark:text-zinc-400">
-        <span>
+      {/* Delete confirmation dialog */}
+      <PixelConfirmDialog
+        open={confirmDelete}
+        title="Delete this card?"
+        message="This card and its review history will be permanently removed."
+        confirmLabel="Delete"
+        cancelLabel="Keep"
+        variant="danger"
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setConfirmDelete(false)}
+      />
+
+      {/* Progress */}
+      <div className="flex items-center justify-between">
+        <span className="font-pixel text-xs" style={{ color: "var(--pixel-text-secondary)" }}>
           Card {currentIndex + 1} of {totalCards}
         </span>
-        <span>{reviewedCount} reviewed</span>
+        <span className="font-pixel text-xs" style={{ color: "var(--pixel-text-secondary)" }}>
+          {reviewedCount} reviewed
+        </span>
       </div>
-      <div className="h-2 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
-        <div
-          className="h-full rounded-full bg-indigo-500 transition-all"
-          style={{ width: `${((currentIndex) / totalCards) * 100}%` }}
-        />
-      </div>
+      <PixelProgressBar
+        value={currentIndex}
+        max={totalCards}
+        variant="xp"
+      />
 
       {/* Card */}
-      <div className="rounded-lg border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+      <DialogFrame>
         {/* Topic badge */}
         {currentCard.topic_name && (
-          <div className="flex items-center gap-2 border-b border-zinc-100 px-4 py-2 dark:border-zinc-800">
-            <Tag className="h-3 w-3 text-zinc-400" />
-            <span className="text-xs text-zinc-400">
+          <div
+            className="flex items-center gap-2 pb-3 mb-4"
+            style={{ borderBottom: "2px solid var(--pixel-border)" }}
+          >
+            <img
+              src="/sprites/travel-book/icons/Book.png"
+              alt=""
+              width={14}
+              height={14}
+              className="pixel-art"
+            />
+            <span className="text-xs" style={{ color: "var(--pixel-text-secondary)" }}>
               {currentCard.subject_name && `${currentCard.subject_name} → `}
               {currentCard.topic_name}
             </span>
-            <span className="ml-auto text-xs text-zinc-400">
+            <span
+              className="ml-auto font-pixel text-[9px] px-1.5 py-0.5"
+              style={{
+                color: "var(--pixel-text-secondary)",
+                border: "1px solid var(--pixel-border)",
+              }}
+            >
               {currentCard.source_type}
             </span>
           </div>
         )}
 
-        {/* Video source badge — navigates to Study Room with timestamp */}
+        {/* Video source badge */}
         {currentCard.source_type === "video" && currentCard.metadata?.youtube_id && (
-          <div className="flex items-center gap-2 border-b border-zinc-100 px-4 py-2 dark:border-zinc-800">
+          <div className="mb-4">
             <button
               type="button"
               onClick={() => {
@@ -135,50 +201,59 @@ export function ReviewSession({ initialCards }: { initialCards: DueCard[] }) {
                 const offset = currentCard.metadata!.offset_seconds ?? 0;
                 router.push(`/app/study-room?video=${ytId}&t=${offset}`);
               }}
-              className="inline-flex items-center gap-1.5 rounded-md bg-indigo-50 px-2 py-1 text-xs font-medium text-indigo-700 transition-colors hover:bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-300 dark:hover:bg-indigo-900/50"
+              className="font-pixel text-[10px] px-2 py-1"
+              style={{
+                color: "var(--pixel-accent)",
+                border: "2px solid var(--pixel-accent)",
+                backgroundColor: "color-mix(in srgb, var(--pixel-accent) 10%, transparent)",
+              }}
             >
-              <MonitorPlay className="h-3 w-3" />
-              View in Study Room
+              View in Study Room →
             </button>
           </div>
         )}
 
-        {/* Front */}
-        <div className="px-6 py-8">
-          <p className="text-xs font-medium uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+        {/* Front (Question) */}
+        <div className="py-4">
+          <p
+            className="font-pixel text-[10px] uppercase tracking-wider mb-2"
+            style={{ color: "var(--pixel-text-muted)" }}
+          >
             Question
           </p>
-          <p className="mt-2 text-lg font-medium text-zinc-800 dark:text-zinc-200">
+          <p className="text-base" style={{ color: "var(--pixel-text-primary)", lineHeight: 1.6 }}>
             {currentCard.front}
           </p>
         </div>
 
-        {/* Divider / Reveal */}
+        {/* Reveal / Answer */}
         {!revealed ? (
-          <div className="border-t border-zinc-100 px-6 py-6 dark:border-zinc-800">
-            <button
-              onClick={handleReveal}
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-zinc-100 py-4 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
-            >
-              <Eye className="h-4 w-4" />
+          <div className="pt-4" style={{ borderTop: "2px solid var(--pixel-border)" }}>
+            <PixelButton variant="secondary" onClick={handleReveal} className="w-full">
               Reveal Answer
-            </button>
+            </PixelButton>
           </div>
         ) : (
           <>
-            {/* Back (answer) */}
-            <div className="border-t border-zinc-100 px-6 py-8 dark:border-zinc-800">
-              <p className="text-xs font-medium uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+            {/* Answer */}
+            <div className="py-4" style={{ borderTop: "2px solid var(--pixel-border)" }}>
+              <p
+                className="font-pixel text-[10px] uppercase tracking-wider mb-2"
+                style={{ color: "var(--pixel-text-muted)" }}
+              >
                 Answer
               </p>
-              <p className="mt-2 text-base text-zinc-700 dark:text-zinc-300">
+              <p className="text-sm" style={{ color: "var(--pixel-text-secondary)", lineHeight: 1.6 }}>
                 {currentCard.back}
               </p>
             </div>
 
             {/* Grade buttons */}
-            <div className="border-t border-zinc-100 px-6 py-4 dark:border-zinc-800">
-              <p className="mb-3 text-center text-xs text-zinc-400">
+            <div className="pt-4" style={{ borderTop: "2px solid var(--pixel-border)" }}>
+              <p
+                className="mb-3 text-center font-pixel text-[10px]"
+                style={{ color: "var(--pixel-text-secondary)" }}
+              >
                 How well did you recall this?
               </p>
               <div className="grid grid-cols-6 gap-2">
@@ -187,14 +262,21 @@ export function ReviewSession({ initialCards }: { initialCards: DueCard[] }) {
                     key={grade}
                     onClick={() => handleGrade(grade)}
                     disabled={isPending}
-                    className={`flex flex-col items-center gap-0.5 rounded-lg px-2 py-3 text-white transition-colors disabled:opacity-50 ${color}`}
+                    className="flex flex-col items-center gap-0.5 px-1 py-3 border-2 transition-opacity disabled:opacity-50"
+                    style={{
+                      backgroundColor: color,
+                      borderColor: "var(--pixel-border)",
+                      color: "#fff",
+                      minHeight: "44px",
+                      imageRendering: "pixelated",
+                    }}
                   >
                     {isPending ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span className="font-pixel text-xs animate-pixel-blink">...</span>
                     ) : (
                       <>
-                        <span className="text-lg font-bold">{grade}</span>
-                        <span className="text-[10px]">{label}</span>
+                        <span className="font-pixel text-sm font-bold">{grade}</span>
+                        <span className="font-pixel text-[8px]">{label}</span>
                       </>
                     )}
                   </button>
@@ -203,40 +285,27 @@ export function ReviewSession({ initialCards }: { initialCards: DueCard[] }) {
             </div>
           </>
         )}
-      </div>
+      </DialogFrame>
 
-      {/* Card info */}
-      <div className="flex items-center justify-between text-xs text-zinc-400">
-        <span>
+      {/* Card meta + actions */}
+      <div className="flex items-center justify-between">
+        <span className="text-[10px]" style={{ color: "var(--pixel-text-muted)" }}>
           Interval: {currentCard.interval}d · Reps: {currentCard.repetition} · EF: {currentCard.efactor}
         </span>
         <div className="flex items-center gap-3">
           <button
-            onClick={() => {
-              startTransition(async () => {
-                await deleteCard(currentCard.id);
-                setReviewedCount((c) => c + 1);
-                setRevealed(false);
-                if (currentIndex + 1 >= totalCards) {
-                  setSessionComplete(true);
-                } else {
-                  setCurrentIndex((i) => i + 1);
-                }
-              });
-            }}
+            onClick={() => setConfirmDelete(true)}
             disabled={isPending}
-            className="flex items-center gap-1 text-red-400 hover:text-red-600"
+            className="font-pixel text-[10px] transition-colors"
+            style={{ color: "var(--pixel-error)" }}
           >
-            <Trash2 className="h-3 w-3" />
             Delete card
           </button>
           <button
-            onClick={() => {
-              setRevealed(false);
-            }}
-            className="flex items-center gap-1 hover:text-zinc-600 dark:hover:text-zinc-300"
+            onClick={() => setRevealed(false)}
+            className="font-pixel text-[10px] transition-colors"
+            style={{ color: "var(--pixel-text-secondary)" }}
           >
-            <RotateCcw className="h-3 w-3" />
             Reset view
           </button>
         </div>
