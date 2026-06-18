@@ -399,7 +399,7 @@ export function GameSidebar({
           src="/noralogo.png"
           alt="NORA"
           className="pixel-art"
-          style={{ height: "32px", width: "auto" }}
+          style={{ height: "44px", width: "auto" }}
           draggable={false}
         />
       </div>

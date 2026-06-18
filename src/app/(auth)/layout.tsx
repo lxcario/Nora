@@ -18,7 +18,7 @@ export default function AuthLayout({
               src="/noralogo.png"
               alt="NORA"
               className="pixel-art"
-              style={{ height: "36px", width: "auto" }}
+              style={{ height: "48px", width: "auto" }}
               draggable={false}
             />
           </Link>

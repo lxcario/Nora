@@ -148,7 +148,7 @@ export function LandingContent() {
               src="/noralogo.png"
               alt="NORA"
               className="pixel-art"
-              style={{ height: "42px", width: "auto" }}
+              style={{ height: "56px", width: "auto" }}
               draggable={false}
             />
           </Link>
