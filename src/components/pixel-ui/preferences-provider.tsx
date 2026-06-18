@@ -16,6 +16,16 @@ import { isMuted, setMuted } from "@/lib/sfx";
 
 export type CursorPack = "travelbook" | "catpaw";
 export type ThemeMode = "dark" | "light";
+export type PaletteId = "ember" | "forest" | "ocean" | "lavender" | "rose" | "";
+
+/** Full-UI color palettes — changes all backgrounds, borders, text, accents */
+export const PALETTE_PRESETS: { id: PaletteId; name: string; preview: string }[] = [
+  { id: "ember", name: "Ember", preview: "#d4a526" },
+  { id: "forest", name: "Forest", preview: "#6bc25e" },
+  { id: "ocean", name: "Ocean", preview: "#4db8e8" },
+  { id: "lavender", name: "Lavender", preview: "#a87ee0" },
+  { id: "rose", name: "Rose", preview: "#e06888" },
+];
 
 /** Preset accent palette (empty string = theme default amber) */
 export const ACCENT_PRESETS: { id: string; name: string; color: string }[] = [
@@ -34,6 +44,8 @@ export interface Preferences {
   theme: ThemeMode;
   /** Accent color hex, or "" for theme default */
   accent: string;
+  /** Full palette ID, or "" for default (ember) */
+  palette: PaletteId;
 }
 
 interface PreferencesContextValue extends Preferences {
@@ -42,6 +54,7 @@ interface PreferencesContextValue extends Preferences {
   setSound: (on: boolean) => void;
   setTheme: (theme: ThemeMode) => void;
   setAccent: (hex: string) => void;
+  setPalette: (palette: PaletteId) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -52,6 +65,7 @@ const CURSOR_KEY = "pixel-cursor-pack";
 const ANIM_KEY = "pixel-animations";
 const THEME_KEY = "pixel-theme";
 const ACCENT_KEY = "pixel-accent-color";
+const PALETTE_KEY = "pixel-palette";
 
 const PreferencesContext = createContext<PreferencesContextValue | null>(null);
 
@@ -102,6 +116,7 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
   const [sound, setSoundState] = useState(true);
   const [theme, setThemeState] = useState<ThemeMode>("dark");
   const [accent, setAccentState] = useState("");
+  const [palette, setPaletteState] = useState<PaletteId>("");
 
   // Hydrate from storage after mount
   useEffect(() => {
@@ -110,6 +125,7 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
     setSoundState(!isMuted());
     setThemeState(readPref<ThemeMode>(THEME_KEY, "dark") === "light" ? "light" : "dark");
     setAccentState(readPref<string>(ACCENT_KEY, ""));
+    setPaletteState(readPref<PaletteId>(PALETTE_KEY, ""));
   }, []);
 
   useEffect(() => {
@@ -123,6 +139,14 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
   }, [theme]);
+
+  useEffect(() => {
+    if (palette) {
+      document.documentElement.setAttribute("data-palette", palette);
+    } else {
+      document.documentElement.removeAttribute("data-palette");
+    }
+  }, [palette]);
 
   useEffect(() => {
     applyAccent(accent);
@@ -153,6 +177,11 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
     try { localStorage.setItem(ACCENT_KEY, hex); } catch {}
   }, []);
 
+  const setPalette = useCallback((next: PaletteId) => {
+    setPaletteState(next);
+    try { localStorage.setItem(PALETTE_KEY, next); } catch {}
+  }, []);
+
   return (
     <PreferencesContext.Provider
       value={{
@@ -161,11 +190,13 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
         sound,
         theme,
         accent,
+        palette,
         setCursorPack,
         setAnimations,
         setSound,
         setTheme,
         setAccent,
+        setPalette,
       }}
     >
       {children}

@@ -1,6 +1,6 @@
 "use client";
 
-import { usePreferences, ACCENT_PRESETS } from "./preferences-provider";
+import { usePreferences, ACCENT_PRESETS, PALETTE_PRESETS } from "./preferences-provider";
 import { PixelToggle } from "./pixel-toggle";
 import { playToggle, playClick } from "@/lib/sfx";
 
@@ -44,6 +44,8 @@ export function PreferencesPanel() {
     setTheme,
     accent,
     setAccent,
+    palette,
+    setPalette,
   } = usePreferences();
 
   return (
@@ -78,10 +80,52 @@ export function PreferencesPanel() {
       {/* Accent color */}
       <div className="py-3">
         <p className="font-pixel text-sm text-[var(--pixel-text-primary)]">
-          Accent Color
+          Color Palette
         </p>
         <p className="mb-2 text-xs text-[var(--pixel-text-secondary)]">
-          Recolor buttons, highlights, and progress across the whole UI.
+          Changes all UI colors — backgrounds, borders, text, and accents.
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {PALETTE_PRESETS.map((preset) => {
+            const active = palette === preset.id || (!palette && preset.id === "ember");
+            return (
+              <button
+                key={preset.id}
+                type="button"
+                onClick={() => {
+                  setPalette(preset.id === "ember" ? "" : preset.id);
+                  playClick();
+                }}
+                className="pixel-panel flex flex-col items-center gap-1 px-3 py-2"
+                style={{
+                  outline: active ? `2px solid ${preset.preview}` : "none",
+                  outlineOffset: 2,
+                }}
+              >
+                <div
+                  style={{
+                    width: 24,
+                    height: 24,
+                    backgroundColor: preset.preview,
+                    border: "2px solid var(--pixel-border)",
+                  }}
+                />
+                <span className="font-pixel text-[8px]" style={{ color: "var(--pixel-text-secondary)" }}>
+                  {preset.name}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Fine-tune accent (override within palette) */}
+      <div className="py-3">
+        <p className="font-pixel text-sm text-[var(--pixel-text-primary)]">
+          Accent Override
+        </p>
+        <p className="mb-2 text-xs text-[var(--pixel-text-secondary)]">
+          Fine-tune the highlight color independently of the palette.
         </p>
         <div className="flex flex-wrap gap-2">
           {ACCENT_PRESETS.map((preset) => {

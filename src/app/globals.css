@@ -42,6 +42,11 @@
   --pixel-card-olive: #3a3520;        /* study mode card: olive */
   --pixel-card-forest: #1e3a28;       /* study mode card: forest */
   --pixel-card-plum: #2e1e3a;         /* study mode card: plum */
+
+  /* Pixel Room scene colors */
+  --pixel-room-wall: #3a2a1c;
+  --pixel-room-floor: #5a3d24;
+  --pixel-room-shelf: #5a3d2e;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -83,6 +88,155 @@
   --grid-line-strong: rgba(150, 110, 60, 0.22);
   --grid-star: rgba(150, 110, 60, 0.20);
   --grid-glow: rgba(212, 165, 38, 0.16);
+
+  /* Pixel Room scene — light versions */
+  --pixel-room-wall: #c9a77a;
+  --pixel-room-floor: #b09060;
+  --pixel-room-shelf: #a07850;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FULL PALETTE THEMES — applied via [data-palette="xxx"] on <html>.
+   Each overrides ALL UI colors to create a fully distinct look.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─── Forest (dark) ─── */
+[data-palette="forest"] {
+  --pixel-bg-primary: #0d1a12;
+  --pixel-bg-secondary: #142218;
+  --pixel-bg-surface: #1a2b1e;
+  --pixel-bg-elevated: #233824;
+  --pixel-text-primary: #d4e8d0;
+  --pixel-text-secondary: #8fb88a;
+  --pixel-text-muted: #5a8055;
+  --pixel-accent: #6bc25e;
+  --pixel-accent-hover: #82d875;
+  --pixel-success: #7dd87d;
+  --pixel-warning: #d4b84e;
+  --pixel-error: #c45a58;
+  --pixel-border: #2a4a2a;
+  --pixel-border-light: #3d6a3d;
+  --pixel-disabled: #2a3d2a;
+  --pixel-sidebar-bg: #0f1e14;
+  --pixel-room-wall: #1a3320;
+  --pixel-room-floor: #2a4a2a;
+  --pixel-room-shelf: #3d6a3d;
+  --grid-bg-base: #0d1a12;
+  --grid-bg-base-2: #142218;
+  --grid-line: rgba(80, 160, 80, 0.12);
+  --grid-line-strong: rgba(80, 160, 80, 0.22);
+  --grid-star: rgba(80, 160, 80, 0.20);
+  --grid-glow: rgba(107, 194, 94, 0.12);
+}
+
+/* ─── Ocean (dark) ─── */
+[data-palette="ocean"] {
+  --pixel-bg-primary: #0a1420;
+  --pixel-bg-secondary: #101e2e;
+  --pixel-bg-surface: #162838;
+  --pixel-bg-elevated: #1e3448;
+  --pixel-text-primary: #cee4f0;
+  --pixel-text-secondary: #7ab4d4;
+  --pixel-text-muted: #4a8aaa;
+  --pixel-accent: #4db8e8;
+  --pixel-accent-hover: #6dc8f0;
+  --pixel-success: #5cc8a0;
+  --pixel-warning: #e6c04e;
+  --pixel-error: #d45a68;
+  --pixel-border: #1e3a54;
+  --pixel-border-light: #2e5a78;
+  --pixel-disabled: #1e3040;
+  --pixel-sidebar-bg: #0c1824;
+  --pixel-room-wall: #1a3050;
+  --pixel-room-floor: #1e3a5a;
+  --pixel-room-shelf: #2e4a6a;
+  --grid-bg-base: #0a1420;
+  --grid-bg-base-2: #101e2e;
+  --grid-line: rgba(77, 184, 232, 0.10);
+  --grid-line-strong: rgba(77, 184, 232, 0.20);
+  --grid-star: rgba(77, 184, 232, 0.18);
+  --grid-glow: rgba(77, 184, 232, 0.12);
+}
+
+/* ─── Lavender (dark) ─── */
+[data-palette="lavender"] {
+  --pixel-bg-primary: #14101e;
+  --pixel-bg-secondary: #1e1828;
+  --pixel-bg-surface: #261e34;
+  --pixel-bg-elevated: #302840;
+  --pixel-text-primary: #e4d8f0;
+  --pixel-text-secondary: #aa8ed4;
+  --pixel-text-muted: #7a5ea0;
+  --pixel-accent: #a87ee0;
+  --pixel-accent-hover: #be9af0;
+  --pixel-success: #7da856;
+  --pixel-warning: #e0b050;
+  --pixel-error: #d45a68;
+  --pixel-border: #3a2850;
+  --pixel-border-light: #5a4070;
+  --pixel-disabled: #2e2040;
+  --pixel-sidebar-bg: #120e1a;
+  --pixel-room-wall: #2e1e44;
+  --pixel-room-floor: #3a2850;
+  --pixel-room-shelf: #4a3868;
+  --grid-bg-base: #14101e;
+  --grid-bg-base-2: #1e1828;
+  --grid-line: rgba(168, 126, 224, 0.10);
+  --grid-line-strong: rgba(168, 126, 224, 0.20);
+  --grid-star: rgba(168, 126, 224, 0.18);
+  --grid-glow: rgba(168, 126, 224, 0.12);
+}
+
+/* ─── Rose (dark) ─── */
+[data-palette="rose"] {
+  --pixel-bg-primary: #1a0f14;
+  --pixel-bg-secondary: #24151c;
+  --pixel-bg-surface: #2e1c24;
+  --pixel-bg-elevated: #3a242e;
+  --pixel-text-primary: #f0dce4;
+  --pixel-text-secondary: #d4909a;
+  --pixel-text-muted: #a06070;
+  --pixel-accent: #e06888;
+  --pixel-accent-hover: #f07898;
+  --pixel-success: #7da856;
+  --pixel-warning: #e6b832;
+  --pixel-error: #e04858;
+  --pixel-border: #4a2030;
+  --pixel-border-light: #6a3848;
+  --pixel-disabled: #3a1e28;
+  --pixel-sidebar-bg: #160d12;
+  --pixel-room-wall: #3a1e2a;
+  --pixel-room-floor: #4a2838;
+  --pixel-room-shelf: #5a3848;
+  --grid-bg-base: #1a0f14;
+  --grid-bg-base-2: #24151c;
+  --grid-line: rgba(224, 104, 136, 0.10);
+  --grid-line-strong: rgba(224, 104, 136, 0.20);
+  --grid-star: rgba(224, 104, 136, 0.18);
+  --grid-glow: rgba(224, 104, 136, 0.12);
+}
+
+/* ─── Ember (warm dark — default amber but richer) ─── */
+[data-palette="ember"] {
+  --pixel-bg-primary: #1a1410;
+  --pixel-bg-secondary: #241c14;
+  --pixel-bg-surface: #2a2018;
+  --pixel-bg-elevated: #342a1e;
+  --pixel-text-primary: #f0e6d2;
+  --pixel-text-secondary: #c4a882;
+  --pixel-text-muted: #8b7355;
+  --pixel-accent: #d4a526;
+  --pixel-accent-hover: #e6b832;
+  --pixel-success: #7da856;
+  --pixel-warning: #e6b832;
+  --pixel-error: #c45a58;
+  --pixel-border: #3d2817;
+  --pixel-border-light: #5a3d2e;
+  --pixel-disabled: #4a3d30;
+  --pixel-sidebar-bg: #1e1814;
+  --pixel-room-wall: #3a2a1c;
+  --pixel-room-floor: #5a3d24;
+  --pixel-room-shelf: #5a3d2e;
 }
 
 @theme inline {

@@ -83,7 +83,7 @@ export function PixelRoom({
           <div
             className="absolute inset-x-0 top-0 h-[48%]"
             style={{
-              backgroundColor: "#3a2a1c",
+              backgroundColor: "var(--pixel-room-wall, #3a2a1c)",
               backgroundImage:
                 "repeating-linear-gradient(90deg, rgba(255,255,255,0.03) 0 2px, transparent 2px 18px)",
               imageRendering: "pixelated",
@@ -131,7 +131,7 @@ export function PixelRoom({
             {/* Wall shelf with books */}
             <div
               className="absolute right-[26%] top-[40%] h-2 w-[24%]"
-              style={{ backgroundColor: "#5a3d2e" }}
+              style={{ backgroundColor: "var(--pixel-room-shelf, #5a3d2e)" }}
             >
               <img src="/sprites/travel-book/icons/Book.png" alt="" width={16} height={16} className="pixel-art absolute -top-4 left-1" />
               <img src="/sprites/travel-book/icons/Book.png" alt="" width={16} height={16} className="pixel-art absolute -top-4 left-6" style={{ filter: "hue-rotate(120deg)" }} />
@@ -143,7 +143,7 @@ export function PixelRoom({
           <div
             className="absolute inset-x-0 bottom-0 h-[52%]"
             style={{
-              backgroundColor: "#5a3d24",
+              backgroundColor: "var(--pixel-room-floor, #5a3d24)",
               backgroundImage:
                 "repeating-linear-gradient(0deg, rgba(0,0,0,0.16) 0 2px, transparent 2px 30px), repeating-linear-gradient(90deg, rgba(0,0,0,0.10) 0 2px, transparent 2px 72px)",
               imageRendering: "pixelated",
@@ -153,7 +153,7 @@ export function PixelRoom({
             <div
               className="absolute left-1/2 top-[34%] h-[42%] w-[44%] -translate-x-1/2"
               style={{
-                backgroundColor: "color-mix(in srgb, var(--pixel-accent) 30%, #5a3d24)",
+                backgroundColor: "color-mix(in srgb, var(--pixel-accent) 30%, var(--pixel-room-floor, #5a3d24))",
                 border: "3px solid var(--pixel-border-light)",
                 imageRendering: "pixelated",
               }}

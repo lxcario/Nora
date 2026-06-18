@@ -57,8 +57,8 @@ export { BottomNav } from "./bottom-nav";
 export { PageHeaderSkeleton, PanelSkeleton, StatTileSkeleton } from "./skeleton-helpers";
 
 // Preferences
-export { PreferencesProvider, usePreferences } from "./preferences-provider";
-export type { CursorPack, Preferences } from "./preferences-provider";
+export { PreferencesProvider, usePreferences, PALETTE_PRESETS, ACCENT_PRESETS } from "./preferences-provider";
+export type { CursorPack, PaletteId, Preferences } from "./preferences-provider";
 export { PreferencesPanel } from "./preferences-panel";
 export { CursorPicker } from "./cursor-picker";
 export { PixelToggle } from "./pixel-toggle";
