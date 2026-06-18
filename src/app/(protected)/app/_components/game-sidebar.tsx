@@ -394,12 +394,24 @@ export function GameSidebar({
     <aside className="hidden md:flex flex-col w-[240px] min-h-screen flex-shrink-0 bg-[var(--pixel-sidebar-bg)] border-r-2 border-[var(--pixel-border)]">
 
       {/* ─── Logo ─── */}
-      <div className="px-4 pt-5 pb-4 flex items-center justify-center gap-1.5">
-        <span className="text-[var(--pixel-accent)] text-sm">✦</span>
+      <div className="px-4 pt-5 pb-4 flex items-center justify-center">
+        <img
+          src="/sprites/travel-book/icons/Sun.png"
+          alt=""
+          width={14}
+          height={14}
+          className="pixel-art mr-2 opacity-70"
+        />
         <h1 className="font-pixel text-xl tracking-wider text-[var(--pixel-accent)]">
           NORA
         </h1>
-        <span className="text-[var(--pixel-accent)] text-sm">✦</span>
+        <img
+          src="/sprites/travel-book/icons/Sun.png"
+          alt=""
+          width={14}
+          height={14}
+          className="pixel-art ml-2 opacity-70"
+        />
       </div>
 
       {/* ─── Pet Widget ─── */}

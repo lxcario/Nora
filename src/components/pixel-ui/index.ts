@@ -63,3 +63,6 @@ export { PreferencesPanel } from "./preferences-panel";
 export { CursorPicker } from "./cursor-picker";
 export { PixelToggle } from "./pixel-toggle";
 export type { PixelToggleProps } from "./pixel-toggle";
+
+// Logo
+export { NoraLogo } from "./nora-logo";

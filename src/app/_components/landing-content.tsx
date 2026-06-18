@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import Link from "next/link";
+import { NoraLogo } from "@/components/pixel-ui/nora-logo";
 
 // ---------------------------------------------------------------------------
 // Intersection Observer hook for scroll-triggered animations
@@ -144,10 +145,7 @@ export function LandingContent() {
       >
         <div className="mx-auto flex max-w-6xl items-center justify-between">
           <Link href="/" className="flex items-center gap-2" style={{ textDecoration: "none" }}>
-            <Sprite name="Sun" size={18} className="animate-pixel-float" />
-            <span className="font-pixel text-lg tracking-wider" style={{ color: "#d4a526" }}>
-              NORA
-            </span>
+            <NoraLogo size={3} />
           </Link>
           <div className="flex items-center gap-3">
             <Link
@@ -417,9 +415,7 @@ export function LandingContent() {
       <footer className="px-6 py-8" style={{ borderTop: "2px solid #3d2817" }}>
         <div className="mx-auto max-w-6xl text-center">
           <div className="flex items-center justify-center gap-2 mb-3">
-            <Sprite name="Sun" size={12} className="opacity-50" />
-            <span className="font-pixel text-xs" style={{ color: "#5a4a35" }}>NORA</span>
-            <Sprite name="Sun" size={12} className="opacity-50" />
+            <NoraLogo size={2} />
           </div>
           <p className="text-[11px]" style={{ color: "#3d2817" }}>
             Art: Sprout Lands (Cup Nooble) and Travel Book (Crusenho, CC BY 4.0)
