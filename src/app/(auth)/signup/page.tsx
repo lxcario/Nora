@@ -8,81 +8,127 @@ export default function SignupPage() {
   const [state, action, pending] = useActionState(signup, undefined);
 
   return (
-    <div className="flex min-h-full flex-1 flex-col items-center justify-center px-4">
+    <div className="flex flex-1 flex-col items-center justify-center px-4 py-12">
       <div className="w-full max-w-sm space-y-6">
+
+        {/* Header */}
         <div className="text-center">
-          <h1 className="font-pixel text-2xl tracking-tight">
+          <img
+            src="/sprites/travel-book/icons/Book.png"
+            alt=""
+            width={32}
+            height={32}
+            className="pixel-art mx-auto mb-3"
+          />
+          <h1 className="font-pixel text-2xl tracking-tight" style={{ color: "#f0e6d2" }}>
             Create your account
           </h1>
-          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-            Start your study journey with Nora
+          <p className="mt-1 text-sm" style={{ color: "#8b7355" }}>
+            Your Pokémon companion is ready to meet you 🐾
           </p>
         </div>
 
-        <form action={action} className="space-y-4">
-          {state?.message && (
-            <div className="rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/30 dark:text-red-400">
-              {state.message}
-            </div>
-          )}
-
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium">
-              Email
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              required
-              className="mt-1 block w-full rounded-md border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-900"
-              placeholder="you@example.com"
-            />
-            {state?.errors?.email && (
-              <p className="mt-1 text-xs text-red-600">{state.errors.email}</p>
-            )}
-          </div>
-
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium">
-              Password
-            </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              required
-              className="mt-1 block w-full rounded-md border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-900"
-              placeholder="••••••••"
-            />
-            {state?.errors?.password && (
-              <div className="mt-1 text-xs text-red-600">
-                <p>Password must:</p>
-                <ul className="list-disc pl-4">
-                  {state.errors.password.map((err: string) => (
-                    <li key={err}>{err}</li>
-                  ))}
-                </ul>
+        {/* Form */}
+        <div className="pixel-panel" style={{ padding: "24px" }}>
+          <form action={action} className="space-y-4">
+            {state?.message && (
+              <div
+                className="p-3 text-sm"
+                style={{
+                  border: "2px solid var(--pixel-error, #c45a58)",
+                  color: "var(--pixel-error, #c45a58)",
+                  backgroundColor: "color-mix(in srgb, #c45a58 10%, #1a1410)",
+                }}
+              >
+                {state.message}
               </div>
             )}
-          </div>
 
-          <button
-            type="submit"
-            disabled={pending}
-            className="w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
-          >
-            {pending ? "Creating account..." : "Sign up"}
-          </button>
-        </form>
+            <div className="space-y-1.5">
+              <label
+                htmlFor="email"
+                className="font-pixel text-xs"
+                style={{ color: "#c4a882" }}
+              >
+                Email
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                required
+                className="w-full px-3 py-2 text-sm"
+                style={{
+                  border: "2px solid #3d2817",
+                  backgroundColor: "#241c14",
+                  color: "#f0e6d2",
+                  outline: "none",
+                }}
+                placeholder="you@example.com"
+              />
+              {state?.errors?.email && (
+                <p className="text-xs" style={{ color: "#c45a58" }}>
+                  {state.errors.email}
+                </p>
+              )}
+            </div>
 
-        <p className="text-center text-sm text-zinc-500 dark:text-zinc-400">
+            <div className="space-y-1.5">
+              <label
+                htmlFor="password"
+                className="font-pixel text-xs"
+                style={{ color: "#c4a882" }}
+              >
+                Password
+              </label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                required
+                className="w-full px-3 py-2 text-sm"
+                style={{
+                  border: "2px solid #3d2817",
+                  backgroundColor: "#241c14",
+                  color: "#f0e6d2",
+                  outline: "none",
+                }}
+                placeholder="6 characters or more"
+              />
+              {state?.errors?.password && (
+                <div className="text-xs" style={{ color: "#c45a58" }}>
+                  <p>Password must:</p>
+                  <ul className="list-disc pl-4 mt-1 space-y-0.5">
+                    {state.errors.password.map((err: string) => (
+                      <li key={err}>{err}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+
+            <button
+              type="submit"
+              disabled={pending}
+              className="pixel-btn pixel-btn-primary w-full"
+            >
+              {pending ? "Creating account..." : "Enter Nora ✨"}
+            </button>
+
+            <p className="text-center text-xs" style={{ color: "#5a4a35" }}>
+              Free forever. No credit card required.
+            </p>
+          </form>
+        </div>
+
+        <p className="text-center text-sm" style={{ color: "#8b7355" }}>
           Already have an account?{" "}
           <Link
             href="/login"
-            className="font-medium text-blue-600 hover:text-blue-500"
+            className="font-pixel text-xs"
+            style={{ color: "#d4a526" }}
           >
-            Sign in
+            Sign in →
           </Link>
         </p>
       </div>
