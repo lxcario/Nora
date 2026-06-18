@@ -57,7 +57,9 @@ export function PreferencesPanel() {
             Theme
           </p>
           <p className="text-xs text-[var(--pixel-text-secondary)]">
-            Switch between cozy dark and warm light parchment.
+            {palette
+              ? "Disabled while a color palette is active. Clear palette to use Light mode."
+              : "Switch between cozy dark and warm light parchment."}
           </p>
         </div>
         <div className="flex gap-2">
@@ -66,10 +68,14 @@ export function PreferencesPanel() {
               key={mode}
               type="button"
               onClick={() => {
-                setTheme(mode);
-                playClick();
+                if (!palette) {
+                  setTheme(mode);
+                  playClick();
+                }
               }}
-              className={`pixel-btn ${theme === mode ? "pixel-btn-primary" : "pixel-btn-secondary"} pixel-btn-sm`}
+              disabled={!!palette}
+              className={`pixel-btn ${theme === mode && !palette ? "pixel-btn-primary" : "pixel-btn-secondary"} pixel-btn-sm`}
+              style={{ opacity: palette ? 0.5 : 1 }}
             >
               {mode === "dark" ? "Dark" : "Light"}
             </button>
@@ -86,14 +92,39 @@ export function PreferencesPanel() {
           Changes all UI colors — backgrounds, borders, text, and accents.
         </p>
         <div className="flex flex-wrap gap-2">
+          {/* Clear palette option */}
+          <button
+            type="button"
+            onClick={() => {
+              setPalette("");
+              playClick();
+            }}
+            className="pixel-panel flex flex-col items-center gap-1 px-3 py-2"
+            style={{
+              outline: !palette ? "2px solid var(--pixel-text-primary)" : "none",
+              outlineOffset: 2,
+            }}
+          >
+            <div
+              style={{
+                width: 24,
+                height: 24,
+                background: "linear-gradient(135deg, var(--pixel-bg-primary) 50%, var(--pixel-bg-surface) 50%)",
+                border: "2px solid var(--pixel-border)",
+              }}
+            />
+            <span className="font-pixel text-[8px]" style={{ color: "var(--pixel-text-secondary)" }}>
+              None
+            </span>
+          </button>
           {PALETTE_PRESETS.map((preset) => {
-            const active = palette === preset.id || (!palette && preset.id === "ember");
+            const active = palette === preset.id;
             return (
               <button
                 key={preset.id}
                 type="button"
                 onClick={() => {
-                  setPalette(preset.id === "ember" ? "" : preset.id);
+                  setPalette(preset.id);
                   playClick();
                 }}
                 className="pixel-panel flex flex-col items-center gap-1 px-3 py-2"

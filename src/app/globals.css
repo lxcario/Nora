@@ -102,6 +102,8 @@
 
 /* ─── Forest (dark) ─── */
 [data-palette="forest"] {
+  --background: #0d1a12;
+  --foreground: #d4e8d0;
   --pixel-bg-primary: #0d1a12;
   --pixel-bg-secondary: #142218;
   --pixel-bg-surface: #1a2b1e;
@@ -131,6 +133,8 @@
 
 /* ─── Ocean (dark) ─── */
 [data-palette="ocean"] {
+  --background: #0a1420;
+  --foreground: #cee4f0;
   --pixel-bg-primary: #0a1420;
   --pixel-bg-secondary: #101e2e;
   --pixel-bg-surface: #162838;
@@ -160,6 +164,8 @@
 
 /* ─── Lavender (dark) ─── */
 [data-palette="lavender"] {
+  --background: #14101e;
+  --foreground: #e4d8f0;
   --pixel-bg-primary: #14101e;
   --pixel-bg-secondary: #1e1828;
   --pixel-bg-surface: #261e34;
@@ -189,6 +195,8 @@
 
 /* ─── Rose (dark) ─── */
 [data-palette="rose"] {
+  --background: #1a0f14;
+  --foreground: #f0dce4;
   --pixel-bg-primary: #1a0f14;
   --pixel-bg-secondary: #24151c;
   --pixel-bg-surface: #2e1c24;
@@ -218,6 +226,8 @@
 
 /* ─── Ember (warm dark — default amber but richer) ─── */
 [data-palette="ember"] {
+  --background: #1a1410;
+  --foreground: #f0e6d2;
   --pixel-bg-primary: #1a1410;
   --pixel-bg-secondary: #241c14;
   --pixel-bg-surface: #2a2018;

@@ -143,10 +143,14 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (palette) {
       document.documentElement.setAttribute("data-palette", palette);
+      // Palettes are dark-mode themes — force dark when a palette is active
+      document.documentElement.setAttribute("data-theme", "dark");
     } else {
       document.documentElement.removeAttribute("data-palette");
+      // Restore saved theme mode when palette is cleared
+      document.documentElement.setAttribute("data-theme", theme);
     }
-  }, [palette]);
+  }, [palette, theme]);
 
   useEffect(() => {
     applyAccent(accent);
