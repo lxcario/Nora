@@ -162,7 +162,7 @@ export function PartyDiscovery({ currentParty: propCurrentParty }: PartyDiscover
         </h3>
 
         {loading ? (
-          <p className="text-sm text-zinc-500">Loading parties...</p>
+          <p className="text-sm text-zinc-500">Loading groups...</p>
         ) : parties.length === 0 ? (
           <div className="py-8 text-center">
             <Users className="mx-auto h-8 w-8 text-zinc-300 dark:text-zinc-600" />
