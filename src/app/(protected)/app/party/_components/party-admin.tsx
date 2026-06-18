@@ -162,7 +162,7 @@ export function PartyAdmin({ partyName, visibility, inviteCode, members }: Party
       <div className="space-y-3">
         <h4 className="flex items-center gap-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">
           <Settings className="h-4 w-4" />
-          Party Settings
+          Group Settings
         </h4>
 
         <div>
@@ -170,7 +170,7 @@ export function PartyAdmin({ partyName, visibility, inviteCode, members }: Party
             htmlFor="admin-party-name"
             className="block text-xs font-medium text-zinc-600 dark:text-zinc-400"
           >
-            Party Name
+            Group Name
           </label>
           <input
             id="admin-party-name"
@@ -370,14 +370,14 @@ export function PartyAdmin({ partyName, visibility, inviteCode, members }: Party
             className="inline-flex items-center gap-2 rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-100 dark:border-red-800 dark:bg-red-950 dark:text-red-300 dark:hover:bg-red-900"
           >
             <Trash2 className="h-4 w-4" />
-            Disband Party
+            Disband Group
           </button>
         )}
 
         {disbandStep === 1 && (
           <div className="rounded-md border border-red-300 bg-red-50 p-3 dark:border-red-800 dark:bg-red-950">
             <p className="text-xs text-red-700 dark:text-red-300">
-              Are you sure? This will remove all members and permanently close the party.
+              Are you sure? This will remove all members and permanently close the group.
             </p>
             <div className="mt-2 flex gap-2">
               <button

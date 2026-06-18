@@ -103,7 +103,7 @@ export function PartyDiscovery({ currentParty: propCurrentParty }: PartyDiscover
             href="/app/party"
             className="text-xs font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-200"
           >
-            View Party →
+            View Group →
           </Link>
         </div>
       )}
@@ -115,7 +115,7 @@ export function PartyDiscovery({ currentParty: propCurrentParty }: PartyDiscover
           className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-700"
         >
           <UserPlus className="h-4 w-4" />
-          Create Party
+          Create Group
         </button>
 
         {showCreateForm && (
@@ -158,7 +158,7 @@ export function PartyDiscovery({ currentParty: propCurrentParty }: PartyDiscover
       <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
         <h3 className="mb-4 flex items-center gap-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">
           <Users className="h-4 w-4" />
-          Public Parties
+          Public Groups
         </h3>
 
         {loading ? (
@@ -167,7 +167,7 @@ export function PartyDiscovery({ currentParty: propCurrentParty }: PartyDiscover
           <div className="py-8 text-center">
             <Users className="mx-auto h-8 w-8 text-zinc-300 dark:text-zinc-600" />
             <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
-              No parties available. Create one!
+              No groups available. Create one!
             </p>
           </div>
         ) : (

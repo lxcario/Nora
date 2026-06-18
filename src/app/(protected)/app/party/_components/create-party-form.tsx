@@ -14,10 +14,10 @@ interface CreatePartyFormProps {
  */
 function validateName(name: string): string | null {
   if (name.length < 3) {
-    return "Party name must be at least 3 characters";
+    return "Group name must be at least 3 characters";
   }
   if (name.length > 30) {
-    return "Party name must be at most 30 characters";
+    return "Group name must be at most 30 characters";
   }
   if (!/^[a-zA-Z0-9 \-_]+$/.test(name)) {
     return "Only letters, numbers, spaces, hyphens, and underscores allowed";
@@ -94,7 +94,7 @@ export function CreatePartyForm({ onSuccess, onCancel }: CreatePartyFormProps) {
       <div className="space-y-4">
         <div className="rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-900/20">
           <p className="text-sm font-medium text-green-800 dark:text-green-200">
-            Party created! Share this invite code with friends:
+            Group created! Share this invite code with friends:
           </p>
           <div className="mt-2 flex items-center gap-2">
             <code className="flex-1 rounded-md border border-green-300 bg-white px-3 py-2 font-mono text-sm dark:border-green-700 dark:bg-zinc-800">
@@ -136,7 +136,7 @@ export function CreatePartyForm({ onSuccess, onCancel }: CreatePartyFormProps) {
           htmlFor="party-name"
           className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
         >
-          Party Name
+          Group Name
         </label>
         <input
           id="party-name"
@@ -184,7 +184,7 @@ export function CreatePartyForm({ onSuccess, onCancel }: CreatePartyFormProps) {
         </div>
         <p className="mt-1 text-xs text-zinc-400">
           {visibility === "public"
-            ? "Anyone can find and join your party"
+            ? "Anyone can find and join your group"
             : "Only people with an invite code can join"}
         </p>
       </div>
@@ -200,7 +200,7 @@ export function CreatePartyForm({ onSuccess, onCancel }: CreatePartyFormProps) {
           className="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
-          {isSubmitting ? "Creating..." : "Create Party"}
+          {isSubmitting ? "Creating..." : "Create Group"}
         </button>
         {onCancel && (
           <button

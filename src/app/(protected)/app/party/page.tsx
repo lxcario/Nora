@@ -13,7 +13,7 @@ export default async function PartyRoutePage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Party" description="Study together with friends" />
+      <PageHeader title="Friends" description="Study together with friends" />
 
       {result.error ? (
         <p className="text-sm text-red-500">{result.error}</p>
