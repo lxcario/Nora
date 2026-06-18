@@ -345,14 +345,22 @@ export function GameSidebar({
   const studyActive = STUDY_CHILDREN.some((c) => isRouteActive(c.href, pathname));
   const roomActive  = ROOM_CHILDREN.some((c)  => isRouteActive(c.href, pathname));
 
-  // Initialise from localStorage; auto-open the group whose child is active
-  const [openGroups, setOpenGroups] = useState<SidebarState>(() => {
+  // Start with server-safe defaults (no localStorage access during SSR).
+  // Active-route detection is safe because pathname is known server-side.
+  const [openGroups, setOpenGroups] = useState<SidebarState>({
+    study: studyActive,
+    myRoom: roomActive,
+  });
+
+  // After mount: merge with localStorage-persisted open/close state
+  useEffect(() => {
     const saved = loadSidebarState();
-    return {
+    setOpenGroups({
       study: saved.study || studyActive,
       myRoom: saved.myRoom || roomActive,
-    };
-  });
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Persist to localStorage whenever the state changes
   useEffect(() => {

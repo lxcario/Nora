@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import Script from "next/script";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -36,9 +35,8 @@ export default function RootLayout({
         <link rel="preload" href="/sprites/ui/dialog-box-big.png" as="image" type="image/png" />
         <link rel="preload" href="/sprites/ui/icons.png" as="image" type="image/png" />
         {/* No-flash: apply cursor pack + animation + theme + palette before first paint */}
-        <Script
-          id="theme-init"
-          strategy="beforeInteractive"
+        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
+        <script
           dangerouslySetInnerHTML={{
             __html: `(function(){try{
 var d=document.documentElement;
