@@ -219,14 +219,14 @@ export function LandingContent() {
               className="font-pixel text-[10px] mb-6 tracking-[4px]"
               style={{ color: "#8b7355" }}
             >
-              A SOFTER WAY TO STUDY
+              FOR STUDENTS WHO ACTUALLY CARE
             </p>
 
             <h1 className="font-pixel text-4xl sm:text-5xl lg:text-6xl leading-tight">
-              <span style={{ color: "#f0e6d2" }}>Study smarter.</span>
+              <span style={{ color: "#f0e6d2" }}>Your study buddy</span>
               <br />
               <span className="inline-flex items-center gap-3" style={{ color: "#d4a526" }}>
-                Stay cozy
+                that gets it
                 <Sprite name="Sun" size={32} className="inline-block animate-pixel-float" />
               </span>
             </h1>
@@ -235,9 +235,9 @@ export function LandingContent() {
               className="mx-auto mt-6 max-w-lg text-base sm:text-lg leading-relaxed"
               style={{ color: "#c4a882" }}
             >
-              Nora combines evidence-based learning with a cozy pixel-art world.
-              Explain concepts, review flashcards, dive into research papers —
-              while your companion grows alongside your skills.
+              Tired of staring at notes and hoping something sticks?
+              Nora makes you explain things, quizzes you at the right time,
+              and never judges when you skip a day.
             </p>
           </div>
 
@@ -283,10 +283,10 @@ export function LandingContent() {
         <div className="mx-auto max-w-6xl px-6">
           <div className="reveal-on-scroll mb-14 text-center" style={{ opacity: 0, transform: "translateY(20px)" }}>
             <p className="font-pixel text-[10px] mb-3 tracking-[4px]" style={{ color: "#5a4a35" }}>
-              WHAT NORA GIVES YOU
+              HOW IT ACTUALLY WORKS
             </p>
             <h2 className="font-pixel text-2xl sm:text-3xl" style={{ color: "#d4a526" }}>
-              Every tool you need
+              Not another flashcard app
             </h2>
           </div>
 
@@ -294,42 +294,42 @@ export function LandingContent() {
             <FeatureCard
               icon="Lightbulb"
               title="Feynman Mode"
-              description="Explain a concept out loud. An AI student asks probing questions and highlights what you actually understand vs. what you're bluffing."
+              description="Try explaining a topic like you're teaching someone. Nora listens, asks hard follow-up questions, and shows you exactly where you're fuzzy."
               accent="#d4a526"
               delay={0}
             />
             <FeatureCard
               icon="Book"
-              title="SM-2 Flashcards"
-              description="Cards schedule themselves based on how well you remember. Review at the exact right moment — not too early, not too late."
+              title="Smart Flashcards"
+              description="Cards show up when you're about to forget them. Not a day before, not a week late. The algorithm does the scheduling so you don't have to."
               accent="#7da856"
               delay={100}
             />
             <FeatureCard
               icon="MagnifyingGlass"
               title="Research Desk"
-              description="Ask research questions in plain English. Nora searches books and encyclopedias, then synthesizes a cited answer."
+              description="Got a question? Ask it in normal words. Nora digs through books and sources, writes you a proper answer, and makes cards from it."
               accent="#5b9bd5"
               delay={200}
             />
             <FeatureCard
               icon="PetBowl"
-              title="Companion"
-              description="Your study companion lives in a cozy pixel room and evolves as you level up. Study consistently to keep them happy."
+              title="Your Companion"
+              description="A little creature that lives in your study room. It's happy when you study, sleepy when you don't. No guilt though — just vibes."
               accent="#a98bd4"
               delay={300}
             />
             <FeatureCard
               icon="Monitor"
               title="Video Notes"
-              description="Watch educational videos, generate AI-powered notes with timestamps, and create flashcards from key concepts."
+              description="Paste a YouTube link, watch the lecture, and Nora generates timestamped notes. Turn any video into flashcards in one click."
               accent="#e08a5b"
               delay={400}
             />
             <FeatureCard
               icon="Team"
               title="Study Circle"
-              description="Create a group with friends. Tackle shared weekly quests, send cheers, and see who's studying — no leaderboards."
+              description="Grab a few friends, make a group, tackle weekly goals together. It's studying with company, not a competition."
               accent="#d4708a"
               delay={500}
             />
@@ -348,22 +348,22 @@ export function LandingContent() {
           <div className="reveal-on-scroll" style={{ opacity: 0, transform: "translateY(20px)" }}>
             <Sprite name="Flower" size={28} className="mx-auto mb-4 opacity-70" />
             <h2 className="font-pixel text-xl sm:text-2xl mb-4" style={{ color: "#d4a526" }}>
-              Learning-first. Cozy always.
+              Built different on purpose
             </h2>
             <p className="text-sm sm:text-base leading-relaxed" style={{ color: "#c4a882" }}>
-              Unlike AI chatbots that do your homework, Nora forces you to think.
-              The AI asks questions, probes gaps, and helps you research —
-              but never writes your assignments.
+              Most study apps either do nothing or do everything for you.
+              Nora sits in the middle — it makes you think, checks if you actually understood,
+              and never pretends studying should feel like scrolling TikTok.
             </p>
           </div>
 
           <div className="mt-10 flex flex-wrap justify-center gap-3">
-            <PrinciplePill icon="PotionRed" text="No punishment for missed days" delay={0} />
-            <PrinciplePill icon="Team" text="Friends, not leaderboards" delay={100} />
-            <PrinciplePill icon="Lightbulb" text="AI that teaches, not tells" delay={200} />
-            <PrinciplePill icon="Trophy" text="Progress you can see" delay={300} />
-            <PrinciplePill icon="FlowerPot" text="Cozy, never clinical" delay={400} />
-            <PrinciplePill icon="Book" text="Evidence-based methods" delay={500} />
+            <PrinciplePill icon="PotionRed" text="Skip a day? No streak reset drama" delay={0} />
+            <PrinciplePill icon="Team" text="Friends, not rankings" delay={100} />
+            <PrinciplePill icon="Lightbulb" text="AI asks questions, doesn't give answers" delay={200} />
+            <PrinciplePill icon="Trophy" text="You see your actual progress" delay={300} />
+            <PrinciplePill icon="FlowerPot" text="Warm, not sterile" delay={400} />
+            <PrinciplePill icon="Book" text="Methods that actually work" delay={500} />
           </div>
         </div>
       </section>
@@ -394,16 +394,17 @@ export function LandingContent() {
                 className="font-pixel text-[10px] mb-2 tracking-[3px]"
                 style={{ color: "#8b7355" }}
               >
-                READY TO BEGIN?
+                TAKES 30 SECONDS
               </p>
               <h2 className="font-pixel text-2xl mb-3" style={{ color: "#d4a526" }}>
-                Your study room awaits
+                Come on in
               </h2>
               <p className="text-sm mb-6" style={{ color: "#c4a882" }}>
-                Free forever. No credit card. Your companion is already waiting inside.
+                Free, no credit card, no catch.
+                Pick a pet, set up your subjects, and start your first session.
               </p>
               <Link href="/signup" className="pixel-btn pixel-btn-primary">
-                Enter Nora
+                Create my account
               </Link>
             </div>
           </div>
