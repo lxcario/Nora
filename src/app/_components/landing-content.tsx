@@ -168,6 +168,25 @@ export function LandingContent() {
           HERO
           ═══════════════════════════════════════════════════════════════════ */}
       <section className="pixel-grid-bg relative overflow-hidden">
+        {/* Hero background GIF — low opacity, fades to transparent at bottom */}
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            backgroundImage: "url('/mejwh.gif')",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            opacity: 0.15,
+            imageRendering: "pixelated",
+          }}
+        />
+        {/* Fade to dark at bottom */}
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background: "linear-gradient(180deg, transparent 40%, #1a1410 95%)",
+          }}
+        />
+
         {/* Warm ambient glow */}
         <div
           className="pointer-events-none absolute inset-0"
@@ -232,20 +251,20 @@ export function LandingContent() {
             </Link>
           </div>
 
-          {/* Trust row */}
+          {/* Trust bar */}
           <div
-            className="reveal-on-scroll mt-12 flex flex-wrap items-center justify-center gap-6"
-            style={{ opacity: 0, transform: "translateY(16px)" }}
+            className="reveal-on-scroll mt-12 pixel-panel inline-flex flex-wrap items-center justify-center gap-6 px-6 py-3 mx-auto"
+            style={{ opacity: 0, transform: "translateY(16px)", backgroundColor: "#241c14" }}
           >
             {[
-              { icon: "Trophy", text: "Spaced Repetition" },
-              { icon: "Lightbulb", text: "Feynman Technique" },
-              { icon: "MagnifyingGlass", text: "AI Research" },
-              { icon: "Team", text: "Study Together" },
+              { icon: "Trophy", text: "SPACED REPETITION" },
+              { icon: "Lightbulb", text: "FEYNMAN TECHNIQUE" },
+              { icon: "MagnifyingGlass", text: "AI RESEARCH" },
+              { icon: "Team", text: "STUDY TOGETHER" },
             ].map((item) => (
               <div key={item.text} className="flex items-center gap-2">
-                <Sprite name={item.icon} size={14} className="opacity-60" />
-                <span className="font-pixel text-[9px]" style={{ color: "#5a4a35" }}>
+                <Sprite name={item.icon} size={16} className="opacity-80" />
+                <span className="font-pixel text-[10px] tracking-wide" style={{ color: "#c4a882" }}>
                   {item.text}
                 </span>
               </div>
