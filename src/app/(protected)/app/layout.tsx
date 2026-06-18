@@ -54,10 +54,37 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   const profileWithAvatar = profile ? { ...profile, avatar_url: avatarUrl } : null;
 
+  // Pet data for sidebar widget — fetched separately so a missing/errored
+  // pets row never breaks the layout render.
+  let petSidebarData: {
+    pokemonId: number;
+    name: string;
+    state: "happy" | "neutral" | "sad" | "forest_rescue";
+    spriteUrl: string;
+  } | null = null;
+  try {
+    const { data: petRow } = await supabase
+      .from("pets")
+      .select("pet_type, name, state")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (petRow) {
+      const pokemonId = parseInt(petRow.pet_type ?? "25") || 25;
+      petSidebarData = {
+        pokemonId,
+        name: petRow.name ?? "Buddy",
+        state: (petRow.state ?? "neutral") as "happy" | "neutral" | "sad" | "forest_rescue",
+        spriteUrl: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/${pokemonId}.gif`,
+      };
+    }
+  } catch {
+    petSidebarData = null;
+  }
+
   return (
     <PreferencesProvider>
       <div className="flex min-h-screen bg-[var(--pixel-bg-primary)]">
-        <GameSidebar profile={profileWithAvatar} />
+        <GameSidebar profile={profileWithAvatar} pet={petSidebarData} />
         <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
           <GameTopBar profile={profileWithAvatar} />
           <main className="pixel-grid-bg flex-1 overflow-y-auto p-8">

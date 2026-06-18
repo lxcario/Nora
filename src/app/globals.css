@@ -569,6 +569,13 @@ a:hover > .nav-ico,
 }
 .animate-pixel-float { animation: pixel-float 1.2s steps(2) infinite; }
 
+/* Smooth bob for sidebar pet widget — ease-in-out, 2s, 3px range */
+@keyframes pet-bob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-3px); }
+}
+.animate-pet-bob { animation: pet-bob 2s ease-in-out infinite; }
+
 /* Wiggle — happy 4-step shake (rewards, evolve-ready) */
 @keyframes pixel-wiggle {
   0%, 100% { transform: rotate(0deg); }

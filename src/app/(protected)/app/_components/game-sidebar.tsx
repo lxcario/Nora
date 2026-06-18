@@ -7,6 +7,95 @@ import { playNavigate } from "@/lib/sfx";
 import { MusicPlayer } from "./music-player";
 
 // ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+export interface PetSidebarData {
+  pokemonId: number;
+  name: string;
+  state: "happy" | "neutral" | "sad" | "forest_rescue";
+  spriteUrl: string;
+}
+
+// ---------------------------------------------------------------------------
+// PetWidget — persistent sidebar companion
+// ---------------------------------------------------------------------------
+
+const MOOD_CONFIG: Record<
+  PetSidebarData["state"],
+  { emoji: string; label: string; color: string }
+> = {
+  happy:         { emoji: "😊", label: "Happy",   color: "var(--pixel-success)" },
+  neutral:       { emoji: "😐", label: "Neutral",  color: "var(--pixel-warning)" },
+  sad:           { emoji: "😢", label: "Sad",      color: "var(--pixel-error)"   },
+  forest_rescue: { emoji: "😢", label: "Sad",      color: "var(--pixel-error)"   },
+};
+
+function PetWidget({ pet }: { pet: PetSidebarData | null }) {
+  const [imgError, setImgError] = useState(false);
+
+  if (!pet) {
+    return (
+      <Link
+        href="/app/room"
+        className="pixel-panel mx-2 mb-1 flex flex-col items-center gap-1 px-2 py-3 transition-opacity hover:opacity-80"
+        style={{ textDecoration: "none" }}
+      >
+        <span className="font-pixel text-2xl text-[var(--pixel-text-secondary)]">?</span>
+        <span className="font-pixel text-[9px] text-[var(--pixel-accent)]">
+          Visit My Room →
+        </span>
+      </Link>
+    );
+  }
+
+  const mood = MOOD_CONFIG[pet.state];
+
+  return (
+    <Link
+      href="/app/room"
+      onClick={() => playNavigate()}
+      className="pixel-panel mx-2 mb-1 flex flex-col items-center gap-1 px-2 py-3 transition-opacity hover:opacity-80"
+      style={{ textDecoration: "none" }}
+      title={`${pet.name} — ${mood.label}`}
+    >
+      {/* Animated sprite */}
+      <div className="animate-pet-bob">
+        {!imgError ? (
+          <img
+            src={pet.spriteUrl}
+            alt={pet.name}
+            width={48}
+            height={48}
+            className="pixel-art"
+            draggable={false}
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <span className="font-pixel text-2xl text-[var(--pixel-text-secondary)]">?</span>
+        )}
+      </div>
+
+      {/* Name */}
+      <span
+        className="font-pixel text-[10px] capitalize"
+        style={{ color: "var(--pixel-text-primary)" }}
+      >
+        {pet.name}
+      </span>
+
+      {/* Mood badge */}
+      <span
+        className="font-pixel text-[9px]"
+        style={{ color: mood.color }}
+      >
+        {mood.emoji} {mood.label}
+      </span>
+    </Link>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
@@ -246,8 +335,10 @@ function AccordionGroup({
 
 export function GameSidebar({
   profile,
+  pet,
 }: {
   profile: { display_name?: string | null; avatar_url?: string | null } | null;
+  pet: PetSidebarData | null;
 }) {
   const pathname = usePathname();
 
@@ -295,6 +386,9 @@ export function GameSidebar({
         </h1>
         <span className="text-[var(--pixel-accent)] text-sm">✦</span>
       </div>
+
+      {/* ─── Pet Widget ─── */}
+      <PetWidget pet={pet} />
 
       {/* ─── Navigation ─── */}
       <nav
