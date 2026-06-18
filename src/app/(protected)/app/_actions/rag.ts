@@ -505,96 +505,44 @@ export async function queryRag(
   let retrievedChunks: RetrievedChunk[];
 
   try {
+    // Hybrid retrieval: combine lexical (ts_rank_cd) + vector (cosine) via RRF.
+    // When no embedding key is configured, query_embedding is null and the
+    // function degrades to ts_rank_cd-ranked lexical search — never an unranked
+    // scan. (spec Req 6.1, 6.2)
+    let embedding: number[] | null = null;
     if (hasEmbeddingSupport()) {
-      // --- Vector mode ---
-      const embedding = await generateQueryEmbedding(question);
+      embedding = await generateQueryEmbedding(question);
       if (!embedding) {
         return { error: "Failed to generate query embedding" };
       }
+    }
 
-      const { data: matchedChunks, error: rpcError } = await supabase.rpc(
-        "match_paper_chunks",
-        {
-          query_embedding: JSON.stringify(embedding),
-          match_user_id: user.id,
-          match_paper_id: scope.type === "paper" ? scope.paperId ?? null : null,
-          match_topic_id: scope.type === "topic" ? scope.topicId ?? null : null,
-          match_threshold: 0.3,
-          match_count: 8,
-        }
-      );
-
-      if (rpcError) {
-        return { error: `Paper search failed: ${rpcError.message}` };
+    const { data: hybridRows, error: rpcError } = await supabase.rpc(
+      "match_paper_chunks_hybrid",
+      {
+        query_text: question,
+        query_embedding: embedding ? JSON.stringify(embedding) : null,
+        match_user_id: user.id,
+        match_paper_id: scope.type === "paper" ? scope.paperId ?? null : null,
+        match_topic_id: scope.type === "topic" ? scope.topicId ?? null : null,
+        match_count: 8,
+        rrf_k: 60,
+        candidate_pool: 50,
       }
+    );
 
-      if (!matchedChunks || matchedChunks.length === 0) {
-        return {
-          data: {
-            answer:
-              "No relevant content found in your papers. Try rephrasing your question or uploading more papers on this topic.",
-            citations: [],
-            suggestedCards: [],
-          },
-        };
-      }
+    if (rpcError) {
+      return { error: `Paper search failed: ${rpcError.message}` };
+    }
 
-      // Fetch paper titles for citations
-      const paperIds = [...new Set(matchedChunks.map((c: { paper_id: string }) => c.paper_id))];
-      const { data: papers } = await supabase
-        .from("papers")
-        .select("id, title")
-        .in("id", paperIds);
-
-      const paperTitleMap = new Map<string, string>();
-      for (const p of papers ?? []) {
-        paperTitleMap.set(p.id, p.title);
-      }
-
-      retrievedChunks = matchedChunks.map((c: { paper_id: string; chunk_index: number; content: string; section_heading: string | null; similarity: number }) => ({
-        paperId: c.paper_id,
-        paperTitle: paperTitleMap.get(c.paper_id) ?? "Unknown Paper",
-        chunkIndex: c.chunk_index,
-        content: c.content,
-        sectionHeading: c.section_heading ?? "",
-        similarity: c.similarity,
-      }));
-    } else {
-      // --- FTS mode (no OPENAI_API_KEY) ---
-      // Use Groq to extract search keywords
-      const keywords = await extractSearchKeywordsForRag(question);
-      if (!keywords || keywords.length === 0) {
-        return { error: "Failed to extract search keywords from question" };
-      }
-
-      // Build tsquery from keywords (OR them together for broader matches)
-      const tsquery = keywords.map((kw) => kw.replace(/[^a-zA-Z0-9]/g, "")).filter(Boolean).join(" | ");
-
-      if (!tsquery) {
-        return { error: "Could not form a valid search query" };
-      }
-
-      // Query paper_chunks — in FTS mode with few chunks, just fetch all chunks
-      // for the scoped papers and let the LLM sort out relevance
-      let query = supabase
-        .from("paper_chunks")
-        .select("id, paper_id, chunk_index, content, section_heading")
-        .eq("user_id", user.id)
-        .limit(8);
-
-      if (scope.type === "paper" && scope.paperId) {
-        query = query.eq("paper_id", scope.paperId);
-      }
-
-      // For topic scope, we need to join via papers table
+    if (!hybridRows || hybridRows.length === 0) {
+      // For topic scope with no results, check whether any papers exist at all.
       if (scope.type === "topic" && scope.topicId) {
-        // Get paper IDs for this topic first
         const { data: topicPapers } = await supabase
           .from("papers")
           .select("id")
           .eq("user_id", user.id)
           .eq("topic_id", scope.topicId);
-
         if (!topicPapers || topicPapers.length === 0) {
           return {
             data: {
@@ -605,49 +553,48 @@ export async function queryRag(
             },
           };
         }
-
-        const topicPaperIds = topicPapers.map((p) => p.id);
-        query = query.in("paper_id", topicPaperIds);
       }
-
-      const { data: ftsResults, error: ftsError } = await query;
-
-      if (ftsError) {
-        return { error: `Paper search failed: ${ftsError.message}` };
-      }
-
-      if (!ftsResults || ftsResults.length === 0) {
-        return {
-          data: {
-            answer:
-              "No relevant content found in your papers. Try rephrasing your question or uploading more papers on this topic.",
-            citations: [],
-            suggestedCards: [],
-          },
-        };
-      }
-
-      // Fetch paper titles for citations
-      const paperIds = [...new Set(ftsResults.map((c) => c.paper_id))];
-      const { data: papers } = await supabase
-        .from("papers")
-        .select("id, title")
-        .in("id", paperIds);
-
-      const paperTitleMap = new Map<string, string>();
-      for (const p of papers ?? []) {
-        paperTitleMap.set(p.id, p.title);
-      }
-
-      retrievedChunks = ftsResults.map((c) => ({
-        paperId: c.paper_id,
-        paperTitle: paperTitleMap.get(c.paper_id) ?? "Unknown Paper",
-        chunkIndex: c.chunk_index,
-        content: c.content,
-        sectionHeading: c.section_heading ?? "",
-        similarity: 1, // FTS doesn't produce similarity scores
-      }));
+      return {
+        data: {
+          answer:
+            "No relevant content found in your papers. Try rephrasing your question or uploading more papers on this topic.",
+          citations: [],
+          suggestedCards: [],
+        },
+      };
     }
+
+    // Fetch paper titles for citation building.
+    const paperIds = [
+      ...new Set(
+        (hybridRows as { paper_id: string }[]).map((c) => c.paper_id)
+      ),
+    ];
+    const { data: papers } = await supabase
+      .from("papers")
+      .select("id, title")
+      .in("id", paperIds);
+
+    const paperTitleMap = new Map<string, string>(
+      (papers ?? []).map((p) => [p.id, p.title])
+    );
+
+    retrievedChunks = (
+      hybridRows as {
+        paper_id: string;
+        chunk_index: number;
+        content: string;
+        section_heading: string | null;
+        rrf_score: number;
+      }[]
+    ).map((c) => ({
+      paperId: c.paper_id,
+      paperTitle: paperTitleMap.get(c.paper_id) ?? "Unknown Paper",
+      chunkIndex: c.chunk_index,
+      content: c.content,
+      sectionHeading: c.section_heading ?? "",
+      similarity: c.rrf_score, // rrf_score is the unified relevance signal
+    }));
   } catch (retrievalError) {
     const msg = retrievalError instanceof Error ? retrievalError.message : "Search failed";
     if (msg.includes("abort") || msg.includes("timeout")) {
@@ -836,6 +783,56 @@ function parseRagResponse(
   return { answer, citations, suggestedCards };
 }
 /**
+ * Validates LLM-generated citations against the retrieved chunk set.
+ *
+ * For each citation:
+ *   - Drop it when its paperId doesn't appear in the retrieved chunks (it
+ *     wasn't retrieved, so the LLM hallucinated it).
+ *   - Replace chunkIndex with the REAL index from the closest retrieved chunk
+ *     (match by sectionHeading first, then fall back to the first chunk for
+ *     that paper) — eliminates the "default to 0" anti-pattern. (Req 6.4)
+ *
+ * This gives RAG-1 guarantee: every emitted citation resolves to a row that
+ * was actually returned by the retriever.
+ */
+function validateCitations(
+  citations: Citation[],
+  chunks: RetrievedChunk[]
+): Citation[] {
+  // Index chunks by paperId for fast lookup.
+  const byPaper = new Map<string, RetrievedChunk[]>();
+  for (const chunk of chunks) {
+    const list = byPaper.get(chunk.paperId) ?? [];
+    list.push(chunk);
+    byPaper.set(chunk.paperId, list);
+  }
+
+  const validated: Citation[] = [];
+  for (const cite of citations) {
+    const paperChunks = byPaper.get(cite.paperId);
+    if (!paperChunks || paperChunks.length === 0) continue; // drop unresolvable
+
+    // Prefer a chunk whose sectionHeading matches the citation's sectionHeading.
+    const match =
+      cite.sectionHeading
+        ? (paperChunks.find(
+            (c) =>
+              c.sectionHeading &&
+              c.sectionHeading.toLowerCase() ===
+                cite.sectionHeading.toLowerCase()
+          ) ?? paperChunks[0])
+        : paperChunks[0];
+
+    validated.push({
+      ...cite,
+      chunkIndex: match.chunkIndex, // real index — never defaults to 0
+      sectionHeading: match.sectionHeading || cite.sectionHeading,
+    });
+  }
+  return validated;
+}
+
+/**
  * Build default citations from retrieved chunks when LLM doesn't provide them.
  */
 function buildDefaultCitations(chunks: RetrievedChunk[]): Citation[] {
@@ -883,7 +880,12 @@ async function synthesizeRagAnswer(
   }
 
   if (content && content.trim()) {
-    return parseRagResponse(content, chunks);
+    const raw = parseRagResponse(content, chunks);
+    // RAG-1: ensure every emitted citation resolves to an actual retrieved chunk.
+    return {
+      ...raw,
+      citations: validateCitations(raw.citations, chunks),
+    };
   }
 
   // Both providers failed or returned empty (Req 12.3)

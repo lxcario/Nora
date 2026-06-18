@@ -9,7 +9,7 @@ export default async function SettingsPage() {
   // Subjects with topics
   const { data: subjects } = await supabase
     .from("subjects")
-    .select("id, name, color, topics(id, name, exam_date)")
+    .select("id, name, color, topics(id, name, exam_date, material_type)")
     .order("created_at", { ascending: true });
 
   // Avatar URL (separate query — missing column pre-migration 003 won't break the page)
@@ -50,6 +50,7 @@ export default async function SettingsPage() {
             id: t.id,
             name: t.name,
             exam_date: t.exam_date ?? null,
+            material_type: (t.material_type ?? "conceptual") as import("@/lib/material-type").MaterialType,
           })),
         }))}
         userEmail={user?.email ?? "—"}

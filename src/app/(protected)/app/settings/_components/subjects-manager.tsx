@@ -1,18 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import {
   createSubject,
   deleteSubject,
   createTopic,
   deleteTopic,
+  setTopicMaterialType,
 } from "@/app/(protected)/app/_actions/subjects";
+import { MATERIAL_TYPE_LABELS, type MaterialType } from "@/lib/material-type";
 import { PixelButton, PixelInput, PixelConfirmDialog, EmptyState } from "@/components/pixel-ui";
 
 interface Topic {
   id: string;
   name: string;
   exam_date: string | null;
+  material_type: MaterialType;
 }
 
 interface Subject {
@@ -22,10 +25,78 @@ interface Subject {
   topics: Topic[];
 }
 
+// ---------------------------------------------------------------------------
+// Topic material-type badge colours
+// ---------------------------------------------------------------------------
+const MATERIAL_BADGE_COLOR: Record<MaterialType, string> = {
+  conceptual: "var(--pixel-accent)",
+  procedural_math: "var(--pixel-success)",
+  visual_discrimination: "#a855f7", // purple — not used for status so safe
+  verbal_vocabulary: "var(--pixel-warning)",
+};
+
+// ---------------------------------------------------------------------------
+// MaterialTypeSelector — inline dropdown for a single topic
+// ---------------------------------------------------------------------------
+function MaterialTypeSelector({
+  topicId,
+  current,
+}: {
+  topicId: string;
+  current: MaterialType;
+}) {
+  const [value, setValue] = useState<MaterialType>(current);
+  const [isPending, startTransition] = useTransition();
+
+  function handleChange(next: MaterialType) {
+    setValue(next);
+    startTransition(async () => {
+      await setTopicMaterialType(topicId, next);
+    });
+  }
+
+  return (
+    <div className="flex items-center gap-1.5">
+      {/* Colour badge */}
+      <span
+        className="inline-block h-2 w-2 rounded-full shrink-0"
+        style={{ backgroundColor: MATERIAL_BADGE_COLOR[value] }}
+      />
+      <select
+        value={value}
+        disabled={isPending}
+        onChange={(e) => handleChange(e.target.value as MaterialType)}
+        className="font-pixel text-[9px] px-1 py-0.5 max-w-[130px]"
+        style={{
+          border: "1px solid var(--pixel-border)",
+          backgroundColor: "var(--pixel-bg-surface)",
+          color: "var(--pixel-text-secondary)",
+          opacity: isPending ? 0.5 : 1,
+        }}
+        title={MATERIAL_TYPE_LABELS[value].description}
+        aria-label={`Material type for topic`}
+      >
+        {(Object.keys(MATERIAL_TYPE_LABELS) as MaterialType[]).map((mt) => (
+          <option key={mt} value={mt}>
+            {MATERIAL_TYPE_LABELS[mt].label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// SubjectsManager
+// ---------------------------------------------------------------------------
 export function SubjectsManager({ subjects }: { subjects: Subject[] }) {
   const [showAddSubject, setShowAddSubject] = useState(false);
   const [addingTopicFor, setAddingTopicFor] = useState<string | null>(null);
-  const [confirmDelete, setConfirmDelete] = useState<{ type: "subject" | "topic"; id: string; name: string } | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<{
+    type: "subject" | "topic";
+    id: string;
+    name: string;
+  } | null>(null);
 
   async function handleConfirmDelete() {
     if (!confirmDelete) return;
@@ -62,17 +133,31 @@ export function SubjectsManager({ subjects }: { subjects: Subject[] }) {
       ) : (
         <div className="space-y-3">
           {subjects.map((subject) => (
-            <div key={subject.id} className="pixel-panel pixel-panel-inset" style={{ padding: "12px" }}>
+            <div
+              key={subject.id}
+              className="pixel-panel pixel-panel-inset"
+              style={{ padding: "12px" }}
+            >
+              {/* Subject header */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div
                     className="h-3 w-3"
-                    style={{ backgroundColor: subject.color, border: "1px solid var(--pixel-border)" }}
+                    style={{
+                      backgroundColor: subject.color,
+                      border: "1px solid var(--pixel-border)",
+                    }}
                   />
-                  <span className="text-sm font-medium" style={{ color: "var(--pixel-text-primary)" }}>
+                  <span
+                    className="text-sm font-medium"
+                    style={{ color: "var(--pixel-text-primary)" }}
+                  >
                     {subject.name}
                   </span>
-                  <span className="font-pixel text-[9px]" style={{ color: "var(--pixel-text-muted)" }}>
+                  <span
+                    className="font-pixel text-[9px]"
+                    style={{ color: "var(--pixel-text-muted)" }}
+                  >
                     ({subject.topics.length} topics)
                   </span>
                 </div>
@@ -80,15 +165,29 @@ export function SubjectsManager({ subjects }: { subjects: Subject[] }) {
                   <PixelButton
                     variant="secondary"
                     size="small"
-                    onClick={() => setAddingTopicFor(addingTopicFor === subject.id ? null : subject.id)}
+                    onClick={() =>
+                      setAddingTopicFor(
+                        addingTopicFor === subject.id ? null : subject.id
+                      )
+                    }
                   >
                     + Topic
                   </PixelButton>
                   <button
                     type="button"
-                    onClick={() => setConfirmDelete({ type: "subject", id: subject.id, name: subject.name })}
+                    onClick={() =>
+                      setConfirmDelete({
+                        type: "subject",
+                        id: subject.id,
+                        name: subject.name,
+                      })
+                    }
                     className="font-pixel text-[9px] px-2 py-1"
-                    style={{ color: "var(--pixel-error)", border: "none", background: "none" }}
+                    style={{
+                      color: "var(--pixel-error)",
+                      border: "none",
+                      background: "none",
+                    }}
                   >
                     Delete
                   </button>
@@ -101,26 +200,59 @@ export function SubjectsManager({ subjects }: { subjects: Subject[] }) {
                   {subject.topics.map((topic) => (
                     <div
                       key={topic.id}
-                      className="flex items-center justify-between py-1 px-2"
+                      className="flex items-center justify-between py-1.5 px-2"
                       style={{ borderBottom: "1px solid var(--pixel-border)" }}
                     >
-                      <div className="flex items-center gap-2">
-                        <img src="/sprites/travel-book/icons/Book.png" alt="" width={10} height={10} className="pixel-art" />
-                        <span className="text-sm" style={{ color: "var(--pixel-text-primary)" }}>{topic.name}</span>
+                      {/* Topic name + exam date */}
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <img
+                          src="/sprites/travel-book/icons/Book.png"
+                          alt=""
+                          width={10}
+                          height={10}
+                          className="pixel-art shrink-0"
+                        />
+                        <span
+                          className="text-sm truncate"
+                          style={{ color: "var(--pixel-text-primary)" }}
+                        >
+                          {topic.name}
+                        </span>
                         {topic.exam_date && (
-                          <span className="font-pixel text-[8px]" style={{ color: "var(--pixel-text-muted)" }}>
+                          <span
+                            className="font-pixel text-[8px] shrink-0"
+                            style={{ color: "var(--pixel-text-muted)" }}
+                          >
                             (exam: {topic.exam_date})
                           </span>
                         )}
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => setConfirmDelete({ type: "topic", id: topic.id, name: topic.name })}
-                        className="font-pixel text-[8px] px-1"
-                        style={{ color: "var(--pixel-error)", border: "none", background: "none" }}
-                      >
-                        ✕
-                      </button>
+
+                      {/* Material type selector + delete */}
+                      <div className="flex items-center gap-2 shrink-0 ml-2">
+                        <MaterialTypeSelector
+                          topicId={topic.id}
+                          current={topic.material_type}
+                        />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setConfirmDelete({
+                              type: "topic",
+                              id: topic.id,
+                              name: topic.name,
+                            })
+                          }
+                          className="font-pixel text-[8px] px-1"
+                          style={{
+                            color: "var(--pixel-error)",
+                            border: "none",
+                            background: "none",
+                          }}
+                        >
+                          ✕
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -143,8 +275,12 @@ export function SubjectsManager({ subjects }: { subjects: Subject[] }) {
                       placeholder="e.g. Quantum Mechanics"
                       onChange={() => {}}
                     />
-                    {/* Hidden native input for form submission */}
-                    <input name="name" placeholder="Topic name" required className="sr-only" />
+                    <input
+                      name="name"
+                      placeholder="Topic name"
+                      required
+                      className="sr-only"
+                    />
                   </div>
                   <input
                     name="exam_date"
@@ -182,7 +318,12 @@ export function SubjectsManager({ subjects }: { subjects: Subject[] }) {
               placeholder="e.g. Computer Science"
               onChange={() => {}}
             />
-            <input name="name" placeholder="Subject name" required className="sr-only" />
+            <input
+              name="name"
+              placeholder="Subject name"
+              required
+              className="sr-only"
+            />
           </div>
           <input
             name="color"
@@ -194,7 +335,11 @@ export function SubjectsManager({ subjects }: { subjects: Subject[] }) {
           <PixelButton type="submit" variant="primary" size="small">
             Add
           </PixelButton>
-          <PixelButton variant="secondary" size="small" onClick={() => setShowAddSubject(false)}>
+          <PixelButton
+            variant="secondary"
+            size="small"
+            onClick={() => setShowAddSubject(false)}
+          >
             Cancel
           </PixelButton>
         </form>

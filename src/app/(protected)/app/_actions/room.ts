@@ -108,13 +108,13 @@ export async function getRoomState(): Promise<{
   if (sessionCount === 0) petState = "sad";
   else if (sessionCount < 2) petState = "neutral";
 
-  // Count due cards for missions
+  // Count due cards for missions (FSRS-only after migration 016)
   const today = new Date().toISOString().split("T")[0];
   const { count: dueCards } = await supabase
     .from("cards")
     .select("id", { count: "exact", head: true })
     .eq("user_id", user.id)
-    .lte("next_review_at", today);
+    .lte("due", new Date().toISOString());
 
   const { count: feynmanToday } = await supabase
     .from("feynman_explanations")

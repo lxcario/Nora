@@ -28,7 +28,12 @@ interface Subject {
   id: string;
   name: string;
   color: string;
-  topics: { id: string; name: string; exam_date: string | null }[];
+  topics: {
+    id: string;
+    name: string;
+    exam_date: string | null;
+    material_type: import("@/lib/material-type").MaterialType;
+  }[];
 }
 
 export interface SettingsTabsProps {

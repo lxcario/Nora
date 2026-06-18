@@ -9,6 +9,14 @@ import {
   normalizeSegmentStatus,
   type ComprehensionScore,
 } from "@/lib/feynman-score";
+import {
+  buildGroundedPrompt,
+  chunksToPassages,
+  textToPassages,
+  UNVERIFIED_LABEL,
+  type SourcePassage,
+} from "@/lib/feynman-grounding";
+import { generateQueryEmbedding, hasEmbeddingSupport } from "./rag/embedder";
 import { rewardAction, rewardBatch } from "./gamification";
 import { incrementQuestProgress } from "./party-quests";
 
@@ -24,6 +32,13 @@ export interface GapAnalysis {
   suggestedCards: { front: string; back: string }[];
   /** Deterministic comprehension score derived from the segments. */
   score: ComprehensionScore;
+  /**
+   * True when the explanation was graded against attached source material
+   * (Req 3.2). False = unverified (graded from model knowledge only, Req 3.4).
+   */
+  grounded: boolean;
+  /** Provenance label, e.g. a paper title, or the "unverified" notice. */
+  sourceLabel: string;
 }
 
 /** Optional context for an iterative refinement attempt. */
@@ -97,7 +112,10 @@ When evaluating this attempt:
  * normalizes the data (valid statuses, non-empty entries) and attaches a
  * deterministic comprehension score.
  */
-function safeParseGapAnalysis(jsonStr: string): { analysis?: GapAnalysis; error?: string } {
+function safeParseGapAnalysis(
+  jsonStr: string,
+  grounding: { grounded: boolean; sourceLabel: string }
+): { analysis?: GapAnalysis; error?: string } {
   let parsed: unknown;
   try {
     parsed = JSON.parse(jsonStr);
@@ -156,8 +174,135 @@ function safeParseGapAnalysis(jsonStr: string): { analysis?: GapAnalysis; error?
       segments,
       suggestedCards,
       score,
+      grounded: grounding.grounded,
+      sourceLabel: grounding.sourceLabel,
     },
   };
+}
+
+// ---------------------------------------------------------------------------
+// Source grounding (Req 3.2–3.4)
+// ---------------------------------------------------------------------------
+
+/** Narrow a raw JSONB `feynman_source_ref` to a typed FeynmanSourceRef. */
+function parseSourceRef(raw: unknown): FeynmanSourceRef | null {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const r = raw as Record<string, unknown>;
+  if (r.type !== "paper" && r.type !== "video" && r.type !== "notes") return null;
+  return r as unknown as FeynmanSourceRef;
+}
+
+/**
+ * Resolve the attached source into citeable passages + a provenance label.
+ * Returns empty passages (unverified mode) when no usable source is attached.
+ */
+async function resolveSourcePassages(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  ref: FeynmanSourceRef | null,
+  explanationText: string
+): Promise<{ passages: SourcePassage[]; sourceLabel: string }> {
+  if (!ref) {
+    return { passages: [], sourceLabel: UNVERIFIED_LABEL };
+  }
+
+  // --- Pasted notes: already the ground truth, no retrieval needed. ---
+  if (ref.type === "notes") {
+    const passages = textToPassages(ref.notes ?? "", "N", "Pasted notes");
+    return passages.length > 0
+      ? { passages, sourceLabel: "your pasted notes" }
+      : { passages: [], sourceLabel: UNVERIFIED_LABEL };
+  }
+
+  // --- Indexed paper: retrieve the most relevant chunks for the explanation. ---
+  if (ref.type === "paper" && ref.paperId) {
+    const paperTitle = ref.paperTitle ?? "attached paper";
+    const chunks = await retrievePaperChunks(
+      supabase,
+      userId,
+      ref.paperId,
+      explanationText
+    );
+    const passages = chunksToPassages(chunks, paperTitle);
+    return passages.length > 0
+      ? { passages, sourceLabel: `"${paperTitle}"` }
+      : { passages: [], sourceLabel: UNVERIFIED_LABEL };
+  }
+
+  // --- Video transcript: concatenate transcript text into passages. ---
+  if (ref.type === "video" && ref.videoId) {
+    const { data: transcript } = await supabase
+      .from("video_transcripts")
+      .select("segments")
+      .eq("video_id", ref.videoId)
+      .maybeSingle();
+
+    const segments = (transcript?.segments ?? []) as { text?: string }[];
+    const transcriptText = Array.isArray(segments)
+      ? segments.map((s) => s.text ?? "").join(" ")
+      : "";
+    const label = ref.videoTitle ?? "video transcript";
+    const passages = textToPassages(transcriptText, "T", label);
+    return passages.length > 0
+      ? { passages, sourceLabel: label }
+      : { passages: [], sourceLabel: UNVERIFIED_LABEL };
+  }
+
+  return { passages: [], sourceLabel: UNVERIFIED_LABEL };
+}
+
+/**
+ * Retrieve the chunks of a paper most relevant to the explanation, using the
+ * hybrid retrieval RPC (lexical + vector RRF). Falls back to the first chunks
+ * by index if the RPC is unavailable.
+ */
+async function retrievePaperChunks(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  paperId: string,
+  explanationText: string
+): Promise<{ content: string; sectionHeading: string | null; chunkIndex: number }[]> {
+  // Generate an embedding for the explanation when embeddings are configured.
+  let embedding: number[] | null = null;
+  if (hasEmbeddingSupport()) {
+    embedding = await generateQueryEmbedding(explanationText);
+  }
+
+  const { data: rows, error } = await supabase.rpc("match_paper_chunks_hybrid", {
+    query_text: explanationText,
+    query_embedding: embedding ? JSON.stringify(embedding) : null,
+    match_user_id: userId,
+    match_paper_id: paperId,
+    match_topic_id: null,
+    match_count: 6,
+    rrf_k: 60,
+    candidate_pool: 50,
+  });
+
+  if (!error && rows && rows.length > 0) {
+    return (rows as { content: string; section_heading: string | null; chunk_index: number }[]).map(
+      (r) => ({
+        content: r.content,
+        sectionHeading: r.section_heading,
+        chunkIndex: r.chunk_index,
+      })
+    );
+  }
+
+  // Fallback: first chunks by index (e.g. if the hybrid RPC isn't deployed).
+  const { data: fallback } = await supabase
+    .from("paper_chunks")
+    .select("content, section_heading, chunk_index")
+    .eq("user_id", userId)
+    .eq("paper_id", paperId)
+    .order("chunk_index", { ascending: true })
+    .limit(6);
+
+  return (fallback ?? []).map((r) => ({
+    content: r.content,
+    sectionHeading: r.section_heading,
+    chunkIndex: r.chunk_index,
+  }));
 }
 
 export async function evaluateExplanation(
@@ -184,10 +329,10 @@ export async function evaluateExplanation(
     return { error: `Too many requests. Please wait ${Math.ceil((rateCheck.retryAfterMs ?? 0) / 1000)} seconds.` };
   }
 
-  // Fetch topic and subject names for context
+  // Fetch topic, subject names, and any attached source for grounding.
   const { data: topic } = await supabase
     .from("topics")
-    .select("name, subjects(name)")
+    .select("name, subjects(name), feynman_source_ref")
     .eq("id", topicId)
     .single();
 
@@ -195,11 +340,26 @@ export async function evaluateExplanation(
   const subjectData = topic?.subjects as unknown as { name: string } | null;
   const subjectName = subjectData?.name ?? "Unknown subject";
 
-  // Build the prompt with topic context
-  const contextualPrompt = FEYNMAN_PROMPT
-    .replace("{{TOPIC_NAME}}", topicName)
-    .replace("{{SUBJECT_NAME}}", subjectName)
-    + (refine ? buildRefineSection(refine) : "");
+  // Resolve source passages for grounded evaluation (Req 3.2). When no source
+  // is attached, passages is empty → unverified mode (Req 3.4).
+  const sourceRef = parseSourceRef(topic?.feynman_source_ref);
+  const { passages, sourceLabel } = await resolveSourcePassages(
+    supabase,
+    user.id,
+    sourceRef,
+    explanationText
+  );
+  const grounded = passages.length > 0;
+
+  // Build the prompt: grounded when we have passages, otherwise the default
+  // "expert evaluator" prompt with an explicit unverified instruction.
+  const basePrompt = grounded
+    ? buildGroundedPrompt(topicName, subjectName, passages)
+    : FEYNMAN_PROMPT.replace("{{TOPIC_NAME}}", topicName).replace(
+        "{{SUBJECT_NAME}}",
+        subjectName
+      );
+  const contextualPrompt = basePrompt + (refine ? buildRefineSection(refine) : "");
 
   try {
     if (!hasLLMProvider()) {
@@ -225,7 +385,10 @@ export async function evaluateExplanation(
       .trim();
 
     // Safe parse with structural validation
-    const { analysis, error: parseError } = safeParseGapAnalysis(jsonStr);
+    const { analysis, error: parseError } = safeParseGapAnalysis(jsonStr, {
+      grounded,
+      sourceLabel,
+    });
     if (parseError || !analysis) {
       console.error("Feynman JSON parse error:", parseError, responseText.slice(0, 500));
       return { error: parseError ?? "AI returned invalid JSON. Please try again." };
@@ -352,4 +515,147 @@ export async function getTopicScoreHistory(
   // Reverse to oldest → newest for left-to-right charting.
   points.reverse();
   return { points };
+}
+
+// ===========================================================================
+// Feynman source attachment (spec Req 3.1)
+// ===========================================================================
+
+/** The kind of source attached to a topic for grounded Feynman evaluation. */
+export type FeynmanSourceType = "paper" | "video" | "notes";
+
+/**
+ * A source reference stored on a topic (`topics.feynman_source_ref`).
+ * When present, Task 12's `evaluateExplanation` will use it to grade the
+ * student's explanation against real source material instead of model memory.
+ */
+export interface FeynmanSourceRef {
+  type: FeynmanSourceType;
+  // paper
+  paperId?: string;
+  paperTitle?: string;
+  // video
+  videoId?: string;
+  videoTitle?: string;
+  // notes (pasted inline text)
+  notes?: string;
+}
+
+/** A concise paper summary for the source-picker dropdown. */
+export interface IndexedPaperSummary {
+  id: string;
+  title: string;
+  chunkCount: number;
+}
+
+/**
+ * Returns the Feynman source reference stored on a topic.
+ * Returns `null` when no source is attached (unverified mode).
+ */
+export async function getFeynmanSource(
+  topicId: string
+): Promise<FeynmanSourceRef | null> {
+  if (!topicId) return null;
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data } = await supabase
+    .from("topics")
+    .select("feynman_source_ref")
+    .eq("id", topicId)
+    .eq("user_id", user.id)
+    .single();
+
+  const raw = data?.feynman_source_ref;
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+
+  const ref = raw as Record<string, unknown>;
+  if (ref.type !== "paper" && ref.type !== "video" && ref.type !== "notes") {
+    return null;
+  }
+
+  return raw as unknown as FeynmanSourceRef;
+}
+
+/**
+ * Persists a Feynman source reference on a topic.
+ * Pass `null` to clear the attachment (equivalent to `clearFeynmanSource`).
+ */
+export async function setFeynmanSource(
+  topicId: string,
+  ref: FeynmanSourceRef
+): Promise<{ success?: boolean; error?: string }> {
+  if (!topicId) return { error: "No topic selected." };
+  if (!ref.type) return { error: "Invalid source reference." };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
+
+  const { error } = await supabase
+    .from("topics")
+    .update({ feynman_source_ref: ref as unknown as Record<string, unknown> })
+    .eq("id", topicId)
+    .eq("user_id", user.id);
+
+  if (error) return { error: error.message };
+  revalidatePath("/app/feynman");
+  return { success: true };
+}
+
+/**
+ * Removes the Feynman source reference from a topic (reverts to unverified mode).
+ */
+export async function clearFeynmanSource(
+  topicId: string
+): Promise<{ success?: boolean; error?: string }> {
+  if (!topicId) return { error: "No topic selected." };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
+
+  const { error } = await supabase
+    .from("topics")
+    .update({ feynman_source_ref: null })
+    .eq("id", topicId)
+    .eq("user_id", user.id);
+
+  if (error) return { error: error.message };
+  revalidatePath("/app/feynman");
+  return { success: true };
+}
+
+/**
+ * Returns all papers with `parse_status = 'ready'` for the source picker.
+ * Only papers that have indexed chunks can be used as grounding sources.
+ */
+export async function getIndexedPapersForSource(): Promise<IndexedPaperSummary[]> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data } = await supabase
+    .from("papers")
+    .select("id, title, chunk_count")
+    .eq("user_id", user.id)
+    .eq("parse_status", "ready")
+    .order("created_at", { ascending: false })
+    .limit(50);
+
+  return (data ?? []).map((p) => ({
+    id: p.id,
+    title: p.title,
+    chunkCount: p.chunk_count ?? 0,
+  }));
 }

@@ -5,6 +5,10 @@ import { revalidatePath } from "next/cache";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { callLLM, hasLLMProvider, stripCodeFences } from "@/lib/llm";
 import { rewardBatch } from "./gamification";
+import { searchOpenAlex } from "@/lib/academic-search/openalex";
+import { searchCrossref } from "@/lib/academic-search/crossref";
+import type { AcademicWork } from "@/lib/academic-search/types";
+import { validateResearchCitations } from "@/lib/research-citations";
 
 export interface ResearchSource {
   title: string;
@@ -13,19 +17,78 @@ export interface ResearchSource {
   url: string | null;
   snippet: string;
   type: "book" | "paper" | "wiki";
+  /** DOI for Unpaywall OA lookup (Task 10). */
+  doi?: string | null;
+  /** Direct OA PDF URL once Unpaywall has been queried (Task 10). */
+  oaPdfUrl?: string | null;
 }
 
 export interface ResearchResult {
   answer: string;
   sources: ResearchSource[];
   suggestedCards: { front: string; back: string }[];
+  /**
+   * True when fewer than 2 academic sources were found and the system
+   * declined to synthesize a literature review from parametric memory alone.
+   * (spec Req 5.3)
+   */
+  insufficientSources?: boolean;
+}
+
+/** Minimum number of distinct sources required to synthesize an answer. */
+const MIN_SOURCES_FOR_SYNTHESIS = 2;
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Deduplicate AcademicWork results from multiple providers by DOI.
+ * OpenAlex entries win when DOIs collide.
+ */
+function deduplicateWorks(works: AcademicWork[]): AcademicWork[] {
+  const seen = new Map<string, AcademicWork>();
+  for (const w of works) {
+    const key = w.doi?.toLowerCase() ?? `${w.source}:${w.title.toLowerCase().slice(0, 60)}`;
+    if (!seen.has(key)) seen.set(key, w);
+  }
+  return [...seen.values()];
+}
+
+/** Map an AcademicWork to the ResearchSource DTO used by the UI. */
+function mapWorkToSource(w: AcademicWork): ResearchSource {
+  return {
+    title: w.title,
+    authors: w.authors,
+    year: w.year,
+    url: w.url,
+    snippet: w.abstract?.slice(0, 400) ?? "(no abstract available)",
+    type: "paper",
+    doi: w.doi,
+    oaPdfUrl: w.oaPdfUrl,
+  };
 }
 
 /**
- * Performs AI-powered research on a topic.
- * 1. Searches Open Library + Wikipedia for sources
- * 2. Feeds findings to Groq/OpenRouter for synthesis
- * 3. Returns a researched answer with citations and suggested cards
+ * Strip citation markers [N] from `answer` where N is out of range.
+ * Implemented in a pure module (server-action files can only export async).
+ */
+
+// ---------------------------------------------------------------------------
+// performResearch
+// ---------------------------------------------------------------------------
+
+/**
+ * Performs AI-powered research on a topic using real academic sources.
+ *
+ * Flow (spec Req 5.1–5.4):
+ *   1. Query OpenAlex (primary, CC0) + Crossref (supplementary) in parallel.
+ *   2. Deduplicate by DOI; cap at 8 sources.
+ *   3. If fewer than 2 sources found → return "insufficient sources" (never
+ *      hallucinate a literature review from parametric memory alone).
+ *   4. Synthesize answer constrained to retrieved abstracts; cite as [N].
+ *   5. Validate every [N] marker maps to an actual retrieved source; strip
+ *      any that don't.
  */
 export async function performResearch(query: string): Promise<{
   data?: ResearchResult;
@@ -35,7 +98,6 @@ export async function performResearch(query: string): Promise<{
     return { error: "Enter a more detailed research question (at least 5 characters)." };
   }
 
-  // Rate limit check (requires auth context)
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (user) {
@@ -45,39 +107,52 @@ export async function performResearch(query: string): Promise<{
     }
   }
 
-  // First, use AI to extract better search keywords from the user's question
-  const searchKeywords = await extractSearchKeywords(query);
-
-  // Gather sources in parallel using improved keywords
-  const [bookResults, wikiResult] = await Promise.all([
-    searchOpenLibrary(searchKeywords),
-    searchWikipedia(searchKeywords),
+  // 1. Fetch from real academic APIs in parallel (spec Req 5.1).
+  const [openAlexWorks, crossrefWorks] = await Promise.all([
+    searchOpenAlex(query, { limit: 6 }),
+    searchCrossref(query, { limit: 4 }),
   ]);
 
-  const allSources: ResearchSource[] = [...bookResults, ...wikiResult];
+  // 2. Deduplicate and cap (OpenAlex wins on DOI collisions).
+  const works = deduplicateWorks([...openAlexWorks, ...crossrefWorks]).slice(0, 8);
+  const sources: ResearchSource[] = works.map(mapWorkToSource);
 
-  // Build context from sources for the AI (may be empty — that's OK)
-  const sourcesContext = allSources.length > 0
-    ? allSources
-        .map((s, i) => `[${i + 1}] "${s.title}" by ${s.authors.join(", ") || "Unknown"}${s.year ? ` (${s.year})` : ""}\n   ${s.snippet}`)
-        .join("\n\n")
-    : "No external sources found. Answer entirely from your own expert knowledge.";
+  // 3. Insufficient sources branch (spec Req 5.3).
+  if (sources.length < MIN_SOURCES_FOR_SYNTHESIS) {
+    return {
+      data: {
+        answer:
+          "I couldn't find enough academic sources to answer this question reliably. " +
+          "Try rephrasing with more specific academic terms, or search for a narrower topic. " +
+          "I won't present unsourced claims as a literature review.",
+        sources,
+        suggestedCards: [],
+        insufficientSources: true,
+      },
+    };
+  }
 
-  // Call AI to synthesize — always, even without sources
-  const aiResult = await synthesizeResearch(query, sourcesContext);
+  // 4. Synthesize answer constrained to retrieved abstracts.
+  const aiResult = await synthesizeResearch(query, sources);
   if (aiResult.error) return { error: aiResult.error };
+
+  // 5. Validate citations (RESEARCH-1): strip any [N] without a backing source.
+  const cleanedAnswer = validateResearchCitations(
+    aiResult.answer!,
+    sources.length
+  );
 
   return {
     data: {
-      answer: aiResult.answer!,
-      sources: allSources,
+      answer: cleanedAnswer,
+      sources,
       suggestedCards: aiResult.suggestedCards!,
     },
   };
 }
 
 async function extractSearchKeywords(query: string): Promise<string> {
-  if (!process.env.GROQ_API_KEY) return query; // fallback to raw query
+  if (!process.env.GROQ_API_KEY) return query;
 
   try {
     const keywords = (
@@ -105,93 +180,59 @@ Examples:
   return query; // fallback to original
 }
 
-async function searchOpenLibrary(query: string): Promise<ResearchSource[]> {
-  try {
-    const params = new URLSearchParams({ q: query, limit: "5" });
-    const res = await fetch(`https://openlibrary.org/search.json?${params}`, { cache: "no-store" });
-    if (!res.ok) return [];
-
-    const data = await res.json();
-    return (data.docs ?? []).slice(0, 5).map((doc: Record<string, unknown>) => ({
-      title: doc.title as string,
-      authors: (doc.author_name as string[]) ?? [],
-      year: (doc.first_publish_year as number) ?? null,
-      url: `https://openlibrary.org${doc.key as string}`,
-      snippet: (doc.subject as string[])?.slice(0, 8).join(", ") ?? "No description available",
-      type: "book" as const,
-    }));
-  } catch {
-    return [];
-  }
-}
-
-async function searchWikipedia(query: string): Promise<ResearchSource[]> {
-  try {
-    const params = new URLSearchParams({
-      action: "query",
-      list: "search",
-      srsearch: query,
-      srlimit: "3",
-      format: "json",
-      origin: "*",
-    });
-    const res = await fetch(`https://en.wikipedia.org/w/api.php?${params}`, { cache: "no-store" });
-    if (!res.ok) return [];
-
-    const data = await res.json();
-    return (data.query?.search ?? []).map((item: Record<string, unknown>) => ({
-      title: item.title as string,
-      authors: ["Wikipedia contributors"],
-      year: null,
-      url: `https://en.wikipedia.org/wiki/${encodeURIComponent((item.title as string).replace(/ /g, "_"))}`,
-      snippet: (item.snippet as string)?.replace(/<[^>]*>/g, "") ?? "",
-      type: "wiki" as const,
-    }));
-  } catch {
-    return [];
-  }
-}
-
 async function synthesizeResearch(
   query: string,
-  sourcesContext: string
+  sources: ResearchSource[]
 ): Promise<{ answer?: string; suggestedCards?: { front: string; back: string }[]; error?: string }> {
   if (!hasLLMProvider()) return { error: "No AI key configured" };
 
-  const systemPrompt = `You are a deep research assistant for university students. The user needs a THOROUGH, COMPREHENSIVE research report — not a short summary.
+  // Build a numbered source list from the retrieved abstracts.
+  const sourcesContext = sources
+    .map(
+      (s, i) =>
+        `[${i + 1}] "${s.title}"` +
+        (s.authors.length > 0 ? ` by ${s.authors.slice(0, 3).join(", ")}` : "") +
+        (s.year ? ` (${s.year})` : "") +
+        (s.doi ? ` DOI:${s.doi}` : "") +
+        `\n   ${s.snippet}`
+    )
+    .join("\n\n");
 
-Your job:
-1. Write a DETAILED research report (8-12 paragraphs minimum, 1500+ words) that deeply explores the topic.
-2. Structure it with clear sections: Background/Context, Key Theories & Research, Practical Applications, Critical Analysis, and Conclusion.
-3. Include: specific researchers/authors, dates, study findings, statistics, named theories, historical context, contrasting viewpoints, and real-world examples.
-4. Use the provided sources where relevant (cite as [1], [2] etc.), but supplement heavily with your own expert knowledge.
-5. Generate 6-10 detailed flashcard Q/A pairs covering the most important facts, theories, and definitions from the report.
+  // Grounded synthesis prompt (spec Req 5.2, 5.4):
+  // - Citations must map to numbered sources above.
+  // - Any claim NOT found in the abstracts must be visibly labeled.
+  const systemPrompt = `You are a research assistant helping a university student. You have retrieved the following academic sources for their question.
 
-QUALITY STANDARDS:
-- This should read like a university-level literature review, NOT a blog post.
-- Include specific names, dates, numbers, study results wherever possible.
-- Present multiple perspectives and debates within the field.
-- Mention key books, papers, or thinkers that are foundational to this topic.
-- If there are formulas, models, or frameworks, include them.
-- Be intellectually rigorous but clear.
+RETRIEVED SOURCES (numbered):
+${sourcesContext}
 
-Respond ONLY with valid JSON (use \\n for newlines inside strings, NOT actual newlines):
-{"answer":"Your comprehensive research report here with [1] [2] citations where relevant...","suggestedCards":[{"front":"Specific question testing a key concept?","back":"Detailed answer with facts, names, dates"}]}`;
+YOUR TASK:
+1. Write a thorough research summary (6–10 paragraphs) that answers the student's question.
+2. Every factual claim MUST cite a retrieved source using its number [1], [2], etc.
+3. If you include knowledge not found in the above abstracts, you MUST label it explicitly:
+   "Note (model knowledge, unverified by sources): ..."
+4. Do NOT emit a citation number [N] unless it maps to one of the numbered sources above.
+5. Synthesise across sources — identify agreements, disagreements, and gaps.
+6. Generate 4–8 flashcard Q/A pairs covering the key findings from the sources.
 
-  const userMessage = `Research question: "${query}"\n\nSources found:\n${sourcesContext}`;
+IMPORTANT: If the sources do not cover the question well, say so explicitly rather than inventing citations.
+
+Respond ONLY with valid JSON (use \\n for newlines inside strings):
+{"answer":"...","suggestedCards":[{"front":"...","back":"..."}]}`;
+
+  const userMessage = `Research question: "${query}"`;
 
   try {
     const content = await callLLM({
       system: systemPrompt,
       user: userMessage,
-      temperature: 0.5,
+      temperature: 0.4,
       maxTokens: 4096,
       groqTimeoutMs: 45000,
       openRouterTimeoutMs: 45000,
     });
 
     if (!content.trim()) return { error: "AI synthesis failed" };
-
     return parseSynthesisResponse(content);
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Research failed";
@@ -256,6 +297,8 @@ export async function saveSource(
     citation_count: 0,
     abstract: source.snippet,
     url: source.url,
+    doi: source.doi ?? null,
+    oa_url: source.oaPdfUrl ?? null,
     semantic_scholar_id: null,
   });
 
@@ -266,6 +309,122 @@ export async function saveSource(
 
   revalidatePath("/app/research");
   return { success: true };
+}
+
+/**
+ * Ingests an open-access PDF for a DOI via Unpaywall, feeding it into
+ * the existing Paper RAG pipeline (`ingestFromUrl`). (spec Req 5.6)
+ *
+ * Flow:
+ *   1. Look up the DOI with Unpaywall to get `best_oa_location.url_for_pdf`.
+ *   2. Run SSRF guard on the PDF URL before downloading.
+ *   3. Call the existing `ingestFromUrl` pipeline (parse → chunk → embed).
+ *   4. Optionally link the ingested paper to a known paper record and topic.
+ *
+ * Gracefully returns an error when:
+ *   - Unpaywall has no OA PDF for this DOI.
+ *   - `ACADEMIC_API_EMAIL` is not configured (Req 8.5).
+ *   - The PDF URL resolves to a private/metadata address (SSRF guard).
+ */
+export async function ingestOpenAccessPdf(
+  doi: string,
+  options: {
+    /** Existing `papers.id` to update in-place (from a prior `saveSource` call). */
+    existingPaperId?: string;
+    /** Associate the new paper record with a topic. */
+    topicId?: string;
+    /** Override title for the paper record (from the research source). */
+    title?: string;
+    /** Authors array. */
+    authors?: string[];
+    /** Publication year. */
+    year?: number | null;
+  } = {}
+): Promise<{ data?: { paperId: string; status: string }; error?: string }> {
+  const trimmedDoi = doi?.trim();
+  if (!trimmedDoi || !trimmedDoi.startsWith("10.")) {
+    return { error: "A valid DOI is required (must start with '10.')." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
+
+  // 1. Resolve OA PDF URL from Unpaywall (email from env; null = not configured).
+  const { lookupUnpaywall } = await import("@/lib/academic-search/unpaywall");
+  const oaResult = await lookupUnpaywall(trimmedDoi);
+
+  if (!oaResult) {
+    return {
+      error:
+        "Unpaywall lookup failed or ACADEMIC_API_EMAIL is not configured. " +
+        "Set it in your .env to enable open-access PDF ingestion.",
+    };
+  }
+  if (!oaResult.isOa || !oaResult.bestOaLocation?.urlForPdf) {
+    return {
+      error:
+        `No open-access PDF found for DOI "${trimmedDoi}". ` +
+        "This paper may not be freely available.",
+    };
+  }
+
+  const pdfUrl = oaResult.bestOaLocation.urlForPdf;
+
+  // 2. SSRF guard — the OA PDF URL comes from an external API; validate it.
+  const { assertPublicHttpUrl } = await import("@/lib/ssrf");
+  const ssrfCheck = await assertPublicHttpUrl(pdfUrl);
+  if (!ssrfCheck.ok) {
+    return { error: `OA PDF URL is not safe to download: ${ssrfCheck.error}` };
+  }
+
+  // 3. If we don't already have a paper record, create one with the known
+  //    metadata so the ingested paper has a proper title from the start.
+  let paperId: string | undefined = options.existingPaperId;
+
+  if (!paperId) {
+    const title = options.title ?? oaResult.title ?? trimmedDoi;
+    const { data: created, error: insertError } = await supabase
+      .from("papers")
+      .insert({
+        user_id: user.id,
+        title,
+        authors: options.authors ?? [],
+        year: options.year ?? null,
+        url: oaResult.bestOaLocation.url ?? pdfUrl,
+        doi: trimmedDoi,
+        oa_url: pdfUrl,
+        topic_id: options.topicId ?? null,
+        parse_status: "pending",
+      })
+      .select("id")
+      .single();
+
+    if (insertError) {
+      // Duplicate DOI — find the existing record and re-ingest it.
+      if (insertError.code === "23505") {
+        const { data: existing } = await supabase
+          .from("papers")
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("doi", trimmedDoi)
+          .single();
+        paperId = existing?.id;
+      } else {
+        return { error: `Failed to create paper record: ${insertError.message}` };
+      }
+    } else {
+      paperId = created?.id;
+    }
+  }
+
+  // 4. Ingest from the validated OA PDF URL using the existing pipeline.
+  const { ingestFromUrl } = await import(
+    "@/app/(protected)/app/_actions/rag"
+  );
+  return ingestFromUrl(pdfUrl, paperId);
 }
 
 /**

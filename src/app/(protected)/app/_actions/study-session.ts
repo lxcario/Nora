@@ -1,6 +1,9 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { buildQueue, type QueueCardInput, type TopicMeta } from "@/lib/study-mix";
+import { endOfUserLocalDay } from "@/lib/due";
+import type { MaterialType } from "@/lib/material-type";
 
 export type StudyItemType = "flashcard" | "feynman_prompt" | "rag_question";
 
@@ -9,26 +12,24 @@ export interface StudyItem {
   type: StudyItemType;
   subject: string;
   topic: string;
-  // For flashcards
   cardId?: string;
   front?: string;
   back?: string;
-  // For feynman prompts
   topicId?: string;
   prompt?: string;
-  // For rag questions
   paperId?: string;
   question?: string;
   paperTitle?: string;
 }
 
 /**
- * Generates an interleaved study queue combining:
- * - Due flashcards (SM-2 review queue)
- * - Feynman explanation prompts (topics not explained recently)
- * - RAG research questions (from indexed papers)
+ * Generates an evidence-based study queue (spec Req 4.1–4.6):
+ *   • Flashcards: ordered by buildQueue (vocab blocked, non-vocab interleaved
+ *     by subject + weakness signal).
+ *   • Feynman prompts: topics not explained in the last 7 days.
+ *   • RAG questions: from indexed papers.
  *
- * Items are interleaved to create "desirable difficulty" across modalities.
+ * Queue size scales to the actual due-card load (Req 4.5).
  */
 export async function generateStudyQueue(): Promise<{
   queue: StudyItem[];
@@ -40,22 +41,101 @@ export async function generateStudyQueue(): Promise<{
   } = await supabase.auth.getUser();
   if (!user) return { queue: [], error: "Not authenticated" };
 
-  const today = new Date().toISOString().split("T")[0];
+  // Timezone-aware "due today" cutoff (same logic as getDueCards).
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("timezone")
+    .eq("id", user.id)
+    .single();
+  const tz = profile?.timezone ?? "UTC";
+  const now = new Date();
+  const today = now.toISOString().split("T")[0];
+  const cutoff = endOfUserLocalDay(now, tz);
+
+  // ── 1. Fetch due flashcards (FSRS + SM-2 fallback, scale to due load) ──────
+  const { data: dueCardRows } = await supabase
+    .from("cards")
+    .select("id, front, back, difficulty, topics(id, name, subject_id, material_type, subjects(name))")
+    .eq("user_id", user.id)
+    .lte("due", cutoff.toISOString())
+    .order("due", { ascending: true })
+    .limit(50);
+
+  // ── 2. Get latest Feynman score per topic (weakness signal) ────────────────
+  const { data: feynmanRows } = await supabase
+    .from("feynman_explanations")
+    .select("topic_id, score")
+    .eq("user_id", user.id)
+    .not("score", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(100);
+
+  const latestFeynmanScore = new Map<string, number>();
+  for (const row of feynmanRows ?? []) {
+    if (!latestFeynmanScore.has(row.topic_id) && typeof row.score === "number") {
+      latestFeynmanScore.set(row.topic_id, row.score);
+    }
+  }
+
+  // ── 3. Build the evidence-based flashcard queue via buildQueue ─────────────
+  type TopicRaw = {
+    id: string;
+    name: string;
+    subject_id: string;
+    material_type: string;
+    subjects: { name: string } | null;
+  };
+
+  const cardInputs: QueueCardInput[] = (dueCardRows ?? []).map((c) => {
+    const t = c.topics as unknown as TopicRaw | null;
+    return { id: c.id, topicId: t?.id ?? "", difficulty: c.difficulty as number | null };
+  });
+
+  const topicMetaMap = new Map<string, TopicMeta>();
+  for (const c of dueCardRows ?? []) {
+    const t = c.topics as unknown as TopicRaw | null;
+    if (t && !topicMetaMap.has(t.id)) {
+      topicMetaMap.set(t.id, {
+        id: t.id,
+        subjectId: t.subject_id,
+        materialType: (t.material_type as MaterialType) ?? "conceptual",
+        feynmanScore: latestFeynmanScore.get(t.id) ?? null,
+      });
+    }
+  }
+
+  const orderedCards = buildQueue({
+    dueCards: cardInputs,
+    topics: [...topicMetaMap.values()],
+  });
+
+  // Rebuild a lookup map so we can reconstruct the full card row by id.
+  const cardRowById = new Map(
+    (dueCardRows ?? []).map((c) => [c.id, c])
+  );
+
+  const flashcardItems: StudyItem[] = orderedCards
+    .map((qc) => {
+      const c = cardRowById.get(qc.id);
+      if (!c) return null;
+      const t = c.topics as unknown as TopicRaw | null;
+      const item: StudyItem = {
+        id: `card-${c.id}`,
+        type: "flashcard",
+        subject: t?.subjects?.name ?? "General",
+        topic: t?.name ?? "Uncategorized",
+        cardId: c.id,
+        front: c.front,
+        back: c.back,
+      };
+      return item;
+    })
+    .filter((x): x is StudyItem => x !== null);
+
+  // ── 4. Feynman prompts (topics stale > 7 days) ─────────────────────────────
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-  const sevenDaysAgoISO = sevenDaysAgo.toISOString();
 
-  // 1. Fetch up to 5 due cards
-  const { data: dueCards } = await supabase
-    .from("cards")
-    .select("id, front, back, topics(id, name, subjects(name))")
-    .eq("user_id", user.id)
-    .lte("next_review_at", today)
-    .order("next_review_at", { ascending: true })
-    .limit(5);
-
-  // 2. Fetch up to 3 topics without a recent Feynman explanation (last 7 days)
-  // First get all user topics, then filter out those with recent explanations
   const { data: allTopics } = await supabase
     .from("topics")
     .select("id, name, subjects(name)")
@@ -65,17 +145,26 @@ export async function generateStudyQueue(): Promise<{
     .from("feynman_explanations")
     .select("topic_id")
     .eq("user_id", user.id)
-    .gte("created_at", sevenDaysAgoISO);
+    .gte("created_at", sevenDaysAgo.toISOString());
 
-  const recentTopicIds = new Set(
-    (recentExplanations ?? []).map((e) => e.topic_id)
-  );
+  const recentTopicIds = new Set((recentExplanations ?? []).map((e) => e.topic_id));
 
-  const staleTopics = (allTopics ?? [])
+  const feynmanItems: StudyItem[] = (allTopics ?? [])
     .filter((t) => !recentTopicIds.has(t.id))
-    .slice(0, 3);
+    .slice(0, 3)
+    .map((t) => {
+      const subject = t.subjects as unknown as { name: string } | null;
+      return {
+        id: `feynman-${t.id}`,
+        type: "feynman_prompt" as const,
+        subject: subject?.name ?? "General",
+        topic: t.name,
+        topicId: t.id,
+        prompt: `Explain "${t.name}" in your own words as if teaching someone new to the subject.`,
+      };
+    });
 
-  // 3. Fetch up to 2 papers with parse_status = 'ready' for RAG questions
+  // ── 5. RAG questions ───────────────────────────────────────────────────────
   const { data: readyPapers } = await supabase
     .from("papers")
     .select("id, title, abstract, topics(name, subjects(name))")
@@ -83,42 +172,11 @@ export async function generateStudyQueue(): Promise<{
     .eq("parse_status", "ready")
     .limit(2);
 
-  // Build items for each type
-  const flashcardItems: StudyItem[] = (dueCards ?? []).map((card) => {
-    const topic = card.topics as unknown as {
-      id: string;
-      name: string;
-      subjects: { name: string } | null;
-    } | null;
-    return {
-      id: `card-${card.id}`,
-      type: "flashcard" as const,
-      subject: topic?.subjects?.name ?? "General",
-      topic: topic?.name ?? "Uncategorized",
-      cardId: card.id,
-      front: card.front,
-      back: card.back,
-    };
-  });
-
-  const feynmanItems: StudyItem[] = staleTopics.map((t) => {
-    const subject = t.subjects as unknown as { name: string } | null;
-    return {
-      id: `feynman-${t.id}`,
-      type: "feynman_prompt" as const,
-      subject: subject?.name ?? "General",
-      topic: t.name,
-      topicId: t.id,
-      prompt: `Explain "${t.name}" in your own words as if teaching someone new to the subject.`,
-    };
-  });
-
   const ragItems: StudyItem[] = (readyPapers ?? []).map((paper) => {
     const topic = paper.topics as unknown as {
       name: string;
       subjects: { name: string } | null;
     } | null;
-    // Generate a question from the paper's abstract/title
     const question = paper.abstract
       ? `Based on "${paper.title}", what are the key findings or arguments presented?`
       : `What can you learn from the paper "${paper.title}"?`;
@@ -133,39 +191,30 @@ export async function generateStudyQueue(): Promise<{
     };
   });
 
-  // Interleave: card, feynman, card, rag, card, feynman, card, rag, card, feynman
+  // ── 6. Interleave flashcards (evidence-ordered) with Feynman + RAG ─────────
   const queue: StudyItem[] = [];
-  let cardIdx = 0;
-  let feynmanIdx = 0;
-  let ragIdx = 0;
-
+  let fi = 0, ri = 0;
   const pattern: StudyItemType[] = [
-    "flashcard",
-    "feynman_prompt",
-    "flashcard",
-    "rag_question",
-    "flashcard",
-    "feynman_prompt",
-    "flashcard",
-    "rag_question",
-    "flashcard",
-    "feynman_prompt",
+    "flashcard", "feynman_prompt", "flashcard", "rag_question",
+    "flashcard", "feynman_prompt", "flashcard", "rag_question",
+    "flashcard", "feynman_prompt",
   ];
 
+  let flashIdx = 0;
   for (const type of pattern) {
-    if (type === "flashcard" && cardIdx < flashcardItems.length) {
-      queue.push(flashcardItems[cardIdx++]);
-    } else if (type === "feynman_prompt" && feynmanIdx < feynmanItems.length) {
-      queue.push(feynmanItems[feynmanIdx++]);
-    } else if (type === "rag_question" && ragIdx < ragItems.length) {
-      queue.push(ragItems[ragIdx++]);
+    if (type === "flashcard" && flashIdx < flashcardItems.length) {
+      queue.push(flashcardItems[flashIdx++]);
+    } else if (type === "feynman_prompt" && fi < feynmanItems.length) {
+      queue.push(feynmanItems[fi++]);
+    } else if (type === "rag_question" && ri < ragItems.length) {
+      queue.push(ragItems[ri++]);
     }
   }
 
-  // Append any remaining items that didn't fit the pattern
-  while (cardIdx < flashcardItems.length) queue.push(flashcardItems[cardIdx++]);
-  while (feynmanIdx < feynmanItems.length) queue.push(feynmanItems[feynmanIdx++]);
-  while (ragIdx < ragItems.length) queue.push(ragItems[ragIdx++]);
+  // Append remaining items that didn't fit the pattern.
+  while (flashIdx < flashcardItems.length) queue.push(flashcardItems[flashIdx++]);
+  while (fi < feynmanItems.length) queue.push(feynmanItems[fi++]);
+  while (ri < ragItems.length) queue.push(ragItems[ri++]);
 
   return { queue };
 }

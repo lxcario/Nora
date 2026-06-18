@@ -985,3 +985,67 @@ src/components/pixel-ui/pixel-button.tsx (forwardRef support)
 ---
 
 *Session ended June 18, 2026.*
+
+
+---
+
+# Session — Evidence-Based Learning Core (June 18, 2026)
+
+## Overview
+
+Implemented the full `evidence-based-learning-core` spec — 20 tasks upgrading Nora's seven learning features from "correct but dated" to evidence-backed and grounded, based on `geminiresearch.md` (the pedagogical/technical audit). Worked strictly task-by-task with `npm test` + `npx tsc --noEmit` after each, plus a production `npm run build` at the end.
+
+**Final state:** 332 tests passing (22 files), 0 TypeScript errors, production build green (23 routes).
+
+## What Was Built (by phase)
+
+### Phase 1 — FSRS Scheduling Foundation (Tasks 1–5)
+- Added `ts-fsrs` (MIT, FSRS-6); `engines.node >= 20`.
+- `src/lib/fsrs.ts` — pure module: `scheduleReview`, `createNewFSRSCard`, `initFromSM2` (SM-2→FSRS backfill), re-exports `Rating`/`State`/`Grade`. Fuzz off for determinism.
+- `src/lib/due.ts` — timezone-safe `endOfUserLocalDay` / `isDueToday` via Intl (DUE-1).
+- Migration `010_fsrs_scheduling.sql` — additive FSRS columns + `idx_cards_due`.
+- `review.ts` — dual-write during transition; `getDueCards` timezone-aware.
+- `review-session.tsx` — 4-button Again/Hard/Good/Easy grading + intra-session relearning (Again re-queues).
+
+### Phase 2 — Hybrid RAG (Tasks 6–7)
+- Migration `012_hybrid_search.sql` — `match_paper_chunks_hybrid` (lexical `ts_rank_cd` + vector cosine, fused via RRF; NULL embedding → ranked lexical-only).
+- `src/lib/rrf.ts` — pure RRF mirror + `rrf.test.ts`.
+- `rag.ts#queryRag` — routes through the hybrid RPC; `validateCitations` ensures every citation resolves to a retrieved chunk (RAG-1); removed chunkIndex=0 fallback.
+
+### Phase 3 — Grounded Research Desk (Tasks 8–10)
+- `src/lib/academic-search/{openalex,crossref,unpaywall,types}.ts` — server-only clients, mailto/email from env, graceful no-key handling.
+- `research.ts` — OpenAlex (primary) + Crossref; "insufficient sources" branch; `validateResearchCitations` strips unsupported `[N]` markers (RESEARCH-1).
+- Migration `013_research_sources.sql` — `doi` + `oa_url` on papers; `ingestOpenAccessPdf` (Unpaywall → SSRF check → existing RAG pipeline).
+
+### Phase 4 — Grounded Feynman (Tasks 11–12)
+- Migration `014_feynman_source_attachment.sql` — `feynman_source_ref` JSONB on topics.
+- `feynman.ts` — source attachment actions; `evaluateExplanation` grades against retrieved passages (paper via hybrid RPC / notes / transcript), citing passage ids; "unverified" badge when no source. `src/lib/feynman-grounding.ts` pure helpers.
+
+### Phase 5 — Evidence-Aware Study Mix (Tasks 13–15)
+- Migration `011_material_type.sql` — `material_type` on topics; Settings selector.
+- `src/lib/study-mix.ts#buildQueue` — vocab blocked (MIX-1), non-vocab interleaved by subject + weakness (MIX-2); wired into `study-session.ts`.
+
+### Phase 6 — Spacing-Aware Planner (Tasks 16–18)
+- `src/lib/spacing.ts` — Cepeda ridgeline `optimalGapDays`, `examRetention`, `distributeSessions` (SPACING-1).
+- `planner.ts` — sessions distributed with expanding gaps; near-exam subjects get `request_retention` 0.95.
+- Migration `015_planner_skips.sql` + `markSessionMissed` forward-fill (`nextFreeDate`).
+
+### Phase 7 — Cleanup & Docs (Tasks 19–20)
+- Migration `016_drop_sm2_columns.sql` — drops `interval/repetition/efactor/next_review_at` after backfill; `due` made NOT NULL.
+- `review.ts` rewritten FSRS-only; SM-2 references removed from planner/room/study-session/review-session.
+- README + `.env.example` rewritten (FSRS, academic APIs, hybrid RAG, optional Docling/Ragas, full migration list).
+
+## Notable Fixes
+- **fast-check v4** requires 32-bit float bounds → `Math.fround`.
+- **FSRS new-card sentinel** (stability/difficulty 0) → relaxed migration CHECK to `>= 0`, split FSRS-2 property test.
+- **supabase-js literal selects** — string concatenation degrades to `GenericStringError`; kept select strings literal.
+- **SQL function type** — `1.0 / x` is `numeric`; cast `rrf_score` to `double precision` (012).
+- **Next.js 16 server-action rule** — `"use server"` files may export only async functions. Moved `validateResearchCitations` → `lib/research-citations.ts`, `MaterialType`/`MATERIAL_TYPE_LABELS` → `lib/material-type.ts`, `nextFreeDate` → `lib/planner-scheduling.ts`. (Caught only at build time, not by tsc.)
+
+## Migrations Added
+`010`–`016` (FSRS, material_type, hybrid_search, research_sources, feynman_source_attachment, planner_skips, drop_sm2). `016` is destructive — run after backfill verification.
+
+## SM-2 → FSRS
+`sm2.ts` retained as migration reference but no longer imported. Historical 0–5 grades in `card_reviews` preserved read-only.
+
+*Session ended June 18, 2026.*

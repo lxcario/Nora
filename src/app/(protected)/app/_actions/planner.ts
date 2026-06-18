@@ -10,6 +10,13 @@ import {
   type LoadEvent,
   type LoadPhase,
 } from "@/lib/academic/academic-load";
+import {
+  distributeSessions,
+  examRetention,
+  NEAR_EXAM_THRESHOLD_DAYS,
+} from "@/lib/spacing";
+import { endOfUserLocalDay } from "@/lib/due";
+import { nextFreeDate } from "@/lib/planner-scheduling";
 
 export interface PlannedSession {
   id?: string;
@@ -21,6 +28,12 @@ export interface PlannedSession {
   date: string; // YYYY-MM-DD
   duration_minutes: number | null;
   completed: boolean;
+  /**
+   * FSRS request_retention override for near-exam sessions (spec Req 7.3).
+   * Present only on auto-generated suggestions; undefined for completed sessions.
+   * When present, the review flow should use this retention instead of the default.
+   */
+  requestRetention?: number;
 }
 
 /** A confirmed academic deadline surfaced in the planner (Requirement 13.1, 13.2). */
@@ -97,6 +110,16 @@ export async function getWeeklyPlan(weekOffset = 0): Promise<{
 
   const weekStart = monday.toISOString().split("T")[0];
   const weekEnd = sunday.toISOString().split("T")[0];
+  const todayStr = today.toISOString().split("T")[0];
+
+  // Timezone-aware due cutoff for FSRS (spec Req 2.3, 2.4).
+  const { data: plannerProfile } = await supabase
+    .from("profiles")
+    .select("timezone")
+    .eq("id", user.id)
+    .single();
+  const plannerTz = plannerProfile?.timezone ?? "UTC";
+  const cutoff = endOfUserLocalDay(today, plannerTz);
 
   // Fetch actual completed sessions for this week
   const { data: completedSessions } = await supabase
@@ -114,13 +137,12 @@ export async function getWeeklyPlan(weekOffset = 0): Promise<{
     .eq("user_id", user.id)
     .order("exam_date", { ascending: true });
 
-  // Fetch due card counts per topic
-  const todayStr = today.toISOString().split("T")[0];
+  // Fetch due card counts per topic (FSRS-only, timezone-aware)
   const { data: dueCards } = await supabase
     .from("cards")
     .select("topic_id")
     .eq("user_id", user.id)
-    .lte("next_review_at", todayStr);
+    .lte("due", cutoff.toISOString());
 
   // Build completed sessions list
   const sessions: PlannedSession[] = (completedSessions ?? []).map((s) => {
@@ -138,8 +160,8 @@ export async function getWeeklyPlan(weekOffset = 0): Promise<{
     };
   });
 
-  // Auto-generate suggested sessions for days without activity
-  // Simple spacing: suggest review if cards are due, suggest feynman for topics with upcoming exams
+  // Auto-generate suggested sessions distributed across the week using
+  // the Cepeda et al. 2008 spacing ridgeline (spec Req 7.1, 7.2, 7.3).
   const dueByTopic = new Map<string, number>();
   (dueCards ?? []).forEach((c) => {
     if (c.topic_id) {
@@ -149,48 +171,137 @@ export async function getWeeklyPlan(weekOffset = 0): Promise<{
 
   const sessionsDateSet = new Set(sessions.map((s) => s.date));
 
-  (topics ?? []).forEach((topic) => {
+  // Build per-topic schedule inputs for distributeSessions.
+  // Include topics that have due cards OR an upcoming exam.
+  const scheduleInputs = (topics ?? [])
+    .map((topic) => {
+      const daysUntilExam =
+        topic.exam_date
+          ? Math.ceil(
+              (new Date(topic.exam_date).getTime() - today.getTime()) /
+                (1000 * 60 * 60 * 24)
+            )
+          : null;
+      return { topicId: topic.id, daysUntilExam };
+    })
+    .filter(({ topicId, daysUntilExam }) => {
+      const hasDue = (dueByTopic.get(topicId) ?? 0) > 0;
+      const examSoon =
+        daysUntilExam !== null && daysUntilExam > 0 && daysUntilExam <= 90;
+      return hasDue || examSoon;
+    });
+
+  // Days remaining until the end of the displayed week (≥ 1).
+  const daysToWeekEnd = Math.max(
+    1,
+    Math.ceil(
+      (new Date(weekEnd + "T23:59:59").getTime() - today.getTime()) /
+        (1000 * 60 * 60 * 24)
+    )
+  );
+
+  const spacedDates = distributeSessions(scheduleInputs, today, daysToWeekEnd);
+
+  // Build a lookup from topicId → topic row for quick rendering.
+  const topicById = new Map(
+    (topics ?? []).map((t) => [t.id, t])
+  );
+
+  for (const { topicId, date, requestRetention } of spacedDates) {
+    // Only suggest within the displayed week; skip dates already occupied.
+    if (date < weekStart || date > weekEnd) continue;
+    if (sessionsDateSet.has(date)) continue;
+
+    const topic = topicById.get(topicId);
+    if (!topic) continue;
     const topicData = topic.subjects as unknown as { name: string; color: string } | null;
-    const dueCount = dueByTopic.get(topic.id) ?? 0;
+    const dueCount = dueByTopic.get(topicId) ?? 0;
+    const daysUntilExam =
+      topic.exam_date
+        ? Math.ceil(
+            (new Date(topic.exam_date).getTime() - today.getTime()) /
+              (1000 * 60 * 60 * 24)
+          )
+        : null;
 
-    // Suggest review sessions for topics with due cards
-    if (dueCount > 0 && !sessionsDateSet.has(todayStr) && todayStr >= weekStart && todayStr <= weekEnd) {
-      sessions.push({
-        topic_id: topic.id,
-        topic_name: topic.name,
-        subject_name: topicData?.name ?? "",
-        subject_color: topicData?.color ?? "#6366f1",
-        mode: "review",
-        date: todayStr,
-        duration_minutes: Math.min(dueCount * 2, 30), // ~2 min per card, max 30
-        completed: false,
-      });
-    }
+    // Mode: Feynman near the exam, review when cards are due.
+    const mode: PlannedSession["mode"] =
+      daysUntilExam !== null && daysUntilExam <= NEAR_EXAM_THRESHOLD_DAYS && dueCount === 0
+        ? "feynman"
+        : "review";
 
-    // If exam is within 14 days, suggest a Feynman session
-    if (topic.exam_date) {
-      const examDate = new Date(topic.exam_date);
-      const daysUntilExam = Math.ceil((examDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-      if (daysUntilExam > 0 && daysUntilExam <= 14) {
-        // Suggest on a day 3 days from now if in this week
-        const suggestDate = new Date(today);
-        suggestDate.setDate(today.getDate() + Math.min(3, daysUntilExam - 1));
-        const suggestStr = suggestDate.toISOString().split("T")[0];
-        if (suggestStr >= weekStart && suggestStr <= weekEnd && !sessionsDateSet.has(suggestStr)) {
-          sessions.push({
-            topic_id: topic.id,
-            topic_name: topic.name,
-            subject_name: topicData?.name ?? "",
-            subject_color: topicData?.color ?? "#6366f1",
-            mode: "feynman",
-            date: suggestStr,
-            duration_minutes: 20,
-            completed: false,
-          });
-        }
-      }
-    }
+    sessions.push({
+      topic_id: topicId,
+      topic_name: topic.name,
+      subject_name: topicData?.name ?? "",
+      subject_color: topicData?.color ?? "#6366f1",
+      mode,
+      date,
+      duration_minutes:
+        mode === "review"
+          ? Math.min(Math.max(dueCount, 1) * 2, 45)
+          : 20,
+      completed: false,
+      requestRetention,
+    });
+    sessionsDateSet.add(date);
+  }
+
+  // ── Incorporate planner skips (spec Req 7.4) ──────────────────────────────
+  // Read skips from the last 30 days so rescheduled sessions re-surface even
+  // if the original date falls outside the current week view.
+  const { data: skipRows } = await supabase
+    .from("planner_skips")
+    .select("topic_id, original_date, reschedule_date")
+    .eq("user_id", user.id)
+    .gte("original_date", new Date(today.getTime() - 30 * 86_400_000).toISOString().split("T")[0]);
+
+  const skippedPairs = new Set<string>(
+    (skipRows ?? []).map((r) => `${r.topic_id}:${r.original_date}`)
+  );
+  const rescheduledPairs = new Map<string, string>(
+    (skipRows ?? [])
+      .filter((r) => r.reschedule_date)
+      .map((r) => [`${r.topic_id}:${r.reschedule_date}`, r.topic_id])
+  );
+
+  // Filter auto-generated suggestions: drop skipped dates, add rescheduled ones.
+  const filteredSessions = sessions.filter((s) => {
+    if (s.id) return true; // completed (DB row) — never filtered
+    return !skippedPairs.has(`${s.topic_id}:${s.date}`);
   });
+
+  // Add rescheduled sessions (they may land on a different week).
+  for (const [pair, topicId] of rescheduledPairs) {
+    const reschDate = pair.split(":")[1];
+    if (reschDate < weekStart || reschDate > weekEnd) continue;
+    if (filteredSessions.some((s) => s.topic_id === topicId && s.date === reschDate)) continue;
+
+    const topic = topicById.get(topicId);
+    if (!topic) continue;
+    const td = topic.subjects as unknown as { name: string; color: string } | null;
+    const dueCount = dueByTopic.get(topicId) ?? 0;
+    const daysUntilExam = topic.exam_date
+      ? Math.ceil((new Date(topic.exam_date).getTime() - today.getTime()) / 86_400_000)
+      : null;
+
+    filteredSessions.push({
+      topic_id: topicId,
+      topic_name: topic.name,
+      subject_name: td?.name ?? "",
+      subject_color: td?.color ?? "#6366f1",
+      mode: daysUntilExam !== null && daysUntilExam <= NEAR_EXAM_THRESHOLD_DAYS && dueCount === 0
+        ? "feynman" : "review",
+      date: reschDate,
+      duration_minutes: Math.min(Math.max(dueCount, 1) * 2, 45),
+      completed: false,
+      requestRetention: examRetention(daysUntilExam),
+    });
+  }
+
+  // Replace sessions array with the filtered + rescheduled set.
+  sessions.length = 0;
+  sessions.push(...filteredSessions);
 
   // Sort by date
   sessions.sort((a, b) => a.date.localeCompare(b.date));
@@ -362,4 +473,78 @@ export async function completeSession(
   revalidatePath("/app/planner");
   revalidatePath("/app/analytics");
   return { success: true };
+}
+
+/**
+ * Marks a planner-suggested session as missed and reschedules it forward
+ * to the next free day (spec Req 7.4).
+ *
+ * "Forward-fill" algorithm:
+ *   1. Collect all existing study_session dates for this topic.
+ *   2. Collect all already-rescheduled skip dates for this topic.
+ *   3. Find the first day after `originalDate` not in either set.
+ *   4. Persist the skip record with the computed reschedule date.
+ *
+ * This ensures missed sessions are rescheduled one-by-one without all
+ * landing on the same next day (no compression).
+ *
+ * Returns `rescheduledTo` (YYYY-MM-DD) or `null` when no free slot was
+ * found within a 14-day lookahead.
+ */
+export async function markSessionMissed(
+  topicId: string,
+  originalDate: string // YYYY-MM-DD
+): Promise<{ rescheduledTo?: string | null; error?: string }> {
+  if (!topicId || !originalDate) {
+    return { error: "topicId and originalDate are required." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
+
+  // Gather occupied dates for this topic to avoid compression.
+  // 1. Dates of existing study sessions for this topic.
+  const { data: existingSessions } = await supabase
+    .from("study_sessions")
+    .select("started_at")
+    .eq("user_id", user.id)
+    .eq("topic_id", topicId)
+    .gte("started_at", originalDate);
+
+  const occupiedDates = new Set<string>(
+    (existingSessions ?? []).map((s) =>
+      (s.started_at as string).split("T")[0]
+    )
+  );
+
+  // 2. Dates already taken by prior rescheduled skips for this topic.
+  const { data: existingSkips } = await supabase
+    .from("planner_skips")
+    .select("reschedule_date")
+    .eq("user_id", user.id)
+    .eq("topic_id", topicId)
+    .not("reschedule_date", "is", null);
+
+  for (const skip of existingSkips ?? []) {
+    if (skip.reschedule_date) occupiedDates.add(skip.reschedule_date as string);
+  }
+
+  // 3. Compute forward-fill date.
+  const rescheduledTo = nextFreeDate(originalDate, occupiedDates);
+
+  // 4. Persist the skip record.
+  const { error: insertError } = await supabase.from("planner_skips").insert({
+    user_id: user.id,
+    topic_id: topicId,
+    original_date: originalDate,
+    reschedule_date: rescheduledTo ?? null,
+  });
+
+  if (insertError) return { error: insertError.message };
+
+  revalidatePath("/app/planner");
+  return { rescheduledTo: rescheduledTo ?? null };
 }

@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { submitReview, deleteCard, type DueCard } from "@/app/(protected)/app/_actions/review";
+import { Rating, type Grade } from "@/lib/fsrs";
 import { XpToast } from "@/app/(protected)/app/_components/xp-toast";
 import { SuccessCheck } from "@/app/(protected)/app/_components/success-check";
 import { playSessionComplete } from "@/lib/sfx";
@@ -14,21 +15,48 @@ import {
 } from "@/components/pixel-ui";
 
 // ---------------------------------------------------------------------------
-// Grade button config — pixel theme colors
+// 4-button FSRS grade config (spec Req 2.1)
 // ---------------------------------------------------------------------------
 
-const GRADE_LABELS: {
-  grade: number;
+interface GradeButton {
+  rating: Grade;
   label: string;
+  sublabel: string;
   color: string;
-}[] = [
-  { grade: 0, label: "Blackout", color: "var(--pixel-error)" },
-  { grade: 1, label: "Wrong", color: "color-mix(in srgb, var(--pixel-error) 85%, var(--pixel-bg-primary))" },
-  { grade: 2, label: "Hard", color: "var(--pixel-warning)" },
-  { grade: 3, label: "OK", color: "var(--pixel-accent)" },
-  { grade: 4, label: "Good", color: "color-mix(in srgb, var(--pixel-success) 85%, var(--pixel-bg-primary))" },
-  { grade: 5, label: "Easy", color: "var(--pixel-success)" },
+}
+
+const FSRS_GRADES: GradeButton[] = [
+  {
+    rating: Rating.Again,
+    label: "Again",
+    sublabel: "Forgot",
+    color: "var(--pixel-error)",
+  },
+  {
+    rating: Rating.Hard,
+    label: "Hard",
+    sublabel: "Struggled",
+    color: "var(--pixel-warning)",
+  },
+  {
+    rating: Rating.Good,
+    label: "Good",
+    sublabel: "Recalled",
+    color: "var(--pixel-accent)",
+  },
+  {
+    rating: Rating.Easy,
+    label: "Easy",
+    sublabel: "Perfect",
+    color: "var(--pixel-success)",
+  },
 ];
+
+// ---------------------------------------------------------------------------
+// FSRS state label for the card meta strip
+// ---------------------------------------------------------------------------
+
+const FSRS_STATE_LABEL = ["New", "Learning", "Review", "Relearning"] as const;
 
 // ---------------------------------------------------------------------------
 // ReviewSession
@@ -36,12 +64,15 @@ const GRADE_LABELS: {
 
 export function ReviewSession({ initialCards }: { initialCards: DueCard[] }) {
   const router = useRouter();
-  const [cards] = useState(initialCards);
+
+  // Mutable queue so Again can re-append the card (spec Req 2.2).
+  const [queue, setQueue] = useState<DueCard[]>(initialCards);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [reviewedCount, setReviewedCount] = useState(0);
   const [sessionComplete, setSessionComplete] = useState(false);
+  const [requeuedIds, setRequeuedIds] = useState<Set<string>>(new Set());
 
   // Confirm delete state
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -50,32 +81,47 @@ export function ReviewSession({ initialCards }: { initialCards: DueCard[] }) {
   const [xpToastData, setXpToastData] = useState({ xp: 0, coins: 0, visible: false });
   const [showComplete, setShowComplete] = useState(false);
 
-  const currentCard = cards[currentIndex];
-  const totalCards = cards.length;
+  // Transient "card requeued" banner for Again
+  const [showRequeued, setShowRequeued] = useState(false);
+
+  const currentCard = queue[currentIndex];
+  const totalCards = queue.length; // grows when Again re-appends
 
   function handleReveal() {
     setRevealed(true);
   }
 
-  function handleGrade(grade: number) {
+  function handleGrade(rating: Grade) {
     startTransition(async () => {
-      await submitReview(currentCard.id, grade);
+      await submitReview(currentCard.id, rating);
       setReviewedCount((c) => c + 1);
       setRevealed(false);
 
       // Show XP toast
-      const xp = grade >= 3 ? 3 : 1;
-      const coins = grade >= 3 ? 1 : 0;
+      const xp = rating !== Rating.Again ? 3 : 1;
+      const coins = rating !== Rating.Again ? 1 : 0;
       setXpToastData({ xp, coins, visible: true });
       setTimeout(() => setXpToastData((prev) => ({ ...prev, visible: false })), 100);
 
-      if (currentIndex + 1 >= totalCards) {
-        setSessionComplete(true);
-        setShowComplete(true);
-        setTimeout(() => setShowComplete(false), 100);
-        playSessionComplete();
-      } else {
+      if (rating === Rating.Again) {
+        // Intra-session relearning: re-append card to the end of the queue
+        // so it reappears before the session ends (spec Req 2.2).
+        setQueue((prev) => [...prev, currentCard]);
+        setRequeuedIds((prev) => new Set(prev).add(currentCard.id));
+        setShowRequeued(true);
+        setTimeout(() => setShowRequeued(false), 1800);
         setCurrentIndex((i) => i + 1);
+      } else {
+        // Non-lapse: advance; end session if no more cards remain.
+        const nextIndex = currentIndex + 1;
+        if (nextIndex >= totalCards) {
+          setSessionComplete(true);
+          setShowComplete(true);
+          setTimeout(() => setShowComplete(false), 100);
+          playSessionComplete();
+        } else {
+          setCurrentIndex(nextIndex);
+        }
       }
     });
   }
@@ -86,10 +132,11 @@ export function ReviewSession({ initialCards }: { initialCards: DueCard[] }) {
       await deleteCard(currentCard.id);
       setReviewedCount((c) => c + 1);
       setRevealed(false);
-      if (currentIndex + 1 >= totalCards) {
+      const nextIndex = currentIndex + 1;
+      if (nextIndex >= totalCards) {
         setSessionComplete(true);
       } else {
-        setCurrentIndex((i) => i + 1);
+        setCurrentIndex(nextIndex);
       }
     });
   }
@@ -149,6 +196,11 @@ export function ReviewSession({ initialCards }: { initialCards: DueCard[] }) {
       <div className="flex items-center justify-between">
         <span className="font-pixel text-xs" style={{ color: "var(--pixel-text-secondary)" }}>
           Card {currentIndex + 1} of {totalCards}
+          {totalCards > initialCards.length && (
+            <span style={{ color: "var(--pixel-warning)" }}>
+              {" "}(+{totalCards - initialCards.length} requeued)
+            </span>
+          )}
         </span>
         <span className="font-pixel text-xs" style={{ color: "var(--pixel-text-secondary)" }}>
           {reviewedCount} reviewed
@@ -159,6 +211,20 @@ export function ReviewSession({ initialCards }: { initialCards: DueCard[] }) {
         max={totalCards}
         variant="xp"
       />
+
+      {/* Requeued banner */}
+      {showRequeued && (
+        <div
+          className="font-pixel text-[10px] text-center py-1 px-2"
+          style={{
+            color: "var(--pixel-warning)",
+            border: "2px solid var(--pixel-warning)",
+            backgroundColor: "color-mix(in srgb, var(--pixel-warning) 12%, transparent)",
+          }}
+        >
+          Card will reappear later in this session
+        </div>
+      )}
 
       {/* Card */}
       <DialogFrame>
@@ -248,7 +314,7 @@ export function ReviewSession({ initialCards }: { initialCards: DueCard[] }) {
               </p>
             </div>
 
-            {/* Grade buttons */}
+            {/* 4-button FSRS grading (spec Req 2.1) */}
             <div className="pt-4" style={{ borderTop: "2px solid var(--pixel-border)" }}>
               <p
                 className="mb-3 text-center font-pixel text-[10px]"
@@ -256,18 +322,18 @@ export function ReviewSession({ initialCards }: { initialCards: DueCard[] }) {
               >
                 How well did you recall this?
               </p>
-              <div className="grid grid-cols-6 gap-2">
-                {GRADE_LABELS.map(({ grade, label, color }) => (
+              <div className="grid grid-cols-4 gap-2">
+                {FSRS_GRADES.map(({ rating, label, sublabel, color }) => (
                   <button
-                    key={grade}
-                    onClick={() => handleGrade(grade)}
+                    key={rating}
+                    onClick={() => handleGrade(rating)}
                     disabled={isPending}
-                    className="flex flex-col items-center gap-0.5 px-1 py-3 border-2 transition-opacity disabled:opacity-50"
+                    className="flex flex-col items-center gap-0.5 px-2 py-3 border-2 transition-opacity disabled:opacity-50"
                     style={{
                       backgroundColor: color,
                       borderColor: "var(--pixel-border)",
                       color: "#fff",
-                      minHeight: "44px",
+                      minHeight: "52px",
                       imageRendering: "pixelated",
                     }}
                   >
@@ -275,8 +341,8 @@ export function ReviewSession({ initialCards }: { initialCards: DueCard[] }) {
                       <span className="font-pixel text-xs animate-pixel-blink">...</span>
                     ) : (
                       <>
-                        <span className="font-pixel text-sm font-bold">{grade}</span>
-                        <span className="font-pixel text-[8px]">{label}</span>
+                        <span className="font-pixel text-sm font-bold">{label}</span>
+                        <span className="font-pixel text-[8px] opacity-80">{sublabel}</span>
                       </>
                     )}
                   </button>
@@ -290,7 +356,10 @@ export function ReviewSession({ initialCards }: { initialCards: DueCard[] }) {
       {/* Card meta + actions */}
       <div className="flex items-center justify-between">
         <span className="text-[10px]" style={{ color: "var(--pixel-text-muted)" }}>
-          Interval: {currentCard.interval}d · Reps: {currentCard.repetition} · EF: {currentCard.efactor}
+          {`S: ${currentCard.stability?.toFixed(1) ?? "?"}d · ` +
+            `D: ${currentCard.difficulty?.toFixed(1) ?? "?"} · ` +
+            `${FSRS_STATE_LABEL[currentCard.fsrs_state] ?? "New"}` +
+            (requeuedIds.has(currentCard.id) ? " · requeued" : "")}
         </span>
         <div className="flex items-center gap-3">
           <button

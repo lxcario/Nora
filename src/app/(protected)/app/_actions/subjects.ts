@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { MATERIAL_TYPE_LABELS, type MaterialType } from "@/lib/material-type";
 
 export async function createSubject(formData: FormData) {
   const name = formData.get("name") as string;
@@ -72,5 +73,39 @@ export async function deleteTopic(topicId: string) {
   if (error) return { error: error.message };
 
   revalidatePath("/app");
+  return { success: true };
+}
+
+/** Valid material types for Study Mix classification (spec Req 4.1). */
+/** Valid material types for Study Mix classification (spec Req 4.1). */
+
+/**
+ * Update a topic's material type.
+ * Used by the Settings → Subjects tab to let students tag each topic.
+ */
+export async function setTopicMaterialType(
+  topicId: string,
+  materialType: MaterialType
+): Promise<{ success?: boolean; error?: string }> {
+  if (!topicId) return { error: "Topic id is required." };
+  if (!Object.keys(MATERIAL_TYPE_LABELS).includes(materialType)) {
+    return { error: "Invalid material type." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
+
+  const { error } = await supabase
+    .from("topics")
+    .update({ material_type: materialType })
+    .eq("id", topicId)
+    .eq("user_id", user.id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/app/settings");
   return { success: true };
 }

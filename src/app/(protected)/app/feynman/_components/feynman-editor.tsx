@@ -5,9 +5,15 @@ import {
   evaluateExplanation,
   createCardsFromFeynman,
   getTopicScoreHistory,
+  getFeynmanSource,
+  setFeynmanSource,
+  clearFeynmanSource,
+  getIndexedPapersForSource,
   type GapAnalysis,
   type RefineContext,
   type TopicScorePoint,
+  type FeynmanSourceRef,
+  type IndexedPaperSummary,
 } from "@/app/(protected)/app/_actions/feynman";
 import { getCompletionSuggestion } from "@/app/(protected)/app/_actions/autocomplete";
 import {
@@ -27,6 +33,10 @@ import {
   TrendingUp,
   TrendingDown,
   Minus,
+  Paperclip,
+  FileText,
+  BookOpen,
+  Trash2,
 } from "lucide-react";
 import { XpToast } from "@/app/(protected)/app/_components/xp-toast";
 import { SuccessCheck } from "@/app/(protected)/app/_components/success-check";
@@ -57,6 +67,10 @@ export function FeynmanEditor({ topics }: { topics: TopicOption[] }) {
 
   // Per-topic score history (for the progress sparkline)
   const [scoreHistory, setScoreHistory] = useState<TopicScorePoint[]>([]);
+
+  // Source attachment (spec Req 3.1)
+  const [currentSource, setCurrentSource] = useState<FeynmanSourceRef | null>(null);
+  const [isLoadingSource, setIsLoadingSource] = useState(false);
 
   const loadScoreHistory = useCallback(async (topicId: string) => {
     if (!topicId) {
@@ -131,6 +145,14 @@ export function FeynmanEditor({ topics }: { topics: TopicOption[] }) {
     setScoreDelta(null);
 
     loadScoreHistory(selectedTopic);
+
+    // Load the source attachment for the newly selected topic.
+    setIsLoadingSource(true);
+    setCurrentSource(null);
+    getFeynmanSource(selectedTopic).then((src) => {
+      setCurrentSource(src);
+      setIsLoadingSource(false);
+    });
 
     if (explanation === "" && currentTopic) {
       const t = setTimeout(() => {
@@ -235,6 +257,14 @@ export function FeynmanEditor({ topics }: { topics: TopicOption[] }) {
         )}
       </DialogFrame>
 
+      {/* Source attachment (spec Req 3.1) */}
+      <SourceSection
+        topicId={selectedTopic}
+        currentSource={currentSource}
+        isLoading={isLoadingSource}
+        onSourceChange={(src) => setCurrentSource(src)}
+      />
+
       {/* Explanation editor */}
       <div ref={editorRef}>
       <DialogFrame title={isRefining ? `Refine Your Explanation (attempt ${attempt + 1})` : "Your Explanation"}>
@@ -337,6 +367,30 @@ export function FeynmanEditor({ topics }: { topics: TopicOption[] }) {
       {/* AI Feedback */}
       {analysis && (
         <div className="space-y-5">
+          {/* Grounding badge (spec Req 3.2, 3.4) */}
+          <div
+            className="flex items-center gap-2 rounded px-3 py-2 text-xs"
+            style={{
+              border: `2px solid ${analysis.grounded ? "var(--pixel-success)" : "var(--pixel-warning)"}`,
+              backgroundColor: `color-mix(in srgb, ${analysis.grounded ? "var(--pixel-success)" : "var(--pixel-warning)"} 10%, transparent)`,
+              color: analysis.grounded ? "var(--pixel-success)" : "var(--pixel-warning)",
+            }}
+          >
+            {analysis.grounded ? (
+              <CheckCircle className="h-3.5 w-3.5 shrink-0" />
+            ) : (
+              <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+            )}
+            <span>
+              {analysis.grounded ? (
+                <>Verified against {analysis.sourceLabel} — feedback cites specific source passages.</>
+              ) : (
+                <><strong>Unverified</strong> — no source attached. Feedback reflects the model&apos;s
+                  general knowledge and may contain errors. Attach a source above for grounded feedback.</>
+              )}
+            </span>
+          </div>
+
           {/* Comprehension score */}
           <ScoreCard
             score={analysis.score}
@@ -424,6 +478,279 @@ export function FeynmanEditor({ topics }: { topics: TopicOption[] }) {
   );
 }
 
+
+// ─── Source Attachment (spec Req 3.1) ───────────────────────────────────────
+
+/**
+ * Shows the current Feynman source (if any) and lets the user attach,
+ * change, or remove it. Three source types: indexed paper, pasted notes.
+ * (Video transcript support is wired in Task 12.)
+ */
+function SourceSection({
+  topicId,
+  currentSource,
+  isLoading,
+  onSourceChange,
+}: {
+  topicId: string;
+  currentSource: FeynmanSourceRef | null;
+  isLoading: boolean;
+  onSourceChange: (src: FeynmanSourceRef | null) => void;
+}) {
+  const [showPicker, setShowPicker] = useState(false);
+  const [pickerTab, setPickerTab] = useState<"paper" | "notes">("paper");
+  const [papers, setPapers] = useState<IndexedPaperSummary[]>([]);
+  const [loadingPapers, setLoadingPapers] = useState(false);
+  const [selectedPaperId, setSelectedPaperId] = useState("");
+  const [notesText, setNotesText] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [clearing, setClearing] = useState(false);
+
+  // Load indexed papers when the picker opens.
+  async function handleOpenPicker() {
+    setShowPicker(true);
+    setSelectedPaperId("");
+    setNotesText("");
+    if (papers.length === 0) {
+      setLoadingPapers(true);
+      const list = await getIndexedPapersForSource();
+      setPapers(list);
+      setLoadingPapers(false);
+    }
+  }
+
+  async function handleSave() {
+    if (pickerTab === "paper" && !selectedPaperId) return;
+    if (pickerTab === "notes" && !notesText.trim()) return;
+    setSaving(true);
+
+    let ref: FeynmanSourceRef;
+    if (pickerTab === "paper") {
+      const paper = papers.find((p) => p.id === selectedPaperId);
+      ref = { type: "paper", paperId: selectedPaperId, paperTitle: paper?.title };
+    } else {
+      ref = { type: "notes", notes: notesText.trim() };
+    }
+
+    await setFeynmanSource(topicId, ref);
+    onSourceChange(ref);
+    setShowPicker(false);
+    setSaving(false);
+  }
+
+  async function handleClear() {
+    setClearing(true);
+    await clearFeynmanSource(topicId);
+    onSourceChange(null);
+    setClearing(false);
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center gap-2 text-xs" style={{ color: "var(--pixel-text-muted)" }}>
+        <Loader2 className="h-3 w-3 animate-spin" />
+        Loading source...
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      {/* Current source badge */}
+      {currentSource ? (
+        <div
+          className="flex items-center gap-2 rounded px-3 py-2 text-sm"
+          style={{
+            border: "2px solid var(--pixel-accent)",
+            backgroundColor: "color-mix(in srgb, var(--pixel-accent) 8%, transparent)",
+          }}
+        >
+          {currentSource.type === "paper" ? (
+            <BookOpen className="h-3.5 w-3.5 shrink-0" style={{ color: "var(--pixel-accent)" }} />
+          ) : (
+            <FileText className="h-3.5 w-3.5 shrink-0" style={{ color: "var(--pixel-accent)" }} />
+          )}
+          <div className="flex-1 min-w-0">
+            <span className="font-pixel text-[9px] uppercase" style={{ color: "var(--pixel-accent)" }}>
+              {currentSource.type === "paper" ? "Paper source" : "Notes source"}
+            </span>
+            <p
+              className="truncate text-xs"
+              style={{ color: "var(--pixel-text-primary)" }}
+              title={
+                currentSource.type === "paper"
+                  ? currentSource.paperTitle
+                  : currentSource.notes?.slice(0, 80)
+              }
+            >
+              {currentSource.type === "paper"
+                ? (currentSource.paperTitle ?? "Indexed paper")
+                : `"${currentSource.notes?.slice(0, 60) ?? ""}…"`}
+            </p>
+          </div>
+          <div className="flex items-center gap-1 shrink-0">
+            <button
+              onClick={handleOpenPicker}
+              className="font-pixel text-[9px] px-1.5 py-0.5"
+              style={{ color: "var(--pixel-accent)", border: "1px solid var(--pixel-accent)" }}
+            >
+              Change
+            </button>
+            <button
+              onClick={handleClear}
+              disabled={clearing}
+              title="Remove source (switch to unverified mode)"
+              className="p-0.5"
+              style={{ color: "var(--pixel-text-muted)" }}
+            >
+              {clearing ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Trash2 className="h-3.5 w-3.5" />
+              )}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div
+          className="flex items-center gap-2 rounded px-3 py-2 text-xs"
+          style={{
+            border: "2px dashed var(--pixel-border)",
+            color: "var(--pixel-text-muted)",
+          }}
+        >
+          <Paperclip className="h-3.5 w-3.5 shrink-0" />
+          <span className="flex-1">
+            No source attached — feedback will be labeled{" "}
+            <strong>unverified</strong>.
+          </span>
+          <button
+            onClick={handleOpenPicker}
+            className="font-pixel text-[9px] px-2 py-0.5 shrink-0"
+            style={{
+              color: "var(--pixel-accent)",
+              border: "1px solid var(--pixel-accent)",
+            }}
+          >
+            Attach source
+          </button>
+        </div>
+      )}
+
+      {/* Picker panel */}
+      {showPicker && (
+        <div
+          className="mt-2 rounded p-4 space-y-3"
+          style={{
+            border: "2px solid var(--pixel-border)",
+            backgroundColor: "var(--pixel-bg-secondary)",
+          }}
+        >
+          <div className="flex items-center justify-between">
+            <span className="font-pixel text-xs" style={{ color: "var(--pixel-text-primary)" }}>
+              Attach a source
+            </span>
+            <button
+              onClick={() => setShowPicker(false)}
+              style={{ color: "var(--pixel-text-muted)" }}
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          {/* Tabs */}
+          <div className="flex gap-2">
+            {(["paper", "notes"] as const).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setPickerTab(tab)}
+                className="font-pixel text-[9px] px-2 py-1 capitalize"
+                style={{
+                  border: "2px solid",
+                  borderColor: pickerTab === tab ? "var(--pixel-accent)" : "var(--pixel-border)",
+                  color:
+                    pickerTab === tab
+                      ? "var(--pixel-accent)"
+                      : "var(--pixel-text-secondary)",
+                  backgroundColor:
+                    pickerTab === tab
+                      ? "color-mix(in srgb, var(--pixel-accent) 10%, transparent)"
+                      : "transparent",
+                }}
+              >
+                {tab === "paper" ? "Indexed paper" : "Paste notes"}
+              </button>
+            ))}
+          </div>
+
+          {/* Paper picker */}
+          {pickerTab === "paper" && (
+            <div className="space-y-2">
+              {loadingPapers ? (
+                <div className="flex items-center gap-2 text-xs" style={{ color: "var(--pixel-text-muted)" }}>
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  Loading papers…
+                </div>
+              ) : papers.length === 0 ? (
+                <p className="text-xs" style={{ color: "var(--pixel-text-muted)" }}>
+                  No indexed papers found. Upload and index a PDF in the Research Desk first.
+                </p>
+              ) : (
+                <select
+                  value={selectedPaperId}
+                  onChange={(e) => setSelectedPaperId(e.target.value)}
+                  className="w-full text-sm"
+                >
+                  <option value="">Select a paper…</option>
+                  {papers.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.title} ({p.chunkCount} chunks)
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+          )}
+
+          {/* Notes picker */}
+          {pickerTab === "notes" && (
+            <textarea
+              value={notesText}
+              onChange={(e) => setNotesText(e.target.value)}
+              rows={6}
+              placeholder="Paste your lecture notes, textbook excerpt, or key facts here…"
+              className="w-full resize-y text-sm"
+            />
+          )}
+
+          {/* Save */}
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={() => setShowPicker(false)}
+              className="font-pixel text-[9px] px-2 py-1"
+              style={{ color: "var(--pixel-text-muted)" }}
+            >
+              Cancel
+            </button>
+            <PixelButton
+              variant="primary"
+              size="small"
+              onClick={handleSave}
+              disabled={
+                saving ||
+                (pickerTab === "paper" && !selectedPaperId) ||
+                (pickerTab === "notes" && !notesText.trim())
+              }
+              loading={saving}
+            >
+              Attach
+            </PixelButton>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ─── Per-topic Progress Sparkline ───────────────────────────────────────
 

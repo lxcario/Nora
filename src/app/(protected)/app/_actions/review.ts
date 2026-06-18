@@ -1,10 +1,21 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { computeSM2 } from "@/lib/sm2";
+import {
+  scheduleReview,
+  initFromSM2,
+  Rating,
+  type Grade,
+  type FSRSCardState,
+} from "@/lib/fsrs";
+import { endOfUserLocalDay } from "@/lib/due";
 import { revalidatePath } from "next/cache";
 import { rewardAction } from "./gamification";
 import { incrementQuestProgress } from "./party-quests";
+
+// ---------------------------------------------------------------------------
+// DueCard — FSRS-only (SM-2 columns dropped in migration 016)
+// ---------------------------------------------------------------------------
 
 export interface DueCard {
   id: string;
@@ -12,16 +23,30 @@ export interface DueCard {
   back: string;
   source_type: string;
   metadata: { video_id?: string; youtube_id?: string; offset_seconds?: number } | null;
-  interval: number;
-  repetition: number;
-  efactor: number;
+  // FSRS state
+  stability: number | null;
+  difficulty: number | null;
+  /** FSRS due timestamp as ISO string. */
+  fsrs_due: string;
+  last_review: string | null;
+  reps: number;
+  lapses: number;
+  /** FSRS state code: 0=New 1=Learning 2=Review 3=Relearning */
+  fsrs_state: number;
+  scheduled_days: number;
+  learning_steps: number;
   topic_name: string | null;
   subject_name: string | null;
 }
 
+// ---------------------------------------------------------------------------
+// getDueCards — FSRS-only query (no SM-2 fallback)
+// ---------------------------------------------------------------------------
+
 /**
- * Fetches cards due for review (next_review_at <= today).
- * Returns up to `limit` cards ordered by priority.
+ * Fetches cards due for review.
+ * Uses FSRS `due` (NOT NULL after migration 016) compared against
+ * `endOfUserLocalDay(now, profileTimezone)` (spec Req 2.3, 2.4).
  */
 export async function getDueCards(limit = 50): Promise<{
   cards: DueCard[];
@@ -33,29 +58,46 @@ export async function getDueCards(limit = 50): Promise<{
   } = await supabase.auth.getUser();
   if (!user) return { cards: [], error: "Not authenticated" };
 
-  const today = new Date().toISOString().split("T")[0];
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("timezone")
+    .eq("id", user.id)
+    .single();
+
+  const timezone = profile?.timezone ?? "UTC";
+  const now = new Date();
+  const cutoff = endOfUserLocalDay(now, timezone);
 
   const { data, error } = await supabase
     .from("cards")
-    .select("id, front, back, source_type, metadata, interval, repetition, efactor, topics(name, subjects(name))")
+    .select("id, front, back, source_type, metadata, stability, difficulty, due, last_review, reps, lapses, state, scheduled_days, learning_steps, topics(name, subjects(name))")
     .eq("user_id", user.id)
-    .lte("next_review_at", today)
-    .order("next_review_at", { ascending: true })
+    .lte("due", cutoff.toISOString())
+    .order("due", { ascending: true })
     .limit(limit);
 
   if (error) return { cards: [], error: error.message };
 
   const cards: DueCard[] = (data ?? []).map((card) => {
-    const topic = card.topics as unknown as { name: string; subjects: { name: string } } | null;
+    const topic = card.topics as unknown as {
+      name: string;
+      subjects: { name: string } | null;
+    } | null;
     return {
       id: card.id,
       front: card.front,
       back: card.back,
       source_type: card.source_type,
       metadata: card.metadata as { video_id?: string; offset_seconds?: number } | null,
-      interval: card.interval,
-      repetition: card.repetition,
-      efactor: card.efactor,
+      stability: card.stability ?? null,
+      difficulty: card.difficulty ?? null,
+      fsrs_due: card.due,
+      last_review: card.last_review ?? null,
+      reps: card.reps ?? 0,
+      lapses: card.lapses ?? 0,
+      fsrs_state: card.state ?? 0,
+      scheduled_days: card.scheduled_days ?? 0,
+      learning_steps: card.learning_steps ?? 0,
       topic_name: topic?.name ?? null,
       subject_name: topic?.subjects?.name ?? null,
     };
@@ -64,28 +106,30 @@ export async function getDueCards(limit = 50): Promise<{
   return { cards };
 }
 
+// ---------------------------------------------------------------------------
+// submitReview — FSRS-only (SM-2 write removed in Task 19)
+// ---------------------------------------------------------------------------
+
 /**
- * Submits a review grade (0-5) for a card.
- * Applies the SM-2 algorithm and updates the card schedule.
+ * Submits a review for a card using FSRS four-button grading.
+ * SM-2 write path removed — app runs entirely on FSRS (spec Task 19).
  */
 export async function submitReview(
   cardId: string,
-  grade: number
+  rating: Grade
 ): Promise<{ success?: boolean; error?: string }> {
-  if (grade < 0 || grade > 5) {
-    return { error: "Grade must be between 0 and 5" };
-  }
-
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { error: "Not authenticated" };
 
-  // Fetch current card state
+  const now = new Date();
+
+  // Fetch current FSRS card state.
   const { data: card, error: fetchError } = await supabase
     .from("cards")
-    .select("interval, repetition, efactor")
+    .select("stability, difficulty, due, last_review, reps, lapses, state, scheduled_days, learning_steps")
     .eq("id", cardId)
     .eq("user_id", user.id)
     .single();
@@ -94,56 +138,67 @@ export async function submitReview(
     return { error: "Card not found" };
   }
 
-  // Apply SM-2 algorithm
-  const result = computeSM2(
-    {
-      interval: card.interval,
-      repetition: card.repetition,
-      efactor: Number(card.efactor),
-    },
-    grade
-  );
+  // Build FSRSCardState from the fetched row.
+  // After migration 016 all cards have FSRS state (due IS NOT NULL).
+  const fsrsState: FSRSCardState = {
+    stability: card.stability ?? 1,
+    difficulty: card.difficulty ?? 5,
+    due: new Date(card.due),
+    last_review: card.last_review ? new Date(card.last_review) : null,
+    reps: card.reps ?? 0,
+    lapses: card.lapses ?? 0,
+    state: card.state ?? 0,
+    scheduled_days: card.scheduled_days ?? 0,
+    learning_steps: card.learning_steps ?? 0,
+  };
 
-  // Update card with new schedule
+  const { card: nextFsrs } = scheduleReview(fsrsState, rating, now);
+
+  // Write FSRS state — no SM-2 columns (dropped in migration 016).
   const { error: updateError } = await supabase
     .from("cards")
     .update({
-      interval: result.interval,
-      repetition: result.repetition,
-      efactor: result.efactor,
-      next_review_at: result.nextReviewAt,
-      updated_at: new Date().toISOString(),
+      stability: nextFsrs.stability,
+      difficulty: nextFsrs.difficulty,
+      due: nextFsrs.due.toISOString(),
+      last_review: now.toISOString(),
+      reps: nextFsrs.reps,
+      lapses: nextFsrs.lapses,
+      state: nextFsrs.state,
+      scheduled_days: nextFsrs.scheduled_days,
+      learning_steps: nextFsrs.learning_steps,
+      elapsed_days: fsrsState.scheduled_days,
+      updated_at: now.toISOString(),
     })
     .eq("id", cardId)
     .eq("user_id", user.id);
 
   if (updateError) return { error: updateError.message };
 
-  // Log the review in card_reviews
+  // Store the FSRS Rating (1-4) in card_reviews.grade.
+  // Historical 0–5 SM-2 grades are preserved read-only (spec Req 2.5).
   await supabase.from("card_reviews").insert({
     user_id: user.id,
     card_id: cardId,
-    grade,
+    grade: rating, // Rating.Again=1, Hard=2, Good=3, Easy=4 — within 0-5 constraint
   });
 
-  // Award XP/coins based on grade
-  await rewardAction(grade >= 3 ? "review_good" : "review_bad");
+  await rewardAction(rating !== Rating.Again ? "review_good" : "review_bad");
 
-  // Track party quest progress (non-blocking — errors don't affect review flow)
   try {
     await incrementQuestProgress(user.id, "cards_reviewed", 1);
   } catch {
-    // Party quest tracking is best-effort; don't break reviews
+    // Party quest tracking is best-effort; don't break reviews.
   }
 
   revalidatePath("/app/review");
   return { success: true };
 }
 
+// ---------------------------------------------------------------------------
+// deleteCard
+// ---------------------------------------------------------------------------
 
-/**
- * Deletes a card permanently.
- */
 export async function deleteCard(
   cardId: string
 ): Promise<{ success?: boolean; error?: string }> {

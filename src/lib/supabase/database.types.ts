@@ -276,6 +276,10 @@ export interface Database {
           name: string;
           exam_date: string | null;
           created_at: string;
+          /** Added in 011_material_type.sql (default: 'conceptual'). */
+          material_type: "conceptual" | "procedural_math" | "visual_discrimination" | "verbal_vocabulary";
+          /** Added in 014_feynman_source_attachment.sql. */
+          feynman_source_ref: Json | null;
         };
         Insert: {
           id?: string;
@@ -284,11 +288,15 @@ export interface Database {
           name: string;
           exam_date?: string | null;
           created_at?: string;
+          material_type?: "conceptual" | "procedural_math" | "visual_discrimination" | "verbal_vocabulary";
+          feynman_source_ref?: Json | null;
         };
         Update: {
           name?: string;
           subject_id?: string;
           exam_date?: string | null;
+          material_type?: "conceptual" | "procedural_math" | "visual_discrimination" | "verbal_vocabulary";
+          feynman_source_ref?: Json | null;
         };
       };
       study_sessions: {
@@ -355,13 +363,21 @@ export interface Database {
           front: string;
           back: string;
           source_type: "feynman" | "research" | "manual" | "video";
-          interval: number;
-          repetition: number;
-          efactor: number;
-          next_review_at: string;
           metadata: Json | null;
           created_at: string;
           updated_at: string;
+          // FSRS state (NOT NULL after migration 016; previously nullable)
+          due: string;
+          stability: number | null;
+          difficulty: number | null;
+          last_review: string | null;
+          reps: number;
+          lapses: number;
+          /** 0=New 1=Learning 2=Review 3=Relearning */
+          state: number;
+          scheduled_days: number;
+          learning_steps: number;
+          elapsed_days: number;
         };
         Insert: {
           id?: string;
@@ -370,25 +386,37 @@ export interface Database {
           front: string;
           back: string;
           source_type?: "feynman" | "research" | "manual" | "video";
-          interval?: number;
-          repetition?: number;
-          efactor?: number;
-          next_review_at?: string;
           metadata?: Json | null;
           created_at?: string;
           updated_at?: string;
+          due?: string;
+          stability?: number | null;
+          difficulty?: number | null;
+          last_review?: string | null;
+          reps?: number;
+          lapses?: number;
+          state?: number;
+          scheduled_days?: number;
+          learning_steps?: number;
+          elapsed_days?: number;
         };
         Update: {
           front?: string;
           back?: string;
           topic_id?: string | null;
           source_type?: "feynman" | "research" | "manual" | "video";
-          interval?: number;
-          repetition?: number;
-          efactor?: number;
-          next_review_at?: string;
           metadata?: Json | null;
           updated_at?: string;
+          due?: string;
+          stability?: number | null;
+          difficulty?: number | null;
+          last_review?: string | null;
+          reps?: number;
+          lapses?: number;
+          state?: number;
+          scheduled_days?: number;
+          learning_steps?: number;
+          elapsed_days?: number;
         };
       };
       card_reviews: {
@@ -483,6 +511,9 @@ export interface Database {
           abstract: string | null;
           url: string | null;
           semantic_scholar_id: string | null;
+          // Added in 013_research_sources.sql
+          doi: string | null;
+          oa_url: string | null;
           // Added by 003_rag_extensions.sql
           parse_status: "pending" | "processing" | "ready" | "partial" | "failed";
           parse_error: string | null;
@@ -504,6 +535,8 @@ export interface Database {
           abstract?: string | null;
           url?: string | null;
           semantic_scholar_id?: string | null;
+          doi?: string | null;
+          oa_url?: string | null;
           parse_status?: "pending" | "processing" | "ready" | "partial" | "failed";
           parse_error?: string | null;
           chunk_count?: number;
@@ -521,6 +554,8 @@ export interface Database {
           abstract?: string | null;
           url?: string | null;
           semantic_scholar_id?: string | null;
+          doi?: string | null;
+          oa_url?: string | null;
           parse_status?: "pending" | "processing" | "ready" | "partial" | "failed";
           parse_error?: string | null;
           chunk_count?: number;

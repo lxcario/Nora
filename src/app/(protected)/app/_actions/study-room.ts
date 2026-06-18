@@ -1249,6 +1249,9 @@ export async function evaluateWithTranscript(
       segments,
       suggestedCards: (parsed.suggestedCards as { front: string; back: string }[]) ?? [],
       score: computeComprehensionScore(segments),
+      // Transcript-based evaluation is grounded in the video's transcript.
+      grounded: true,
+      sourceLabel: video.title ? `"${video.title}" transcript` : "video transcript",
     };
   } catch {
     console.error("evaluateWithTranscript JSON parse error:", jsonStr.slice(0, 500));
