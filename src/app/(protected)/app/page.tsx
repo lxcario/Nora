@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { DialogFrame, PixelCounter } from "@/components/pixel-ui";
 import { AcademicTimelineWidget } from "./_components/academic-timeline-widget";
+import { formatStreak } from "@/lib/format-streak";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -108,6 +109,7 @@ export default async function DashboardPage() {
           value={streak}
           suffix={streak === 1 ? " day" : " days"}
           label="Current streak"
+          zeroText={streak === 0 ? formatStreak(0, "home") : undefined}
         />
         <StatTile
           icon="/sprites/travel-book/icons/Coin.png"
@@ -237,11 +239,13 @@ function StatTile({
   value,
   suffix,
   label,
+  zeroText,
 }: {
   icon: string;
   value: number;
   suffix?: string;
   label: string;
+  zeroText?: string;
 }) {
   return (
     <div className="pixel-panel flex items-center gap-4 p-3">
@@ -249,11 +253,20 @@ function StatTile({
         <img src={icon} alt="" width={36} height={36} className="pixel-art" />
       </div>
       <div className="min-w-0">
-        <PixelCounter
-          value={value}
-          suffix={suffix}
-          className="font-pixel text-xl text-[var(--pixel-accent)] block leading-none"
-        />
+        {zeroText ? (
+          <span
+            className="font-pixel text-base block leading-none"
+            style={{ color: "var(--pixel-accent)" }}
+          >
+            {zeroText}
+          </span>
+        ) : (
+          <PixelCounter
+            value={value}
+            suffix={suffix}
+            className="font-pixel text-xl text-[var(--pixel-accent)] block leading-none"
+          />
+        )}
         <span className="text-xs text-[var(--pixel-text-secondary)] block mt-1 truncate">
           {label}
         </span>
