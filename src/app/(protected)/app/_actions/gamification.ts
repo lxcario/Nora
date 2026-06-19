@@ -123,8 +123,13 @@ export async function rewardAction(
     }
   }
 
-  revalidatePath("/app");
-  revalidatePath("/app/room");
+  // Only revalidate the full layout on level-up (structural change that
+  // warrants a server re-render). For normal XP gains, the client-side
+  // SessionStatsProvider handles immediate UI updates without layout churn.
+  if (leveledUp) {
+    revalidatePath("/app");
+    revalidatePath("/app/room");
+  }
 
   return {
     data: {
@@ -219,8 +224,11 @@ export async function rewardBatch(
     }
   }
 
-  revalidatePath("/app");
-  revalidatePath("/app/room");
+  // Only revalidate on level-up — same logic as rewardAction.
+  if (leveledUp) {
+    revalidatePath("/app");
+    revalidatePath("/app/room");
+  }
 
   return {
     data: { xpGained, coinsGained, newXp, newCoins, newLevel, leveledUp, petAffinityChange },

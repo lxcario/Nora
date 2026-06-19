@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PixelCounter } from "@/components/pixel-ui/pixel-counter";
 import { ProfilePopover } from "./profile-popover";
+import { useSessionStats } from "./session-stats-context";
 
 interface GameTopBarProps {
   profile: {
@@ -44,6 +45,7 @@ function getTimeIcon(): string {
 export function GameTopBar({ profile }: GameTopBarProps) {
   const [greeting, setGreeting] = useState("Good evening");
   const [timeIcon, setTimeIcon] = useState("Sleep");
+  const { stats } = useSessionStats();
 
   useEffect(() => {
     setGreeting(getGreeting());
@@ -51,8 +53,8 @@ export function GameTopBar({ profile }: GameTopBarProps) {
   }, []);
 
   const level = profile?.level ?? 1;
-  const xp = profile?.xp ?? 0;
-  const coins = profile?.coins ?? 0;
+  const xp = (profile?.xp ?? 0) + stats.xpDelta;
+  const coins = (profile?.coins ?? 0) + stats.coinsDelta;
 
   // XP progress within current level
   const currentLevelXp = (level - 1) * (level - 1) * 50;
@@ -60,6 +62,20 @@ export function GameTopBar({ profile }: GameTopBarProps) {
   const xpInLevel = xp - currentLevelXp;
   const xpNeeded = nextLevelXp - currentLevelXp;
   const xpProgress = Math.min(xpInLevel / xpNeeded, 1);
+
+  // Level-up flash: when progress hits 100%, flash gold for one frame before reset
+  const [barFlash, setBarFlash] = useState(false);
+  const prevProgressRef = useRef(xpProgress);
+
+  useEffect(() => {
+    // Detect progress wrapping past 1.0 (level-up happened via delta)
+    if (prevProgressRef.current < 1 && xpProgress >= 1) {
+      setBarFlash(true);
+      const timer = setTimeout(() => setBarFlash(false), 160);
+      return () => clearTimeout(timer);
+    }
+    prevProgressRef.current = xpProgress;
+  }, [xpProgress]);
 
   return (
     <header className="flex items-center justify-between px-6 py-3 bg-[var(--pixel-bg-surface)] border-b border-[var(--pixel-border)]">
@@ -109,10 +125,13 @@ export function GameTopBar({ profile }: GameTopBarProps) {
             }}
           >
             <div
-              className="h-full transition-all"
+              className="h-full"
               style={{
-                width: `${xpProgress * 100}%`,
-                backgroundColor: "var(--pixel-success)",
+                width: barFlash ? "100%" : `${xpProgress * 100}%`,
+                backgroundColor: barFlash ? "var(--pixel-accent)" : "var(--pixel-success)",
+                // Same stepped vocabulary as .animate-pixel-fill (steps(10)),
+                // transition-based here because this value updates dynamically.
+                transition: barFlash ? "none" : "width 0.4s steps(8)",
               }}
             />
           </div>

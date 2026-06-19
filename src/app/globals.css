@@ -1,15 +1,11 @@
 @import "tailwindcss";
 
-/* Sprout Lands pixel font */
-@font-face {
-  font-family: "SproutLands";
-  src: url("/fonts/sprout-lands.ttf") format("truetype");
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
+/* SproutLands pixel font — loaded via next/font/local in layout.tsx
+   for automatic preloading + FOUT prevention. Variable: --font-pixel */
 
 :root {
+  /* --font-pixel is set by next/font/local on <html> via the sproutLands.variable class.
+     Fallback defined here for any edge case where the class isn't applied yet. */
   --font-pixel: "SproutLands", monospace;
 
   /* ══════════════════════════════════════════════════════════════════════
@@ -306,23 +302,28 @@ body {
   letter-spacing: 1px;
 }
 
-/* View Transitions — stepped pixel dissolve between routes (retro, not a smooth fade) */
+/* View Transitions — stepped iris wipe (retro RPG screen transition).
+   clip-path: circle() is GPU-composited, no layout cost. steps(8) gives
+   the chunky, discrete reveal that pixel art calls for — not a smooth
+   cinematic iris but a retro "battle transition" feel. */
 ::view-transition-old(root) {
-  animation: pixel-dissolve-out 220ms steps(5) both;
+  animation: pixel-iris-out 400ms steps(8) forwards;
+  pointer-events: none;
 }
 
 ::view-transition-new(root) {
-  animation: pixel-dissolve-in 220ms steps(5) both;
+  animation: pixel-iris-in 400ms steps(8) backwards;
+  pointer-events: none;
 }
 
-@keyframes pixel-dissolve-out {
-  from { opacity: 1; }
-  to { opacity: 0; }
+@keyframes pixel-iris-out {
+  from { clip-path: circle(100% at 50% 50%); }
+  to   { clip-path: circle(0% at 50% 50%); }
 }
 
-@keyframes pixel-dissolve-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+@keyframes pixel-iris-in {
+  from { clip-path: circle(0% at 50% 50%); }
+  to   { clip-path: circle(100% at 50% 50%); }
 }
 
 /* Reduce motion for accessibility */
@@ -367,9 +368,26 @@ body {
    Cool retro grid field for the main workspace. Warm amber panels float on top
    for depth + contrast (amber-CRT-on-deep-blue retro combo). Kept low-contrast
    so content panels remain readable. All offsets are integer px for crisp edges.
+
+   PERF: Gradient stack is on a fixed ::before pseudo-element promoted to its
+   own GPU compositor layer. This means: zero repaints during scroll. The scroll
+   container itself has contain: paint layout to prevent layout recalculation
+   cascades from leaking upward.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 .pixel-grid-bg {
+  position: relative;
+  contain: paint layout;
+}
+
+.pixel-grid-bg::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  will-change: transform;
+  transform: translateZ(0);
   background-color: var(--grid-bg-base);
   background-image:
     /* horizon glow near top */
@@ -515,28 +533,57 @@ body {
   padding: 0 8px;
 }
 
+/* Grade button — retro press feedback (review cards, study mix) */
+.grade-btn {
+  transition: filter 80ms steps(2), transform 80ms steps(2);
+}
+.grade-btn:active:not(:disabled) {
+  transform: scale(1.08);
+  filter: brightness(1.25);
+}
+.grade-btn:disabled {
+  filter: grayscale(0.7);
+  transition: filter 0ms steps(1);
+}
+
+/* Reusable brightness-snap hover — replaces all opacity-only hover patterns.
+   Same stepped timing as .pixel-btn for consistency. */
+.pixel-hover-brighten {
+  transition: filter 80ms steps(2);
+}
+.pixel-hover-brighten:hover {
+  filter: brightness(1.1);
+}
+
+/* Pet widget perk-up: on hover, speed up the pet-bob animation so the pet
+   visibly "perks up" — reads as interactive acknowledgment. */
+.pet-hover-perk:hover .animate-pet-bob {
+  animation-duration: 0.5s;
+}
+
 /* Micro-interaction animations */
 @keyframes float-up-fade {
-  0% { opacity: 1; transform: translateY(0) scale(1); }
-  50% { opacity: 1; transform: translateY(-20px) scale(1.1); }
+  0%   { opacity: 1; transform: translateY(0) scale(1.15); }
+  60%  { opacity: 1; transform: translateY(-28px) scale(1); }
   100% { opacity: 0; transform: translateY(-40px) scale(0.9); }
 }
 
 @keyframes pop-in {
-  0% { opacity: 0; transform: scale(0.8); }
-  50% { opacity: 1; transform: scale(1.05); }
+  0%   { opacity: 0; transform: scale(0.85); }
+  50%  { opacity: 1; transform: scale(1.06); }
   100% { opacity: 1; transform: scale(1); }
 }
 
 @keyframes shake-happy {
-  0%, 100% { transform: rotate(0deg); }
-  25% { transform: rotate(-3deg); }
-  75% { transform: rotate(3deg); }
+  0%, 100% { transform: rotate(0deg) translateY(0); }
+  25%      { transform: rotate(-5deg) translateY(-1px); }
+  50%      { transform: rotate(0deg) translateY(0); }
+  75%      { transform: rotate(5deg) translateY(-1px); }
 }
 
-.animate-float-up { animation: float-up-fade 2s ease-out forwards; }
-.animate-pop-in { animation: pop-in 300ms ease-out; }
-.animate-shake-happy { animation: shake-happy 300ms ease-in-out; }
+.animate-float-up { animation: float-up-fade 1.2s steps(8) forwards; }
+.animate-pop-in { animation: pop-in 240ms steps(4); }
+.animate-shake-happy { animation: shake-happy 400ms steps(4); }
 
 /* Toast slide-in animation */
 @keyframes slide-in-right {
@@ -736,7 +783,8 @@ input[type="range"]::-moz-range-thumb {
   display: inline-flex;
 }
 a:hover > .nav-ico,
-.pixel-panel-selected > .nav-ico {
+.pixel-panel-selected > .nav-ico,
+.group:hover .nav-ico {
   animation: pixel-hop 0.4s steps(3) 1;
 }
 
@@ -769,12 +817,14 @@ a:hover > .nav-ico,
 }
 .animate-pixel-float { animation: pixel-float 1.2s steps(2) infinite; }
 
-/* Smooth bob for sidebar pet widget — ease-in-out, 2s, 3px range */
+/* Stepped bob for sidebar pet widget — snaps between two positions like a
+   classic RPG idle sprite. steps(2) = grounded frame / up frame, no smooth
+   interpolation between pixel positions. */
 @keyframes pet-bob {
   0%, 100% { transform: translateY(0); }
   50%      { transform: translateY(-3px); }
 }
-.animate-pet-bob { animation: pet-bob 2s ease-in-out infinite; }
+.animate-pet-bob { animation: pet-bob 1.6s steps(2) infinite; }
 
 /* Wiggle — happy 4-step shake (rewards, evolve-ready) */
 @keyframes pixel-wiggle {
@@ -790,6 +840,31 @@ a:hover > .nav-ico,
   from { width: 0; }
 }
 .animate-pixel-fill { animation: pixel-fill 0.6s steps(10) 1 both; }
+
+/* Equalizer bars — 3 distinct stepped height patterns for the music player.
+   Each bar snaps between heights at steps(1) so there's no interpolation,
+   creating a jittery 8-bit VU meter. Different patterns prevent sync. */
+@keyframes eq-bar-1 {
+  0%, 100% { height: 8px; }
+  25%      { height: 12px; }
+  50%      { height: 4px; }
+  75%      { height: 10px; }
+}
+@keyframes eq-bar-2 {
+  0%, 100% { height: 4px; }
+  25%      { height: 10px; }
+  50%      { height: 12px; }
+  75%      { height: 6px; }
+}
+@keyframes eq-bar-3 {
+  0%, 100% { height: 12px; }
+  25%      { height: 6px; }
+  50%      { height: 8px; }
+  75%      { height: 4px; }
+}
+.animate-eq-bar-1 { animation: eq-bar-1 0.5s steps(1) infinite; }
+.animate-eq-bar-2 { animation: eq-bar-2 0.4s steps(1) infinite; }
+.animate-eq-bar-3 { animation: eq-bar-3 0.45s steps(1) infinite; }
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Global Form Elements — Dark Pixel Theme

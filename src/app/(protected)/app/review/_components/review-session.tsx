@@ -6,6 +6,7 @@ import { submitReview, deleteCard, type DueCard } from "@/app/(protected)/app/_a
 import { Rating, type Grade } from "@/lib/fsrs";
 import { XpToast } from "@/app/(protected)/app/_components/xp-toast";
 import { SuccessCheck } from "@/app/(protected)/app/_components/success-check";
+import { useSessionStats } from "@/app/(protected)/app/_components/session-stats-context";
 import { playSessionComplete } from "@/lib/sfx";
 import {
   DialogFrame,
@@ -64,6 +65,7 @@ const FSRS_STATE_LABEL = ["New", "Learning", "Review", "Relearning"] as const;
 
 export function ReviewSession({ initialCards }: { initialCards: DueCard[] }) {
   const router = useRouter();
+  const { addReward } = useSessionStats();
 
   // Mutable queue so Again can re-append the card (spec Req 2.2).
   const [queue, setQueue] = useState<DueCard[]>(initialCards);
@@ -98,10 +100,16 @@ export function ReviewSession({ initialCards }: { initialCards: DueCard[] }) {
       setRevealed(false);
 
       // Show XP toast
+      // TODO(option-2-refactor): These XP/coin values are hardcoded to match
+      // rewardAction() server logic. If reward rules change (streak multipliers,
+      // tuned amounts), these will silently drift. Refactor: have submitReview()
+      // return the RewardResult from rewardAction() so the client uses the real
+      // server-granted values instead of duplicating the logic.
       const xp = rating !== Rating.Again ? 3 : 1;
       const coins = rating !== Rating.Again ? 1 : 0;
       setXpToastData({ xp, coins, visible: true });
       setTimeout(() => setXpToastData((prev) => ({ ...prev, visible: false })), 100);
+      addReward(xp, coins);
 
       if (rating === Rating.Again) {
         // Intra-session relearning: re-append card to the end of the queue
@@ -328,7 +336,7 @@ export function ReviewSession({ initialCards }: { initialCards: DueCard[] }) {
                     key={rating}
                     onClick={() => handleGrade(rating)}
                     disabled={isPending}
-                    className="flex flex-col items-center gap-0.5 px-2 py-3 border-2 transition-opacity disabled:opacity-50"
+                    className="flex flex-col items-center gap-0.5 px-2 py-3 border-2 grade-btn disabled:grayscale disabled:opacity-60"
                     style={{
                       backgroundColor: color,
                       borderColor: "var(--pixel-border)",

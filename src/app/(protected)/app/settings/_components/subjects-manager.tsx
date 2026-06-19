@@ -271,15 +271,10 @@ export function SubjectsManager({ subjects }: { subjects: Subject[] }) {
                   <div className="flex-1">
                     <PixelInput
                       type="text"
+                      name="name"
+                      required
                       label="Topic name"
                       placeholder="e.g. Quantum Mechanics"
-                      onChange={() => {}}
-                    />
-                    <input
-                      name="name"
-                      placeholder="Topic name"
-                      required
-                      className="sr-only"
                     />
                   </div>
                   <input
@@ -314,15 +309,10 @@ export function SubjectsManager({ subjects }: { subjects: Subject[] }) {
           <div className="flex-1">
             <PixelInput
               type="text"
+              name="name"
+              required
               label="Subject name"
               placeholder="e.g. Computer Science"
-              onChange={() => {}}
-            />
-            <input
-              name="name"
-              placeholder="Subject name"
-              required
-              className="sr-only"
             />
           </div>
           <input

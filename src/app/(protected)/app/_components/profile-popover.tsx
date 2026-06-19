@@ -208,10 +208,13 @@ export function ProfilePopover({ profile }: ProfilePopoverProps) {
                 }}
               >
                 <div
-                  className="h-full transition-all"
+                  className="h-full"
                   style={{
                     width: `${xpProgress * 100}%`,
                     backgroundColor: "var(--pixel-success)",
+                    // Same stepped vocabulary as .animate-pixel-fill (steps(10)),
+                    // transition-based here because this value updates dynamically.
+                    transition: "width 0.4s steps(8)",
                   }}
                 />
               </div>

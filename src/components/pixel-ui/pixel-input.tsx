@@ -10,12 +10,14 @@ import { IconSprite } from "./icon-sprite";
 export interface PixelInputProps {
   type?: "text" | "textarea" | "select" | "search" | "toggle";
   label?: string;
+  name?: string;
   value?: string;
   checked?: boolean;
   onChange?: (value: string | boolean) => void;
   options?: { label: string; value: string }[];
   placeholder?: string;
   disabled?: boolean;
+  required?: boolean;
   error?: string;
   className?: string;
 }
@@ -49,12 +51,14 @@ const BASE_INPUT_CLASSES = [
 export function PixelInput({
   type = "text",
   label,
+  name,
   value,
   checked,
   onChange,
   options,
   placeholder,
   disabled,
+  required,
   error,
   className,
 }: PixelInputProps) {
@@ -89,36 +93,44 @@ export function PixelInput({
       ) : type === "textarea" ? (
         <TextareaInput
           id={id}
+          name={name}
           value={value}
           placeholder={placeholder}
           disabled={disabled}
+          required={required}
           error={error}
           onChange={onChange}
         />
       ) : type === "select" ? (
         <SelectInput
           id={id}
+          name={name}
           value={value}
           options={options}
           disabled={disabled}
+          required={required}
           error={error}
           onChange={onChange}
         />
       ) : type === "search" ? (
         <SearchInput
           id={id}
+          name={name}
           value={value}
           placeholder={placeholder}
           disabled={disabled}
+          required={required}
           error={error}
           onChange={onChange}
         />
       ) : (
         <TextInput
           id={id}
+          name={name}
           value={value}
           placeholder={placeholder}
           disabled={disabled}
+          required={required}
           error={error}
           onChange={onChange}
         />
@@ -144,26 +156,32 @@ export function PixelInput({
 
 function TextInput({
   id,
+  name,
   value,
   placeholder,
   disabled,
+  required,
   error,
   onChange,
 }: {
   id: string;
+  name?: string;
   value?: string;
   placeholder?: string;
   disabled?: boolean;
+  required?: boolean;
   error?: string;
   onChange?: (value: string | boolean) => void;
 }) {
   return (
     <input
       id={id}
+      name={name}
       type="text"
       value={value}
       placeholder={placeholder}
       disabled={disabled}
+      required={required}
       onChange={(e) => onChange?.(e.target.value)}
       className={BASE_INPUT_CLASSES}
       style={{
@@ -183,25 +201,31 @@ function TextInput({
 
 function TextareaInput({
   id,
+  name,
   value,
   placeholder,
   disabled,
+  required,
   error,
   onChange,
 }: {
   id: string;
+  name?: string;
   value?: string;
   placeholder?: string;
   disabled?: boolean;
+  required?: boolean;
   error?: string;
   onChange?: (value: string | boolean) => void;
 }) {
   return (
     <textarea
       id={id}
+      name={name}
       value={value}
       placeholder={placeholder}
       disabled={disabled}
+      required={required}
       onChange={(e) => onChange?.(e.target.value)}
       rows={4}
       className={BASE_INPUT_CLASSES}
@@ -223,16 +247,20 @@ function TextareaInput({
 
 function SelectInput({
   id,
+  name,
   value,
   options,
   disabled,
+  required,
   error,
   onChange,
 }: {
   id: string;
+  name?: string;
   value?: string;
   options?: { label: string; value: string }[];
   disabled?: boolean;
+  required?: boolean;
   error?: string;
   onChange?: (value: string | boolean) => void;
 }) {
@@ -244,8 +272,10 @@ function SelectInput({
     <div className="relative">
       <select
         id={id}
+        name={name}
         value={value}
         disabled={disabled}
+        required={required}
         onChange={(e) => onChange?.(e.target.value)}
         className={`${BASE_INPUT_CLASSES} appearance-none pr-10`}
         style={{
@@ -280,16 +310,20 @@ function SelectInput({
 
 function SearchInput({
   id,
+  name,
   value,
   placeholder,
   disabled,
+  required,
   error,
   onChange,
 }: {
   id: string;
+  name?: string;
   value?: string;
   placeholder?: string;
   disabled?: boolean;
+  required?: boolean;
   error?: string;
   onChange?: (value: string | boolean) => void;
 }) {
@@ -305,10 +339,12 @@ function SearchInput({
 
       <input
         id={id}
+        name={name}
         type="search"
         value={value}
         placeholder={placeholder ?? "Search..."}
         disabled={disabled}
+        required={required}
         onChange={(e) => onChange?.(e.target.value)}
         className={`${BASE_INPUT_CLASSES} pl-8`}
         style={{
@@ -354,15 +390,17 @@ function ToggleSwitch({
           : "var(--pixel-disabled)",
         borderColor: checked
           ? "var(--pixel-success)"
-          : "var(--pixel-disabled)",
+          : "var(--pixel-border-light)",
         imageRendering: "pixelated",
+        opacity: disabled ? 0.5 : 1,
+        cursor: disabled ? "not-allowed" : "pointer",
       }}
     >
       {/* Thumb */}
       <span
         className="inline-block h-4 w-4 rounded-full border transition-transform duration-150"
         style={{
-          backgroundColor: "var(--pixel-bg-surface)",
+          backgroundColor: "var(--pixel-text-primary)",
           borderColor: "var(--pixel-border)",
           transform: checked ? "translateX(20px)" : "translateX(2px)",
         }}

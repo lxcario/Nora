@@ -38,7 +38,7 @@ function PetWidget({ pet }: { pet: PetSidebarData | null }) {
     return (
       <Link
         href="/app/room"
-        className="pixel-panel mx-2 mb-1 flex flex-col items-center gap-1 px-2 py-3 transition-opacity hover:opacity-80"
+        className="pixel-panel mx-2 mb-1 flex flex-col items-center gap-1 px-2 py-3 pixel-hover-brighten"
         style={{ textDecoration: "none" }}
       >
         <span className="font-pixel text-2xl text-[var(--pixel-text-secondary)]">?</span>
@@ -55,7 +55,7 @@ function PetWidget({ pet }: { pet: PetSidebarData | null }) {
     <Link
       href="/app/room"
       onClick={() => playNavigate()}
-      className="pixel-panel mx-2 mb-1 flex flex-col items-center gap-1 px-2 py-3 transition-opacity hover:opacity-80"
+      className="pixel-panel mx-2 mb-1 flex flex-col items-center gap-1 px-2 py-3 pixel-hover-brighten pet-hover-perk"
       style={{ textDecoration: "none" }}
       title={`${pet.name} — ${mood.label}`}
     >

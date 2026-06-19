@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -10,6 +11,13 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+const sproutLands = localFont({
+  src: "../../public/fonts/sprout-lands.ttf",
+  variable: "--font-pixel",
+  display: "swap",
+  preload: true,
 });
 
 export const metadata: Metadata = {
@@ -27,7 +35,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${sproutLands.variable} h-full antialiased`}
     >
       <head>
         <link rel="preload" href="/sprites/ui/buttons-26x26.png" as="image" type="image/png" />

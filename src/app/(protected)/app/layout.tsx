@@ -5,6 +5,7 @@ import { GameSidebar } from "./_components/game-sidebar";
 import { GameTopBar } from "./_components/game-top-bar";
 import { BottomNav } from "@/components/pixel-ui";
 import { PreferencesProvider } from "@/components/pixel-ui/preferences-provider";
+import { SessionStatsProvider } from "./_components/session-stats-context";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -84,16 +85,18 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <PreferencesProvider>
-      <div className="flex min-h-screen bg-[var(--pixel-bg-primary)]">
-        <GameSidebar profile={profileWithAvatar} pet={petSidebarData} />
-        <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
-          <GameTopBar profile={profileWithAvatar} />
-          <main className="pixel-grid-bg flex-1 overflow-y-auto p-8 pb-20 md:pb-8">
-            {children}
-          </main>
-          <BottomNav />
+      <SessionStatsProvider resetKey={`${profile?.xp ?? 0}-${profile?.coins ?? 0}`}>
+        <div className="flex min-h-screen bg-[var(--pixel-bg-primary)]">
+          <GameSidebar profile={profileWithAvatar} pet={petSidebarData} />
+          <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
+            <GameTopBar profile={profileWithAvatar} />
+            <main className="pixel-grid-bg flex-1 overflow-y-auto p-8 pb-20 md:pb-8">
+              {children}
+            </main>
+            <BottomNav />
+          </div>
         </div>
-      </div>
+      </SessionStatsProvider>
     </PreferencesProvider>
   );
 }

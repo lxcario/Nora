@@ -319,7 +319,7 @@ export function PixelRoom({
         {/* Progress bar */}
         <div className="mb-3 h-2 overflow-hidden bg-[var(--pixel-bg-primary)] border border-[var(--pixel-border)]">
           <div
-            className="h-full transition-all"
+            className="h-full"
             style={{
               width: `${(completedMissions / totalMissions) * 100}%`,
               backgroundColor: "var(--pixel-success)",

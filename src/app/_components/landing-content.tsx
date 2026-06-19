@@ -71,13 +71,16 @@ function FeatureCard({
 }) {
   return (
     <div
-      className="reveal-on-scroll pixel-panel group relative overflow-hidden p-6 transition-all duration-300 hover:scale-[1.02]"
+      className="reveal-on-scroll pixel-panel group relative overflow-hidden p-6"
       style={{
         opacity: 0,
         transform: "translateY(24px)",
-        transitionDelay: `${delay}ms`,
+        transition: `filter 80ms steps(2), opacity 0.4s, transform 0.4s`,
+        transitionDelay: `0ms, ${delay}ms, ${delay}ms`,
         backgroundColor: "#1e1814",
       }}
+      onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.filter = "brightness(1.08)"; }}
+      onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.filter = ""; }}
     >
       {/* Accent glow */}
       <div
@@ -89,7 +92,9 @@ function FeatureCard({
         className="relative flex h-12 w-12 items-center justify-center mb-4"
         style={{ border: `2px solid ${accent}`, backgroundColor: `color-mix(in srgb, ${accent} 12%, #1a1410)` }}
       >
-        <Sprite name={icon} size={24} />
+        <span className="nav-ico">
+          <Sprite name={icon} size={24} />
+        </span>
       </div>
       <h3 className="font-pixel text-sm mb-2" style={{ color: accent }}>
         {title}

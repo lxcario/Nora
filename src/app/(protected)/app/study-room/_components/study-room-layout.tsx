@@ -11,6 +11,7 @@ import { GeneratedNotes } from "./generated-notes";
 import { FeynmanVideoPrompt } from "./feynman-video-prompt";
 import { TopicLinker, type TopicOption } from "./topic-linker";
 import { XpToast } from "@/app/(protected)/app/_components/xp-toast";
+import { useSessionStats } from "@/app/(protected)/app/_components/session-stats-context";
 import {
   loadVideo,
   fetchTranscript,
@@ -59,6 +60,8 @@ export function StudyRoomLayout({
   initialVideoId,
   initialSeekTime,
 }: StudyRoomLayoutProps) {
+  const { addReward } = useSessionStats();
+
   // Video state
   const [videoId, setVideoId] = useState<string | null>(initialVideoId ?? null);
   const [videoRecord, setVideoRecord] = useState<VideoRecord | null>(null);
@@ -120,10 +123,13 @@ export function StudyRoomLayout({
 
   // ─── XP Toast Helper ────────────────────────────────────────────────────
 
+  // TODO(option-2-refactor): XP/coins values passed here are hardcoded at call
+  // sites to match server rewardAction rules. Drift risk if rules change.
   const showXpToast = useCallback((xp: number, coins: number) => {
     setXpToastData({ xp, coins, visible: true });
     setTimeout(() => setXpToastData((prev) => ({ ...prev, visible: false })), 100);
-  }, []);
+    addReward(xp, coins);
+  }, [addReward]);
 
   // ─── Video Loading ──────────────────────────────────────────────────────
 

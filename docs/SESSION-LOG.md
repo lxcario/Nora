@@ -1049,3 +1049,179 @@ Implemented the full `evidence-based-learning-core` spec — 20 tasks upgrading 
 `sm2.ts` retained as migration reference but no longer imported. Historical 0–5 grades in `card_reviews` preserved read-only.
 
 *Session ended June 18, 2026.*
+
+
+---
+
+# Session — Frontend Performance & Motion Optimization (June 19, 2026)
+
+## Overview
+
+Full rendering performance audit + motion/UX audit → Gemini Deep Research → two implementation passes fixing all identified issues. The session started with a dual audit (performance + "does this feel generic"), produced a highly targeted research prompt for Gemini, then applied the research results with critical corrections where the report was unsound.
+
+**Final state:** 332 tests passing (22 files), 0 TypeScript errors, production build green. All animations now use a single consistent retro motion vocabulary (steps()-based). Layout churn from revalidatePath eliminated for normal XP gains.
+
+---
+
+## Phase 1 — Dual Audit
+
+### Performance Audit (6 findings, ranked by severity × frequency)
+1. **P0: `revalidatePath("/app")` full layout churn** — fires on every XP gain (20+ times per review session), causing full layout re-fetch, pet GIF restart, PixelCounter rAF restart
+2. **P1: Landing hero GIF not optimized** — raw `<img>` without lazy loading or next/image
+3. **P1: Pet GIF restart on revalidation** — sidebar pet sprite blinks on every card review
+4. **P2: Font FOUT** — SproutLands via @font-face with no preloading
+5. **P2: pixel-grid-bg scroll repaints** — 11-layer gradient stack on scroll container
+6. **P3: PixelCounter rAF state spam** — setState every frame during 600ms animation
+
+### Motion/UX Audit (13 animations evaluated, 10 flagged as generic)
+- 4 loudest offenders: pet-bob (smooth ease-in-out), pop-in (smooth ease-out), shake-happy (smooth ease-in-out), float-up-fade (smooth ease-out)
+- 6 secondary: feature card hover (smooth scale), grade button feedback (opacity only), equalizer bars (reused float), sidebar hovers (opacity only), view transitions (opacity only), XP bar (smooth transition-all)
+- 3 already good: pixel-btn:active, pixel-slide-in, pixel-float
+
+---
+
+## Phase 2 — Gemini Deep Research
+
+Crafted a highly specific research prompt with full Nora context (exact tech stack, file references, current animation system, P0 problem details). 10 research directives covering:
+1. Awwwards pixel-art site motion techniques
+2. Pixel-art UI animation timing standards (GDC, sprite guides)
+3. Stepped vs smooth easing decisions in retro web projects
+4. Next.js App Router architecture for bypassing layout re-renders
+5. React 19 useOptimistic/useTransition patterns
+6. Preventing CSS animation/GIF restart on reconciliation
+7. Retro route transitions (iris wipes, dither masks)
+8. Gamification micro-interaction patterns (Duolingo, Habitica)
+9. Sprite/font loading optimizations
+10. Custom cursor + multi-layer gradient GPU compositing
+
+### Critical Corrections Applied to Research Output
+- **Rejected Zustand recommendation** — contradicts Nora's no-global-store architecture
+- **Treated frame-count table as rough prior** — unsourced claims about Celeste/Stardew timings
+- **Rejected generic useOptimistic sample** — designed real fix against actual layout.tsx architecture
+- **Rejected parallel routes recommendation** — over-engineering when removing revalidatePath is sufficient
+- **Confirmed cursor system already optimal** — native CSS cursor is better than the DOM-based alternative the report suggested
+
+---
+
+## Phase 3 — Implementation Pass 1 (Core Fixes)
+
+### B1: Iris-Wipe View Transitions
+- Replaced opacity-only `pixel-dissolve-out/in` with `clip-path: circle()` iris wipe
+- `steps(8)` at 400ms — chunky retro RPG battle-transition feel
+- `pointer-events: none` during transition to prevent interaction
+
+### B2: Scroll Performance (GPU Promotion)
+- Moved 11-layer gradient stack from `.pixel-grid-bg` element to a `::before` pseudo-element
+- `position: fixed; will-change: transform; transform: translateZ(0)` — own compositor layer
+- `contain: paint layout` on the scroll container
+- Result: zero scroll repaints of the gradient
+
+### B3: Pixel Font FOUT Fix
+- Switched from `@font-face` in globals.css to `next/font/local` in root layout
+- Automatic preloading, subset optimization, proper `font-display: swap`
+- Removed manual @font-face declaration
+
+### B4: Animation Timing Refinements
+- `pet-bob`: 2s ease-in-out → 1.6s steps(2) — snaps between positions like classic RPG idle
+- `pop-in`: 300ms ease-out → 240ms steps(4) — chunky "item acquired" pop
+- `shake-happy`: 300ms ease-in-out → 400ms steps(4) + added Y-hop — retro "happy jitter"
+- `float-up-fade`: 2s ease-out → 1.2s steps(8) + initial scale pulse — RPG damage number
+
+### A: revalidatePath Fix (SessionStatsProvider)
+- **Created `session-stats-context.tsx`** — lightweight React Context tracking in-session XP/coin deltas
+- **`resetKey` prop** — derived from server-rendered `profile.xp + profile.coins`; resets deltas when server baseline changes (prevents double-counting on level-up)
+- **GameTopBar** now reads `profile.xp + stats.xpDelta` — live counter updates without server roundtrip
+- **gamification.ts** — `revalidatePath` now only fires on `leveledUp` (structural change), not every XP gain
+- **Producer wiring** — `addReward()` called in review-session, study-session, feynman-editor, study-room-layout alongside existing XP toast triggers
+- **TODO comments** added at all hardcoded XP values flagging the option-2-refactor (return real RewardResult from server actions)
+
+---
+
+## Phase 4 — Implementation Pass 2 (Motion Consistency)
+
+### Item 1: Feature Card Hover (Landing Page)
+- Removed `transition-all duration-300 hover:scale-[1.02]`
+- Added `filter: brightness(1.08)` with `transition: filter 80ms steps(2)` (matches .pixel-btn pattern)
+- Wrapped icon in `.nav-ico` span → triggers existing `pixel-hop` keyframe on hover
+- Extended CSS selector: `.group:hover .nav-ico` added to pixel-hop rule
+
+### Item 2: Review Grade Button Press
+- Replaced `transition-opacity disabled:opacity-50` with `.grade-btn` class
+- Active: `transform: scale(1.08); filter: brightness(1.25)` with `steps(2) 80ms`
+- Disabled: `filter: grayscale(0.7)` with `steps(1) 0ms` (instant snap)
+
+### Item 3: Music Player Equalizer Bars
+- Replaced 3 bars sharing `animate-pixel-float` (looked like loading skeleton)
+- Created 3 distinct keyframes (`eq-bar-1/2/3`) with different height patterns
+- `steps(1)` at slightly different periods (0.5s/0.4s/0.45s) — bars snap independently
+- Result: jittery 8-bit VU meter instead of synchronized floating
+
+### Item 4: Sidebar/Nav Hover States
+- Replaced `transition-opacity hover:opacity-80` with `.pixel-hover-brighten`
+- `filter: brightness(1.1)` with `transition: filter 80ms steps(2)` (same vocabulary as .pixel-btn)
+- Pet widget link: `.pet-hover-perk:hover .animate-pet-bob { animation-duration: 0.5s }` — pet "perks up" on hover
+
+### Item 5: XP Progress Bar
+- Replaced `transition-all` with `transition: width 0.4s steps(8)` — discrete RPG HP/XP fill
+- Added level-up flash: when xpProgress crosses ≥1, bar snaps to 100% gold for 160ms, then settles
+- Also fixed in ProfilePopover (same pattern)
+- Removed `transition-all` from pixel-room mission progress bar (static, no transition needed)
+- Added documentation comments: "same stepped vocabulary as .animate-pixel-fill, transition-based because this value updates dynamically"
+
+---
+
+## Files Modified
+
+### Pass 1 (B1-B4 + A)
+```
+src/app/globals.css (iris wipe, GPU grid bg, animation retiming)
+src/app/layout.tsx (next/font/local for SproutLands)
+src/app/(protected)/app/_components/session-stats-context.tsx (NEW)
+src/app/(protected)/app/layout.tsx (SessionStatsProvider wrapper)
+src/app/(protected)/app/_components/game-top-bar.tsx (session delta consumer + level-up flash)
+src/app/(protected)/app/_actions/gamification.ts (conditional revalidatePath)
+src/app/(protected)/app/review/_components/review-session.tsx (addReward wiring + TODO)
+src/app/(protected)/app/study/_components/study-session.tsx (addReward wiring + TODO)
+src/app/(protected)/app/feynman/_components/feynman-editor.tsx (addReward wiring + TODO)
+src/app/(protected)/app/study-room/_components/study-room-layout.tsx (addReward wiring + TODO)
+```
+
+### Pass 2 (Motion Consistency)
+```
+src/app/_components/landing-content.tsx (feature card hover)
+src/app/globals.css (grade-btn, pixel-hover-brighten, pet-hover-perk, eq-bar keyframes, group:hover .nav-ico)
+src/app/(protected)/app/review/_components/review-session.tsx (grade-btn class)
+src/app/(protected)/app/_components/music-player.tsx (eq-bar classes)
+src/app/(protected)/app/_components/game-sidebar.tsx (pixel-hover-brighten, pet-hover-perk)
+src/app/(protected)/app/_components/game-top-bar.tsx (steps(8) XP bar + level-up flash)
+src/app/(protected)/app/_components/profile-popover.tsx (steps(8) XP bar)
+src/app/(protected)/app/room/_components/pixel-room.tsx (removed transition-all from static bar)
+```
+
+---
+
+## Key Architectural Decisions
+
+1. **No Zustand / no new dependencies** — solved XP counter staleness with a lightweight React Context (SessionStatsProvider) instead of adding a state management library
+2. **Conditional revalidation** — only on level-up (structural change), not every XP gain. Normal gains use client-side deltas.
+3. **One motion vocabulary** — all interactive feedback uses the same pattern: `steps(2) 80ms` for hover/press, `steps(8)` for fills, `steps(1)` for disabled snaps. Reused existing `pixel-hop` and `pixel-fill` patterns rather than inventing new ones.
+4. **Transition vs keyframe for progress bars** — `transition: width steps(8)` for dynamically-updating values; `@keyframes pixel-fill` for one-shot mount animations. Same visual result, different mechanism for different use cases.
+
+---
+
+## Known Items for Manual Testing
+
+1. **Level-up path** — grind cards to level-up, confirm TopBar counter doesn't double-count or flicker
+2. **Multi-level-up in one batch** — big Feynman evaluation crossing two thresholds: flash should fire once
+3. **Pet GIF during rapid reviews** — should no longer restart/blink (revalidatePath removed for normal gains)
+4. **pet-bob steps(2) at 1.6s** — confirm it reads as "retro idle sprite" not "janky"
+5. **float-up XP toast steps(8) at 1.2s** — confirm it reads as "RPG damage number"
+6. **Level-up gold flash timing** — 160ms full-bar gold → settle at new level's progress
+
+## Deferred (Tracked via TODO comments)
+
+- **Option-2 refactor**: Server actions should return `RewardResult` to client so XP/coin values aren't hardcoded in 4 places. Currently kept in sync by convention only. TODO comments at each site.
+
+---
+
+*Session ended June 19, 2026.*

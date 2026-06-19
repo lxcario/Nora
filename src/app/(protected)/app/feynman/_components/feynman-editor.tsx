@@ -40,6 +40,7 @@ import {
 } from "lucide-react";
 import { XpToast } from "@/app/(protected)/app/_components/xp-toast";
 import { SuccessCheck } from "@/app/(protected)/app/_components/success-check";
+import { useSessionStats } from "@/app/(protected)/app/_components/session-stats-context";
 import { DialogFrame, PixelButton } from "@/components/pixel-ui";
 
 interface TopicOption {
@@ -56,6 +57,7 @@ export function FeynmanEditor({ topics }: { topics: TopicOption[] }) {
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [cardsSaved, setCardsSaved] = useState(false);
+  const { addReward } = useSessionStats();
 
   // Iterative refine loop state
   const [attempt, setAttempt] = useState(0);
@@ -210,8 +212,11 @@ export function FeynmanEditor({ topics }: { topics: TopicOption[] }) {
             .filter(Boolean)
         );
         setIsRefining(false);
+        // TODO(option-2-refactor): Feynman XP/coins hardcoded to match
+        // rewardAction("feynman"). Drift risk if server rules change.
         setShowXpToast(true);
         setTimeout(() => setShowXpToast(false), 100);
+        addReward(15, 5);
         // Refresh the per-topic progress sparkline with the new attempt.
         loadScoreHistory(selectedTopic);
       }

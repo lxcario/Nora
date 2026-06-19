@@ -85,9 +85,9 @@ export function MusicPlayer() {
         </span>
         {isPlaying && (
           <span className="flex items-end gap-0.5" aria-hidden>
-            <span className="inline-block h-2 w-1 bg-[var(--pixel-success)] animate-pixel-float" />
-            <span className="inline-block h-3 w-1 bg-[var(--pixel-success)] animate-pixel-float" style={{ animationDelay: "0.2s" }} />
-            <span className="inline-block h-1.5 w-1 bg-[var(--pixel-success)] animate-pixel-float" style={{ animationDelay: "0.4s" }} />
+            <span className="inline-block w-1 bg-[var(--pixel-success)] animate-eq-bar-1" />
+            <span className="inline-block w-1 bg-[var(--pixel-success)] animate-eq-bar-2" />
+            <span className="inline-block w-1 bg-[var(--pixel-success)] animate-eq-bar-3" />
           </span>
         )}
       </button>

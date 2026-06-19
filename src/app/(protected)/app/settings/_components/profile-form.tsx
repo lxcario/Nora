@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Check, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { PixelInput } from "@/components/pixel-ui";
 
 const TIMEZONES = [
   "UTC",
@@ -144,27 +145,11 @@ export function ProfileForm() {
             Shorter sessions, more breaks, reduced distractions.
           </p>
         </div>
-        <button
-          type="button"
-          role="switch"
-          aria-checked={data.adhdMode}
-          onClick={() => setData((d) => ({ ...d, adhdMode: !d.adhdMode }))}
-          className="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full border-2 transition-colors"
-          style={{
-            backgroundColor: data.adhdMode ? "var(--pixel-success)" : "var(--pixel-disabled)",
-            borderColor: data.adhdMode ? "var(--pixel-success)" : "var(--pixel-border)",
-            outline: "none",
-          }}
-        >
-          <span
-            className="inline-block h-4 w-4 rounded-full border transition-transform"
-            style={{
-              backgroundColor: "var(--pixel-bg-surface)",
-              borderColor: "var(--pixel-border)",
-              transform: data.adhdMode ? "translateX(20px)" : "translateX(2px)",
-            }}
-          />
-        </button>
+        <PixelInput
+          type="toggle"
+          checked={data.adhdMode}
+          onChange={(val) => setData((d) => ({ ...d, adhdMode: val as boolean }))}
+        />
       </div>
 
       {/* Focus audio */}
