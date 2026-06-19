@@ -2,9 +2,11 @@
 
 import { useState, useTransition } from "react";
 import { submitReview } from "@/app/(protected)/app/_actions/review";
+import { Rating, type Grade } from "@/lib/fsrs";
 import type { StudyItem } from "@/app/(protected)/app/_actions/study-session";
 import { XpToast } from "@/app/(protected)/app/_components/xp-toast";
 import { SuccessCheck } from "@/app/(protected)/app/_components/success-check";
+import { useSessionStats } from "@/app/(protected)/app/_components/session-stats-context";
 import { playSessionComplete } from "@/lib/sfx";
 import {
   DialogFrame,
@@ -14,16 +16,21 @@ import {
 import Link from "next/link";
 
 // ---------------------------------------------------------------------------
-// Grade button config — pixel theme colors
+// 4-button FSRS grade config (matches review-session.tsx)
 // ---------------------------------------------------------------------------
 
-const GRADE_LABELS: { grade: number; label: string; color: string }[] = [
-  { grade: 0, label: "Blackout", color: "var(--pixel-error)" },
-  { grade: 1, label: "Wrong", color: "color-mix(in srgb, var(--pixel-error) 85%, var(--pixel-bg-primary))" },
-  { grade: 2, label: "Hard", color: "var(--pixel-warning)" },
-  { grade: 3, label: "OK", color: "var(--pixel-accent)" },
-  { grade: 4, label: "Good", color: "color-mix(in srgb, var(--pixel-success) 85%, var(--pixel-bg-primary))" },
-  { grade: 5, label: "Easy", color: "var(--pixel-success)" },
+interface GradeButton {
+  rating: Grade;
+  label: string;
+  sublabel: string;
+  color: string;
+}
+
+const FSRS_GRADES: GradeButton[] = [
+  { rating: Rating.Again, label: "Again", sublabel: "Forgot", color: "var(--pixel-error)" },
+  { rating: Rating.Hard, label: "Hard", sublabel: "Struggled", color: "var(--pixel-warning)" },
+  { rating: Rating.Good, label: "Good", sublabel: "Recalled", color: "var(--pixel-accent)" },
+  { rating: Rating.Easy, label: "Easy", sublabel: "Perfect", color: "var(--pixel-success)" },
 ];
 
 // ---------------------------------------------------------------------------
@@ -45,6 +52,7 @@ export function StudySession({ queue }: { queue: StudyItem[] }) {
   const [sessionComplete, setSessionComplete] = useState(false);
   const [revealed, setRevealed] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const { addReward } = useSessionStats();
 
   // Stats tracking
   const [cardsReviewed, setCardsReviewed] = useState(0);
@@ -63,8 +71,11 @@ export function StudySession({ queue }: { queue: StudyItem[] }) {
       setSessionComplete(true);
       setShowComplete(true);
       setTimeout(() => setShowComplete(false), 100);
+      // TODO(option-2-refactor): Session complete XP/coins hardcoded to match
+      // rewardAction("session_complete"). Drift risk if server rules change.
       setXpToastData({ xp: 10, coins: 3, visible: true });
       setTimeout(() => setXpToastData((prev) => ({ ...prev, visible: false })), 100);
+      addReward(10, 3);
       playSessionComplete();
     } else {
       setCurrentIndex((i) => i + 1);
@@ -72,16 +83,21 @@ export function StudySession({ queue }: { queue: StudyItem[] }) {
     }
   }
 
-  function handleGrade(grade: number) {
+  function handleGrade(rating: Grade) {
     if (!currentItem.cardId) return;
     startTransition(async () => {
-      await submitReview(currentItem.cardId!, grade);
+      await submitReview(currentItem.cardId!, rating);
       setCardsReviewed((c) => c + 1);
 
-      const xp = grade >= 3 ? 3 : 1;
-      const coins = grade >= 3 ? 1 : 0;
+      // TODO(option-2-refactor): These XP/coin values are hardcoded to match
+      // rewardAction() server logic. If reward rules change (streak multipliers,
+      // tuned amounts), these will silently drift.
+      const passed = rating !== Rating.Again;
+      const xp = passed ? 3 : 1;
+      const coins = passed ? 1 : 0;
       setXpToastData({ xp, coins, visible: true });
       setTimeout(() => setXpToastData((prev) => ({ ...prev, visible: false })), 100);
+      addReward(xp, coins);
 
       advanceToNext();
     });
@@ -247,7 +263,7 @@ function FlashcardView({
   revealed: boolean;
   isPending: boolean;
   onReveal: () => void;
-  onGrade: (grade: number) => void;
+  onGrade: (rating: Grade) => void;
 }) {
   return (
     <>
@@ -293,18 +309,18 @@ function FlashcardView({
             >
               How well did you recall this?
             </p>
-            <div className="grid grid-cols-6 gap-2">
-              {GRADE_LABELS.map(({ grade, label, color }) => (
+            <div className="grid grid-cols-4 gap-2">
+              {FSRS_GRADES.map(({ rating, label, sublabel, color }) => (
                 <button
-                  key={grade}
-                  onClick={() => onGrade(grade)}
+                  key={rating}
+                  onClick={() => onGrade(rating)}
                   disabled={isPending}
-                  className="flex flex-col items-center gap-0.5 px-1 py-3 border-2 transition-opacity disabled:opacity-50"
+                  className="flex flex-col items-center gap-0.5 px-2 py-3 border-2 transition-opacity disabled:opacity-50"
                   style={{
                     backgroundColor: color,
                     borderColor: "var(--pixel-border)",
                     color: "#fff",
-                    minHeight: "44px",
+                    minHeight: "52px",
                     imageRendering: "pixelated",
                   }}
                 >
@@ -312,8 +328,8 @@ function FlashcardView({
                     <span className="font-pixel text-xs animate-pixel-blink">...</span>
                   ) : (
                     <>
-                      <span className="font-pixel text-sm font-bold">{grade}</span>
-                      <span className="font-pixel text-[8px]">{label}</span>
+                      <span className="font-pixel text-sm font-bold">{label}</span>
+                      <span className="font-pixel text-[8px] opacity-80">{sublabel}</span>
                     </>
                   )}
                 </button>

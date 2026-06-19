@@ -118,6 +118,12 @@ export async function submitReview(
   cardId: string,
   rating: Grade
 ): Promise<{ success?: boolean; error?: string }> {
+  // Defensive guard: FSRS grades are 1-4 (Again/Hard/Good/Easy). Reject
+  // anything else (e.g. a stale client sending an old 0-5 SM-2 grade).
+  if (![Rating.Again, Rating.Hard, Rating.Good, Rating.Easy].includes(rating)) {
+    return { error: "Invalid rating — expected Again, Hard, Good, or Easy." };
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
