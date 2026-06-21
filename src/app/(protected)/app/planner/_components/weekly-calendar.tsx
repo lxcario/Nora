@@ -1,6 +1,4 @@
-"use client";
-
-import { useState } from "react";
+import Link from "next/link";
 import { type PlannedSession, type PlannedAcademicEvent } from "@/app/(protected)/app/_actions/planner";
 import { PixelButton } from "@/components/pixel-ui";
 
@@ -15,11 +13,11 @@ interface Props {
   sessions: PlannedSession[];
   weekStart: string;
   weekEnd: string;
+  weekOffset?: number;
   academicEvents?: PlannedAcademicEvent[];
 }
 
-export function WeeklyCalendar({ sessions, weekStart, weekEnd, academicEvents = [] }: Props) {
-  const [currentWeekOffset] = useState(0);
+export function WeeklyCalendar({ sessions, weekStart, weekEnd, weekOffset = 0, academicEvents = [] }: Props) {
 
   // Generate days of the week
   const days = [];
@@ -36,20 +34,20 @@ export function WeeklyCalendar({ sessions, weekStart, weekEnd, academicEvents = 
     <div className="space-y-4">
       {/* Week navigation */}
       <div className="pixel-panel flex items-center justify-between px-4 py-3">
-        <a href={`/app/planner?week=${currentWeekOffset - 1}`}>
+        <Link href={`/app/planner?week=${weekOffset - 1}`}>
           <PixelButton variant="secondary" size="small">
             ← Prev
           </PixelButton>
-        </a>
+        </Link>
         <span className="flex items-center gap-2 font-pixel text-xs" style={{ color: "var(--pixel-text-primary)" }}>
           <img src="/sprites/travel-book/icons/Document.png" alt="" width={14} height={14} className="pixel-art" />
           {formatDateShort(weekStart)} — {formatDateShort(weekEnd)}
         </span>
-        <a href={`/app/planner?week=${currentWeekOffset + 1}`}>
+        <Link href={`/app/planner?week=${weekOffset + 1}`}>
           <PixelButton variant="secondary" size="small">
             Next →
           </PixelButton>
-        </a>
+        </Link>
       </div>
 
       {/* Calendar grid */}

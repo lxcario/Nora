@@ -2,6 +2,8 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { DialogFrame, PixelCounter } from "@/components/pixel-ui";
 import { formatStreak } from "@/lib/format-streak";
+import { endOfUserLocalDay } from "@/lib/due";
+import { computeStreak } from "@/lib/streak";
 
 // ---------------------------------------------------------------------------
 // Data fetching helpers
@@ -129,18 +131,22 @@ export default async function DashboardPage() {
   // Profile stats
   const { data: profile } = await supabase
     .from("profiles")
-    .select("xp, coins, level, display_name")
+    .select("xp, coins, level, display_name, timezone")
     .eq("id", user!.id)
     .single();
 
-  const today = new Date().toISOString().split("T")[0];
+  const now = new Date();
+  const timezone = profile?.timezone ?? "UTC";
+  const dueCutoff = endOfUserLocalDay(now, timezone);
 
-  // Cards due
+  // Cards due (FSRS `due` column, timezone-aware cutoff)
   const { count: cardsDue } = await supabase
     .from("cards")
     .select("id", { count: "exact", head: true })
     .eq("user_id", user!.id)
-    .lte("next_review_at", today);
+    .lte("due", dueCutoff.toISOString());
+
+  const today = now.toISOString().split("T")[0];
 
   // Streak (last 30 days)
   const thirtyDaysAgo = new Date();
@@ -167,17 +173,7 @@ export default async function DashboardPage() {
     activityDates.add((r.reviewed_at as string).split("T")[0])
   );
 
-  let streak = 0;
-  const checkDate = new Date();
-  while (true) {
-    const dateStr = checkDate.toISOString().split("T")[0];
-    if (activityDates.has(dateStr)) {
-      streak++;
-      checkDate.setDate(checkDate.getDate() - 1);
-    } else {
-      break;
-    }
-  }
+  const streak = computeStreak(activityDates);
 
   const xpTotal = profile?.xp ?? 0;
   const coins = profile?.coins ?? 0;

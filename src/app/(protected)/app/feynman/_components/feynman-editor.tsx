@@ -66,6 +66,7 @@ export function FeynmanEditor({ topics }: { topics: TopicOption[] }) {
   const [isRefining, setIsRefining] = useState(false);
   const [scoreDelta, setScoreDelta] = useState<number | null>(null);
   const editorRef = useRef<HTMLDivElement>(null);
+  const evaluatingRef = useRef(false); // double-submit guard
 
   // Per-topic score history (for the progress sparkline)
   const [scoreHistory, setScoreHistory] = useState<TopicScorePoint[]>([]);
@@ -179,6 +180,9 @@ export function FeynmanEditor({ topics }: { topics: TopicOption[] }) {
   }
 
   function handleEvaluate() {
+    if (evaluatingRef.current) return; // prevent double-submit
+    evaluatingRef.current = true;
+
     setError(null);
     setAnalysis(null);
     setCardsSaved(false);
@@ -194,31 +198,32 @@ export function FeynmanEditor({ topics }: { topics: TopicOption[] }) {
         : undefined;
 
     startTransition(async () => {
-      const result = await evaluateExplanation(selectedTopic, explanation, refine);
-      if (result.error) {
-        setError(result.error);
-      } else if (result.data) {
-        const newScore = result.data.score.score;
-        setScoreDelta(
-          refine && previousScore !== null ? newScore - previousScore : null
-        );
-        setAnalysis(result.data);
-        setAttempt((a) => a + 1);
-        setPreviousScore(newScore);
-        setPreviousGaps(
-          result.data.segments
-            .filter((s) => s.status !== "green")
-            .map((s) => s.feedback)
-            .filter(Boolean)
-        );
-        setIsRefining(false);
-        // TODO(option-2-refactor): Feynman XP/coins hardcoded to match
-        // rewardAction("feynman"). Drift risk if server rules change.
-        setShowXpToast(true);
-        setTimeout(() => setShowXpToast(false), 100);
-        addReward(15, 5);
-        // Refresh the per-topic progress sparkline with the new attempt.
-        loadScoreHistory(selectedTopic);
+      try {
+        const result = await evaluateExplanation(selectedTopic, explanation, refine);
+        if (result.error) {
+          setError(result.error);
+        } else if (result.data) {
+          const newScore = result.data.score.score;
+          setScoreDelta(
+            refine && previousScore !== null ? newScore - previousScore : null
+          );
+          setAnalysis(result.data);
+          setAttempt((a) => a + 1);
+          setPreviousScore(newScore);
+          setPreviousGaps(
+            result.data.segments
+              .filter((s) => s.status !== "green")
+              .map((s) => s.feedback)
+              .filter(Boolean)
+          );
+          setIsRefining(false);
+          setShowXpToast(true);
+          setTimeout(() => setShowXpToast(false), 100);
+          addReward(15, 5);
+          loadScoreHistory(selectedTopic);
+        }
+      } finally {
+        evaluatingRef.current = false;
       }
     });
   }

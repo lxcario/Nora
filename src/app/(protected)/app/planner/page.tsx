@@ -8,9 +8,16 @@ const STATUS_COLOR: Record<string, string> = {
   inferred: "var(--pixel-warning)",
 };
 
-export default async function PlannerPage() {
+interface PlannerPageProps {
+  searchParams: Promise<{ week?: string }>;
+}
+
+export default async function PlannerPage({ searchParams }: PlannerPageProps) {
+  const params = await searchParams;
+  const weekOffset = parseInt(params.week ?? "0", 10) || 0;
+
   const { sessions, weekStart, weekEnd, academicEvents, upcomingDeadlines, academicLoad, error } =
-    await getWeeklyPlan(0);
+    await getWeeklyPlan(weekOffset);
 
   return (
     <div className="space-y-6">
@@ -85,6 +92,7 @@ export default async function PlannerPage() {
         sessions={sessions}
         weekStart={weekStart}
         weekEnd={weekEnd}
+        weekOffset={weekOffset}
         academicEvents={academicEvents}
       />
     </div>

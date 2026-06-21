@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   discoverParties,
@@ -22,6 +23,7 @@ interface PartyDiscoveryProps {
 }
 
 export function PartyDiscovery({ currentParty: propCurrentParty }: PartyDiscoveryProps = {}) {
+  const router = useRouter();
   const [parties, setParties] = useState<DiscoverableParty[]>([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
@@ -64,6 +66,8 @@ export function PartyDiscovery({ currentParty: propCurrentParty }: PartyDiscover
     const result = await joinPartyByCode(inviteCode.trim());
     if (result.error) {
       setJoinCodeError(result.error);
+    } else {
+      router.refresh(); // navigate to the party view
     }
     setJoinCodeLoading(false);
   }
@@ -74,6 +78,8 @@ export function PartyDiscovery({ currentParty: propCurrentParty }: PartyDiscover
     const result = await joinPartyPublic(partyId);
     if (result.error) {
       setJoinError(result.error);
+    } else {
+      router.refresh(); // navigate to the party view
     }
     setJoiningPartyId(null);
   }

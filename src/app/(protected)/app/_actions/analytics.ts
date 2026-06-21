@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { computeStreak } from "@/lib/streak";
 
 export interface AnalyticsData {
   sessionsThisWeek: number;
@@ -99,34 +100,12 @@ export async function getAnalytics(): Promise<{
     ([date, count]) => ({ date, count })
   );
 
-  // Streak (consecutive days with at least one session or review).
-  // Start counting from yesterday backwards so the streak doesn't break
-  // mid-day before the user has their session. If today also has activity,
-  // add it to the streak.
-  let streak = 0;
-  const checkDate = new Date(today);
-
-  // Check if today has activity — if so, count it and move to yesterday.
-  const todayStr = checkDate.toISOString().split("T")[0];
-  if (dailySessionsMap.has(todayStr) || dailyReviewsMap.has(todayStr)) {
-    streak++;
-    checkDate.setDate(checkDate.getDate() - 1);
-  } else {
-    // Today has no activity yet — start checking from yesterday.
-    // The streak won't break just because the day isn't over.
-    checkDate.setDate(checkDate.getDate() - 1);
-  }
-
-  // Count consecutive past days with activity.
-  while (true) {
-    const dateStr = checkDate.toISOString().split("T")[0];
-    if (dailySessionsMap.has(dateStr) || dailyReviewsMap.has(dateStr)) {
-      streak++;
-      checkDate.setDate(checkDate.getDate() - 1);
-    } else {
-      break;
-    }
-  }
+  // Streak — uses the shared computeStreak function (single source of truth).
+  const allActivityDates = new Set<string>([
+    ...dailySessionsMap.keys(),
+    ...dailyReviewsMap.keys(),
+  ]);
+  const streak = computeStreak(allActivityDates, today);
 
   // Topic mastery (avg grade per topic)
   const { data: reviewsWithTopics } = await supabase

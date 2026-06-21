@@ -81,6 +81,9 @@ export function StudyRoomLayout({
   const [generatedNotes, setGeneratedNotes] = useState<GeneratedNotesData | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
+  // Video load error
+  const [videoLoadError, setVideoLoadError] = useState<string | null>(null);
+
   // Search panel
   const [searchExpanded, setSearchExpanded] = useState(!initialVideoId);
 
@@ -143,9 +146,15 @@ export function StudyRoomLayout({
       sessionRecordedRef.current = false;
       setFeynmanSegmentStart(0);
       setSearchExpanded(false);
+      setVideoLoadError(null);
 
       // Load video record via server action
       const result = await loadVideo(youtubeId, title ?? "Untitled Video", channel, duration);
+      if (result.error) {
+        setVideoLoadError(result.error);
+        setVideoId(null); // revert to search state so user can try again
+        return;
+      }
       if (result.data) {
         setVideoRecord({
           id: result.data.id,
@@ -314,6 +323,18 @@ export function StudyRoomLayout({
             Search for an educational video or paste a YouTube URL to begin.
           </p>
         </div>
+        {videoLoadError && (
+          <div
+            className="rounded-lg border-2 p-3 text-sm"
+            style={{
+              borderColor: "var(--pixel-error)",
+              backgroundColor: "var(--pixel-bg-secondary)",
+              color: "var(--pixel-error)",
+            }}
+          >
+            {videoLoadError}
+          </div>
+        )}
         <div className="pixel-panel" style={{ padding: "24px" }}>
           <VideoSearch onSelectVideo={handleSearchSelect} />
           <div className="my-4 flex items-center gap-3">
