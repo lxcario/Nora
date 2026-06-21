@@ -812,6 +812,423 @@ c0fa0a5 feat: add History & Journals page with filterable timeline
 
 ---
 
+# Session 4 — June 18, 2026
+
+## Overview
+
+Deep UX audit of the entire app, followed by full implementation of all 24 improvement tasks across 3 sprints. Resolved the "split personality" problem — half the app was using legacy SaaS-white styling while the other half used the pixel-art theme. Every page now uses the pixel-ui design system consistently.
+
+---
+
+## Phase 1 — UX Audit (Analysis Only)
+
+Conducted a full codebase read of all 15 pages, their _components subdirectories, the pixel-ui library, and utility files. Produced two deliverables:
+
+### Audit Report (`.kiro/specs/ux-audit/audit-report.md`)
+- Scored every page across 8 dimensions (First Impression, Task Clarity, Emotional Tone, Feedback, Empty States, Wayfinding, Mobile, Consistency)
+- Identified 23 issues: 5 P0 (Critical), 6 P1 (High), 7 P2 (Medium), 5 P3 (Low)
+- Documented 10 things working well
+- Page-by-page detailed notes
+
+### Improvement Spec (`.kiro/specs/ux-audit/improvement-spec.md`)
+- 24 implementation-ready tasks across 3 sprints
+- Empty State Catalog (16 entries)
+- Error Message Catalog (9 entries)
+- 10 Tone & Copy Consistency Rules
+
+### Spec Documents
+- `requirements.md` — 7 functional + 5 non-functional requirements
+- `design.md` — PixelConfirmDialog spec, re-skin pattern table, grade button color mapping, layout changes
+- `tasks.md` — 24 tasks with files, steps, acceptance criteria
+
+---
+
+## Phase 2 — Sprint 1: Pre-Demo (P0 Fixes) ✅
+
+| Task | Files | Change |
+|------|-------|--------|
+| UX-001 | `layout.tsx` | Rendered BottomNav for mobile navigation (was built but never mounted) |
+| UX-002 | `error.tsx` | Full rewrite → DialogFrame + PixelButton (was lucide + indigo) |
+| UX-003 | `loading.tsx` | Full rewrite → LoadingSkeleton (was Loader2 + indigo) |
+| UX-004 | `confirm-dialog.tsx`, `pixel-button.tsx`, `index.ts` | New PixelConfirmDialog + forwardRef on PixelButton |
+| UX-005 | `review-session.tsx` | Delete card now requires PixelConfirmDialog confirmation |
+| UX-006 | `review/page.tsx`, `review-session.tsx` | Full pixel-ui reskin (DialogFrame, PixelButton, PixelProgressBar, grade buttons with CSS vars) |
+| UX-007 | `study/page.tsx`, `study-session.tsx` | Full pixel-ui reskin (same treatment as review) |
+
+---
+
+## Phase 3 — Sprint 2: Pre-Ship (P1 Fixes) ✅
+
+| Task | Files | Change |
+|------|-------|--------|
+| Task 8 | `party-discovery.tsx` | Full reskin → DialogFrame, PixelButton, PixelInput, LoadingSkeleton, EmptyState |
+| Task 9 | `party-page.tsx` | Removed window.confirm → PixelConfirmDialog, DialogFrame wrappers, sprite badges |
+| Task 10 | `analytics-dashboard.tsx` | Removed lucide → sprite icons, pixel-panel stats, BarChartPixel, pixel heatmap |
+| Task 11 | `history-filters.tsx`, `history-list.tsx` | pixel-panel-inset filter chips, pixel-panel cards, EmptyState |
+| Task 12 | `weekly-calendar.tsx` | pixel-panel nav, PixelButton, pixel-panel-inset day cells, accent today |
+| Task 13 | `game-top-bar.tsx`, `collection/page.tsx` | Title tooltips on XP/coins, intro sentence |
+| Task 14 | `study-room-layout.tsx` | pixel-panel search panel, removed unused lucide imports |
+
+---
+
+## Phase 4 — Sprint 3: Polish (P2+P3) ✅
+
+| Task | Files | Change |
+|------|-------|--------|
+| Task 15 | `subjects-manager.tsx` | pixel-panel-inset, PixelButton, PixelInput, PixelConfirmDialog for deletes |
+| Task 16 | `feynman-editor.tsx` | Replaced !bg-/!text- overrides with PixelButton components |
+| Task 17 | (already fixed) | Review stats simplified in Sprint 1 |
+| Task 18 | (already fixed) | LoadingSkeleton in Sprint 2 |
+| Task 19 | `planner/page.tsx` | EmptyState when week has no sessions/events |
+| Task 20 | `party/page.tsx`, `planner/page.tsx`, `history/page.tsx`, `room/page.tsx` | All red-text errors → DialogFrame state="error" |
+| Task 21 | `feynman/page.tsx` | EmptyState component with action link |
+| Task 22 | `globals.css` | Pixel-themed range input (track + thumb styling) |
+| Task 23 | `game-sidebar.tsx` | forest_rescue → "🌲 Lost in forest" in warning color |
+| Task 24 | `profile-popover.tsx` | Removed dead Settings/LogOut lucide imports |
+
+---
+
+## Phase 5 — Per-Page Loading Skeletons ✅
+
+Created layout-matched `loading.tsx` for every page route. Each skeleton mirrors the exact structure of its page content:
+
+| Page | Skeleton matches |
+|------|-----------------|
+| Homepage (`/app`) | Briefing + CTA + 4-stat grid + quests panel + friends feed |
+| Review | Stat tile + card panel + meta row |
+| Study Mix | Type badge + progress + card panel + skip |
+| Feynman | Topic selector + textarea editor |
+| Research | Mode toggle + search input panel |
+| Study Room | Centered "Start Studying" empty state layout |
+| Planner | Week nav + 7-column grid + legend |
+| Academic | University header + progress + events + documents |
+| Analytics | 5-stat row + 2 charts + heatmap + mastery bars |
+| History | Filter chips + date-grouped cards |
+| Pixel Room | 360px scene + pet status + quote + missions |
+| Party | Header badges + members + quests + messages |
+| Collection | Cursor grid + themes/decorations 2-col |
+| Settings | Tab bar + profile form |
+
+Also created `src/components/pixel-ui/skeleton-helpers.tsx` with reusable `PageHeaderSkeleton`, `PanelSkeleton`, `StatTileSkeleton`.
+
+---
+
+## New Files Created
+
+```
+.kiro/specs/ux-audit/audit-report.md
+.kiro/specs/ux-audit/improvement-spec.md
+.kiro/specs/ux-audit/requirements.md
+.kiro/specs/ux-audit/design.md
+.kiro/specs/ux-audit/tasks.md
+src/components/pixel-ui/confirm-dialog.tsx
+src/components/pixel-ui/skeleton-helpers.tsx
+src/app/(protected)/app/review/loading.tsx
+src/app/(protected)/app/study/loading.tsx
+src/app/(protected)/app/feynman/loading.tsx
+src/app/(protected)/app/research/loading.tsx
+src/app/(protected)/app/study-room/loading.tsx
+src/app/(protected)/app/planner/loading.tsx
+src/app/(protected)/app/academic/loading.tsx
+src/app/(protected)/app/analytics/loading.tsx
+src/app/(protected)/app/history/loading.tsx
+src/app/(protected)/app/room/loading.tsx
+src/app/(protected)/app/party/loading.tsx
+src/app/(protected)/app/collection/loading.tsx
+src/app/(protected)/app/settings/loading.tsx
+```
+
+## Modified Files
+
+```
+src/app/(protected)/app/layout.tsx (BottomNav + mobile padding)
+src/app/(protected)/app/error.tsx (full rewrite)
+src/app/(protected)/app/loading.tsx (full rewrite — homepage skeleton)
+src/app/(protected)/app/review/page.tsx (pixel-ui reskin)
+src/app/(protected)/app/review/_components/review-session.tsx (full reskin + confirm dialog)
+src/app/(protected)/app/study/page.tsx (pixel-ui reskin)
+src/app/(protected)/app/study/_components/study-session.tsx (full reskin)
+src/app/(protected)/app/party/_components/party-discovery.tsx (full reskin)
+src/app/(protected)/app/party/_components/party-page.tsx (full reskin + confirm dialog)
+src/app/(protected)/app/party/page.tsx (error standardization)
+src/app/(protected)/app/analytics/_components/analytics-dashboard.tsx (full reskin)
+src/app/(protected)/app/history/_components/history-filters.tsx (full reskin)
+src/app/(protected)/app/history/_components/history-list.tsx (full reskin)
+src/app/(protected)/app/history/page.tsx (error standardization)
+src/app/(protected)/app/planner/_components/weekly-calendar.tsx (full reskin)
+src/app/(protected)/app/planner/page.tsx (empty state + error fix)
+src/app/(protected)/app/feynman/_components/feynman-editor.tsx (button overrides → PixelButton)
+src/app/(protected)/app/feynman/page.tsx (EmptyState)
+src/app/(protected)/app/room/page.tsx (error standardization)
+src/app/(protected)/app/collection/page.tsx (coins intro)
+src/app/(protected)/app/settings/_components/subjects-manager.tsx (full reskin)
+src/app/(protected)/app/study-room/_components/study-room-layout.tsx (search panel fix)
+src/app/(protected)/app/_components/game-top-bar.tsx (XP/coins tooltips)
+src/app/(protected)/app/_components/game-sidebar.tsx (forest_rescue label)
+src/app/(protected)/app/_components/profile-popover.tsx (dead imports removed)
+src/app/globals.css (range input styling)
+src/components/pixel-ui/index.ts (exports: PixelConfirmDialog, skeleton-helpers)
+src/components/pixel-ui/pixel-button.tsx (forwardRef support)
+```
+
+---
+
+## Key Outcomes
+
+1. **Split personality resolved** — No more bg-white/zinc/indigo pages. Every route uses pixel-ui exclusively.
+2. **Mobile navigation fixed** — BottomNav now renders on mobile (was built but never wired).
+3. **Destructive actions safe** — PixelConfirmDialog replaces all window.confirm() and unprotected deletes.
+4. **Error states cozy** — All raw red-text errors replaced with DialogFrame state="error" + warm copy.
+5. **Loading states branded** — Every page has a layout-matched LoadingSkeleton instead of generic spinners.
+6. **Gamification explained** — XP bar and coins now have tooltip explanations for new users.
+
+---
+
+*Session ended June 18, 2026.*
+
+
+---
+
+# Session — Evidence-Based Learning Core (June 18, 2026)
+
+## Overview
+
+Implemented the full `evidence-based-learning-core` spec — 20 tasks upgrading Nora's seven learning features from "correct but dated" to evidence-backed and grounded, based on `geminiresearch.md` (the pedagogical/technical audit). Worked strictly task-by-task with `npm test` + `npx tsc --noEmit` after each, plus a production `npm run build` at the end.
+
+**Final state:** 332 tests passing (22 files), 0 TypeScript errors, production build green (23 routes).
+
+## What Was Built (by phase)
+
+### Phase 1 — FSRS Scheduling Foundation (Tasks 1–5)
+- Added `ts-fsrs` (MIT, FSRS-6); `engines.node >= 20`.
+- `src/lib/fsrs.ts` — pure module: `scheduleReview`, `createNewFSRSCard`, `initFromSM2` (SM-2→FSRS backfill), re-exports `Rating`/`State`/`Grade`. Fuzz off for determinism.
+- `src/lib/due.ts` — timezone-safe `endOfUserLocalDay` / `isDueToday` via Intl (DUE-1).
+- Migration `010_fsrs_scheduling.sql` — additive FSRS columns + `idx_cards_due`.
+- `review.ts` — dual-write during transition; `getDueCards` timezone-aware.
+- `review-session.tsx` — 4-button Again/Hard/Good/Easy grading + intra-session relearning (Again re-queues).
+
+### Phase 2 — Hybrid RAG (Tasks 6–7)
+- Migration `012_hybrid_search.sql` — `match_paper_chunks_hybrid` (lexical `ts_rank_cd` + vector cosine, fused via RRF; NULL embedding → ranked lexical-only).
+- `src/lib/rrf.ts` — pure RRF mirror + `rrf.test.ts`.
+- `rag.ts#queryRag` — routes through the hybrid RPC; `validateCitations` ensures every citation resolves to a retrieved chunk (RAG-1); removed chunkIndex=0 fallback.
+
+### Phase 3 — Grounded Research Desk (Tasks 8–10)
+- `src/lib/academic-search/{openalex,crossref,unpaywall,types}.ts` — server-only clients, mailto/email from env, graceful no-key handling.
+- `research.ts` — OpenAlex (primary) + Crossref; "insufficient sources" branch; `validateResearchCitations` strips unsupported `[N]` markers (RESEARCH-1).
+- Migration `013_research_sources.sql` — `doi` + `oa_url` on papers; `ingestOpenAccessPdf` (Unpaywall → SSRF check → existing RAG pipeline).
+
+### Phase 4 — Grounded Feynman (Tasks 11–12)
+- Migration `014_feynman_source_attachment.sql` — `feynman_source_ref` JSONB on topics.
+- `feynman.ts` — source attachment actions; `evaluateExplanation` grades against retrieved passages (paper via hybrid RPC / notes / transcript), citing passage ids; "unverified" badge when no source. `src/lib/feynman-grounding.ts` pure helpers.
+
+### Phase 5 — Evidence-Aware Study Mix (Tasks 13–15)
+- Migration `011_material_type.sql` — `material_type` on topics; Settings selector.
+- `src/lib/study-mix.ts#buildQueue` — vocab blocked (MIX-1), non-vocab interleaved by subject + weakness (MIX-2); wired into `study-session.ts`.
+
+### Phase 6 — Spacing-Aware Planner (Tasks 16–18)
+- `src/lib/spacing.ts` — Cepeda ridgeline `optimalGapDays`, `examRetention`, `distributeSessions` (SPACING-1).
+- `planner.ts` — sessions distributed with expanding gaps; near-exam subjects get `request_retention` 0.95.
+- Migration `015_planner_skips.sql` + `markSessionMissed` forward-fill (`nextFreeDate`).
+
+### Phase 7 — Cleanup & Docs (Tasks 19–20)
+- Migration `016_drop_sm2_columns.sql` — drops `interval/repetition/efactor/next_review_at` after backfill; `due` made NOT NULL.
+- `review.ts` rewritten FSRS-only; SM-2 references removed from planner/room/study-session/review-session.
+- README + `.env.example` rewritten (FSRS, academic APIs, hybrid RAG, optional Docling/Ragas, full migration list).
+
+## Notable Fixes
+- **fast-check v4** requires 32-bit float bounds → `Math.fround`.
+- **FSRS new-card sentinel** (stability/difficulty 0) → relaxed migration CHECK to `>= 0`, split FSRS-2 property test.
+- **supabase-js literal selects** — string concatenation degrades to `GenericStringError`; kept select strings literal.
+- **SQL function type** — `1.0 / x` is `numeric`; cast `rrf_score` to `double precision` (012).
+- **Next.js 16 server-action rule** — `"use server"` files may export only async functions. Moved `validateResearchCitations` → `lib/research-citations.ts`, `MaterialType`/`MATERIAL_TYPE_LABELS` → `lib/material-type.ts`, `nextFreeDate` → `lib/planner-scheduling.ts`. (Caught only at build time, not by tsc.)
+
+## Migrations Added
+`010`–`016` (FSRS, material_type, hybrid_search, research_sources, feynman_source_attachment, planner_skips, drop_sm2). `016` is destructive — run after backfill verification.
+
+## SM-2 → FSRS
+`sm2.ts` retained as migration reference but no longer imported. Historical 0–5 grades in `card_reviews` preserved read-only.
+
+*Session ended June 18, 2026.*
+
+
+---
+
+# Session — Frontend Performance & Motion Optimization (June 19, 2026)
+
+## Overview
+
+Full rendering performance audit + motion/UX audit → Gemini Deep Research → two implementation passes fixing all identified issues. The session started with a dual audit (performance + "does this feel generic"), produced a highly targeted research prompt for Gemini, then applied the research results with critical corrections where the report was unsound.
+
+**Final state:** 332 tests passing (22 files), 0 TypeScript errors, production build green. All animations now use a single consistent retro motion vocabulary (steps()-based). Layout churn from revalidatePath eliminated for normal XP gains.
+
+---
+
+## Phase 1 — Dual Audit
+
+### Performance Audit (6 findings, ranked by severity × frequency)
+1. **P0: `revalidatePath("/app")` full layout churn** — fires on every XP gain (20+ times per review session), causing full layout re-fetch, pet GIF restart, PixelCounter rAF restart
+2. **P1: Landing hero GIF not optimized** — raw `<img>` without lazy loading or next/image
+3. **P1: Pet GIF restart on revalidation** — sidebar pet sprite blinks on every card review
+4. **P2: Font FOUT** — SproutLands via @font-face with no preloading
+5. **P2: pixel-grid-bg scroll repaints** — 11-layer gradient stack on scroll container
+6. **P3: PixelCounter rAF state spam** — setState every frame during 600ms animation
+
+### Motion/UX Audit (13 animations evaluated, 10 flagged as generic)
+- 4 loudest offenders: pet-bob (smooth ease-in-out), pop-in (smooth ease-out), shake-happy (smooth ease-in-out), float-up-fade (smooth ease-out)
+- 6 secondary: feature card hover (smooth scale), grade button feedback (opacity only), equalizer bars (reused float), sidebar hovers (opacity only), view transitions (opacity only), XP bar (smooth transition-all)
+- 3 already good: pixel-btn:active, pixel-slide-in, pixel-float
+
+---
+
+## Phase 2 — Gemini Deep Research
+
+Crafted a highly specific research prompt with full Nora context (exact tech stack, file references, current animation system, P0 problem details). 10 research directives covering:
+1. Awwwards pixel-art site motion techniques
+2. Pixel-art UI animation timing standards (GDC, sprite guides)
+3. Stepped vs smooth easing decisions in retro web projects
+4. Next.js App Router architecture for bypassing layout re-renders
+5. React 19 useOptimistic/useTransition patterns
+6. Preventing CSS animation/GIF restart on reconciliation
+7. Retro route transitions (iris wipes, dither masks)
+8. Gamification micro-interaction patterns (Duolingo, Habitica)
+9. Sprite/font loading optimizations
+10. Custom cursor + multi-layer gradient GPU compositing
+
+### Critical Corrections Applied to Research Output
+- **Rejected Zustand recommendation** — contradicts Nora's no-global-store architecture
+- **Treated frame-count table as rough prior** — unsourced claims about Celeste/Stardew timings
+- **Rejected generic useOptimistic sample** — designed real fix against actual layout.tsx architecture
+- **Rejected parallel routes recommendation** — over-engineering when removing revalidatePath is sufficient
+- **Confirmed cursor system already optimal** — native CSS cursor is better than the DOM-based alternative the report suggested
+
+---
+
+## Phase 3 — Implementation Pass 1 (Core Fixes)
+
+### B1: Iris-Wipe View Transitions
+- Replaced opacity-only `pixel-dissolve-out/in` with `clip-path: circle()` iris wipe
+- `steps(8)` at 400ms — chunky retro RPG battle-transition feel
+- `pointer-events: none` during transition to prevent interaction
+
+### B2: Scroll Performance (GPU Promotion)
+- Moved 11-layer gradient stack from `.pixel-grid-bg` element to a `::before` pseudo-element
+- `position: fixed; will-change: transform; transform: translateZ(0)` — own compositor layer
+- `contain: paint layout` on the scroll container
+- Result: zero scroll repaints of the gradient
+
+### B3: Pixel Font FOUT Fix
+- Switched from `@font-face` in globals.css to `next/font/local` in root layout
+- Automatic preloading, subset optimization, proper `font-display: swap`
+- Removed manual @font-face declaration
+
+### B4: Animation Timing Refinements
+- `pet-bob`: 2s ease-in-out → 1.6s steps(2) — snaps between positions like classic RPG idle
+- `pop-in`: 300ms ease-out → 240ms steps(4) — chunky "item acquired" pop
+- `shake-happy`: 300ms ease-in-out → 400ms steps(4) + added Y-hop — retro "happy jitter"
+- `float-up-fade`: 2s ease-out → 1.2s steps(8) + initial scale pulse — RPG damage number
+
+### A: revalidatePath Fix (SessionStatsProvider)
+- **Created `session-stats-context.tsx`** — lightweight React Context tracking in-session XP/coin deltas
+- **`resetKey` prop** — derived from server-rendered `profile.xp + profile.coins`; resets deltas when server baseline changes (prevents double-counting on level-up)
+- **GameTopBar** now reads `profile.xp + stats.xpDelta` — live counter updates without server roundtrip
+- **gamification.ts** — `revalidatePath` now only fires on `leveledUp` (structural change), not every XP gain
+- **Producer wiring** — `addReward()` called in review-session, study-session, feynman-editor, study-room-layout alongside existing XP toast triggers
+- **TODO comments** added at all hardcoded XP values flagging the option-2-refactor (return real RewardResult from server actions)
+
+---
+
+## Phase 4 — Implementation Pass 2 (Motion Consistency)
+
+### Item 1: Feature Card Hover (Landing Page)
+- Removed `transition-all duration-300 hover:scale-[1.02]`
+- Added `filter: brightness(1.08)` with `transition: filter 80ms steps(2)` (matches .pixel-btn pattern)
+- Wrapped icon in `.nav-ico` span → triggers existing `pixel-hop` keyframe on hover
+- Extended CSS selector: `.group:hover .nav-ico` added to pixel-hop rule
+
+### Item 2: Review Grade Button Press
+- Replaced `transition-opacity disabled:opacity-50` with `.grade-btn` class
+- Active: `transform: scale(1.08); filter: brightness(1.25)` with `steps(2) 80ms`
+- Disabled: `filter: grayscale(0.7)` with `steps(1) 0ms` (instant snap)
+
+### Item 3: Music Player Equalizer Bars
+- Replaced 3 bars sharing `animate-pixel-float` (looked like loading skeleton)
+- Created 3 distinct keyframes (`eq-bar-1/2/3`) with different height patterns
+- `steps(1)` at slightly different periods (0.5s/0.4s/0.45s) — bars snap independently
+- Result: jittery 8-bit VU meter instead of synchronized floating
+
+### Item 4: Sidebar/Nav Hover States
+- Replaced `transition-opacity hover:opacity-80` with `.pixel-hover-brighten`
+- `filter: brightness(1.1)` with `transition: filter 80ms steps(2)` (same vocabulary as .pixel-btn)
+- Pet widget link: `.pet-hover-perk:hover .animate-pet-bob { animation-duration: 0.5s }` — pet "perks up" on hover
+
+### Item 5: XP Progress Bar
+- Replaced `transition-all` with `transition: width 0.4s steps(8)` — discrete RPG HP/XP fill
+- Added level-up flash: when xpProgress crosses ≥1, bar snaps to 100% gold for 160ms, then settles
+- Also fixed in ProfilePopover (same pattern)
+- Removed `transition-all` from pixel-room mission progress bar (static, no transition needed)
+- Added documentation comments: "same stepped vocabulary as .animate-pixel-fill, transition-based because this value updates dynamically"
+
+---
+
+## Files Modified
+
+### Pass 1 (B1-B4 + A)
+```
+src/app/globals.css (iris wipe, GPU grid bg, animation retiming)
+src/app/layout.tsx (next/font/local for SproutLands)
+src/app/(protected)/app/_components/session-stats-context.tsx (NEW)
+src/app/(protected)/app/layout.tsx (SessionStatsProvider wrapper)
+src/app/(protected)/app/_components/game-top-bar.tsx (session delta consumer + level-up flash)
+src/app/(protected)/app/_actions/gamification.ts (conditional revalidatePath)
+src/app/(protected)/app/review/_components/review-session.tsx (addReward wiring + TODO)
+src/app/(protected)/app/study/_components/study-session.tsx (addReward wiring + TODO)
+src/app/(protected)/app/feynman/_components/feynman-editor.tsx (addReward wiring + TODO)
+src/app/(protected)/app/study-room/_components/study-room-layout.tsx (addReward wiring + TODO)
+```
+
+### Pass 2 (Motion Consistency)
+```
+src/app/_components/landing-content.tsx (feature card hover)
+src/app/globals.css (grade-btn, pixel-hover-brighten, pet-hover-perk, eq-bar keyframes, group:hover .nav-ico)
+src/app/(protected)/app/review/_components/review-session.tsx (grade-btn class)
+src/app/(protected)/app/_components/music-player.tsx (eq-bar classes)
+src/app/(protected)/app/_components/game-sidebar.tsx (pixel-hover-brighten, pet-hover-perk)
+src/app/(protected)/app/_components/game-top-bar.tsx (steps(8) XP bar + level-up flash)
+src/app/(protected)/app/_components/profile-popover.tsx (steps(8) XP bar)
+src/app/(protected)/app/room/_components/pixel-room.tsx (removed transition-all from static bar)
+```
+
+---
+
+## Key Architectural Decisions
+
+1. **No Zustand / no new dependencies** — solved XP counter staleness with a lightweight React Context (SessionStatsProvider) instead of adding a state management library
+2. **Conditional revalidation** — only on level-up (structural change), not every XP gain. Normal gains use client-side deltas.
+3. **One motion vocabulary** — all interactive feedback uses the same pattern: `steps(2) 80ms` for hover/press, `steps(8)` for fills, `steps(1)` for disabled snaps. Reused existing `pixel-hop` and `pixel-fill` patterns rather than inventing new ones.
+4. **Transition vs keyframe for progress bars** — `transition: width steps(8)` for dynamically-updating values; `@keyframes pixel-fill` for one-shot mount animations. Same visual result, different mechanism for different use cases.
+
+---
+
+## Known Items for Manual Testing
+
+1. **Level-up path** — grind cards to level-up, confirm TopBar counter doesn't double-count or flicker
+2. **Multi-level-up in one batch** — big Feynman evaluation crossing two thresholds: flash should fire once
+3. **Pet GIF during rapid reviews** — should no longer restart/blink (revalidatePath removed for normal gains)
+4. **pet-bob steps(2) at 1.6s** — confirm it reads as "retro idle sprite" not "janky"
+5. **float-up XP toast steps(8) at 1.2s** — confirm it reads as "RPG damage number"
+6. **Level-up gold flash timing** — 160ms full-bar gold → settle at new level's progress
+
+## Deferred (Tracked via TODO comments)
+
+- **Option-2 refactor**: Server actions should return `RewardResult` to client so XP/coin values aren't hardcoded in 4 places. Currently kept in sync by convention only. TODO comments at each site.
+
+---
+
+*Session ended June 19, 2026.*
+
+
+---
+
 # Session 5 — June 21, 2026
 
 ## Summary
@@ -842,4 +1259,4 @@ Deep codebase audit → bug fixes → Research Desk rebuild → AI voice impleme
 ## Verification
 - Build: passes
 - Tests: 332/332 pass
-- Pushed: master @ `b3660e2`
+- Pushed: master
