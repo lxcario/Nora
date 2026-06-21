@@ -3,7 +3,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { PartyQuestView } from "./party";
-import { calculateLevel } from "@/lib/gamification";
 
 // ─── Types ──────────────────────────────────────────────────────────
 
@@ -70,14 +69,15 @@ function validateTemplates(
 /**
  * Computes the next Monday 00:00 and Sunday 23:59:59 in the given timezone.
  * Returns UTC ISO timestamps for cycle_start and cycle_end.
+ *
+ * Uses Intl.DateTimeFormat.formatToParts (the same reliable approach as
+ * src/lib/due.ts) instead of parsing locale strings back to Dates.
  */
 function computeNextCycleBoundaries(timezone: string): { cycleStart: string; cycleEnd: string } {
-  // Get current time in the party's timezone
   const now = new Date();
 
-  // Find the next Monday 00:00 in the target timezone
-  // Use Intl.DateTimeFormat to get the current day-of-week in that timezone
-  const formatter = new Intl.DateTimeFormat("en-US", {
+  // Get current day-of-week in the target timezone using formatToParts.
+  const parts = new Intl.DateTimeFormat("en-US", {
     timeZone: timezone,
     weekday: "short",
     year: "numeric",
@@ -87,20 +87,13 @@ function computeNextCycleBoundaries(timezone: string): { cycleStart: string; cyc
     minute: "2-digit",
     second: "2-digit",
     hour12: false,
-  });
+  }).formatToParts(now);
 
-  const parts = formatter.formatToParts(now);
   const getPart = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
 
   const weekday = getPart("weekday"); // Mon, Tue, Wed, ...
   const dayMap: Record<string, number> = {
-    Mon: 1,
-    Tue: 2,
-    Wed: 3,
-    Thu: 4,
-    Fri: 5,
-    Sat: 6,
-    Sun: 0,
+    Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6, Sun: 0,
   };
 
   const currentDow = dayMap[weekday] ?? 1;
@@ -108,60 +101,73 @@ function computeNextCycleBoundaries(timezone: string): { cycleStart: string; cyc
   // Days until next Monday (if today is Monday, next Monday is 7 days away)
   const daysUntilMonday = currentDow === 1 ? 7 : ((1 - currentDow + 7) % 7) || 7;
 
-  // Create next Monday at midnight in the timezone
-  // We'll offset from now by the number of days, then set to midnight
-  const nextMondayLocal = new Date(now);
-  nextMondayLocal.setDate(nextMondayLocal.getDate() + daysUntilMonday);
+  // Advance `now` by daysUntilMonday to get a Date that falls on the target Monday.
+  const nextMondayApprox = new Date(now.getTime() + daysUntilMonday * 86_400_000);
 
-  // Format the target date in the timezone to get local date parts
-  const mondayFormatter = new Intl.DateTimeFormat("en-CA", {
+  // Get the calendar date (YYYY-MM-DD) of that Monday in the target timezone.
+  const mondayStr = new Intl.DateTimeFormat("en-CA", {
     timeZone: timezone,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
-  });
-  const mondayStr = mondayFormatter.format(nextMondayLocal); // YYYY-MM-DD
+  }).format(nextMondayApprox);
 
-  // Construct cycle_start as Monday 00:00:00 in that timezone
-  // and cycle_end as Sunday 23:59:59 (6 days later)
-  const cycleStartDate = new Date(`${mondayStr}T00:00:00`);
-  const cycleEndDate = new Date(cycleStartDate.getTime() + 6 * 24 * 60 * 60 * 1000 + 23 * 60 * 60 * 1000 + 59 * 60 * 1000 + 59 * 1000);
-
-  // Convert to UTC by accounting for timezone offset
-  // Use a simpler approach: build the date string and let the TZ library handle it
-  // Since we don't have luxon/date-fns-tz, we'll use a practical approach:
-  // Get the UTC offset for that timezone at the target date
-  const getUtcOffset = (date: Date, tz: string): number => {
-    const utcStr = date.toLocaleString("en-US", { timeZone: "UTC" });
-    const tzStr = date.toLocaleString("en-US", { timeZone: tz });
-    const utcDate = new Date(utcStr);
-    const tzDate = new Date(tzStr);
-    return (tzDate.getTime() - utcDate.getTime()) / (60 * 1000); // offset in minutes
-  };
-
-  const offsetMinutes = getUtcOffset(nextMondayLocal, timezone);
-
-  // cycle_start: Monday 00:00:00 in timezone → subtract offset to get UTC
-  const cycleStartUtc = new Date(`${mondayStr}T00:00:00.000Z`);
-  cycleStartUtc.setMinutes(cycleStartUtc.getMinutes() - offsetMinutes);
-
-  // cycle_end: Sunday 23:59:59 in timezone
-  const sundayDate = new Date(new Date(`${mondayStr}T00:00:00.000Z`).getTime() + 6 * 24 * 60 * 60 * 1000);
-  const sundayFormatter = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "UTC",
+  // Sunday is 6 days after Monday.
+  const sundayApprox = new Date(nextMondayApprox.getTime() + 6 * 86_400_000);
+  const sundayStr = new Intl.DateTimeFormat("en-CA", {
+    timeZone: timezone,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
-  });
-  const sundayStr = sundayFormatter.format(sundayDate);
+  }).format(sundayApprox);
 
-  const cycleEndUtc = new Date(`${sundayStr}T23:59:59.000Z`);
-  cycleEndUtc.setMinutes(cycleEndUtc.getMinutes() - offsetMinutes);
+  // Convert "Monday 00:00:00 in timezone" to UTC using formatToParts offset.
+  // Strategy: build the naive UTC Date, compute the TZ offset at that moment
+  // via formatToParts, then shift.
+  const cycleStartUtc = localDateTimeToUtc(mondayStr, "00:00:00", timezone);
+  const cycleEndUtc = localDateTimeToUtc(sundayStr, "23:59:59", timezone);
 
   return {
     cycleStart: cycleStartUtc.toISOString(),
     cycleEnd: cycleEndUtc.toISOString(),
   };
+}
+
+/**
+ * Converts a local date+time in a given timezone to a UTC Date.
+ * Uses Intl.DateTimeFormat.formatToParts to derive the UTC offset — never
+ * parses a locale string back into a Date (which is fragile across runtimes).
+ */
+function localDateTimeToUtc(dateStr: string, timeStr: string, timezone: string): Date {
+  // Treat dateStr + timeStr as if they were UTC, then compute how far the
+  // timezone is from UTC at that instant to apply the correction.
+  const naiveUtc = new Date(`${dateStr}T${timeStr}.000Z`);
+
+  // Get the local date/time parts in the target timezone at this naive instant.
+  const tzParts = new Intl.DateTimeFormat("en-US", {
+    timeZone: timezone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).formatToParts(naiveUtc);
+
+  const get = (type: string) => Number(tzParts.find((p) => p.type === type)?.value ?? "0");
+  const hour = get("hour") % 24; // Intl can return 24 for midnight
+
+  const localAsUtcMs = Date.UTC(
+    get("year"), get("month") - 1, get("day"),
+    hour, get("minute"), get("second")
+  );
+
+  // offset = how far the timezone is ahead of UTC (positive = east).
+  const offsetMs = localAsUtcMs - naiveUtc.getTime();
+
+  // The actual UTC instant for "dateStr timeStr in timezone" = naive - offset.
+  return new Date(naiveUtc.getTime() - offsetMs);
 }
 
 // ─── Server Actions ─────────────────────────────────────────────────
@@ -483,8 +489,8 @@ export async function getActiveQuests(
  * 1. Find the user's party via party_members
  * 2. If user not in a party, return early (no-op)
  * 3. Find active quests for that party matching the actionType
- * 4. For each matching quest: increment progress by amount
- * 5. If progress reaches or exceeds target: mark completed, award bonus to all party members
+ * 4. For each matching quest: atomic increment progress via RPC
+ * 5. If progress reaches or exceeds target: RPC marks completed, award bonus to all party members
  *
  * Bonus: 50 XP + 25 coins per completed quest, awarded to all active party members.
  *
@@ -514,7 +520,7 @@ export async function incrementQuestProgress(
   // 2. Find active quests for that party matching the actionType
   const { data: activeQuests, error: questsError } = await supabase
     .from("party_quests")
-    .select("id, progress, target")
+    .select("id")
     .eq("party_id", partyId)
     .eq("quest_type", actionType)
     .eq("status", "active");
@@ -531,45 +537,28 @@ export async function incrementQuestProgress(
   let questsUpdated = 0;
   let questsCompleted = 0;
 
-  // 3. For each matching quest, increment progress
+  // 3. For each matching quest, atomic increment progress via RPC
   for (const quest of activeQuests) {
-    const newProgress = quest.progress + amount;
-    const isCompleted = newProgress >= quest.target;
+    const { data: rpcResult, error: rpcError } = await supabase.rpc(
+      "increment_quest_progress",
+      { p_quest_id: quest.id, p_amount: amount }
+    );
 
-    if (isCompleted) {
-      // Mark quest as completed with completed_at timestamp
-      const { error: updateError } = await supabase
-        .from("party_quests")
-        .update({
-          progress: newProgress,
-          status: "completed",
-          completed_at: new Date().toISOString(),
-        })
-        .eq("id", quest.id);
-
-      if (updateError) {
-        console.error("Failed to complete quest:", updateError);
-        continue;
-      }
-
-      questsCompleted++;
-
-      // Award bonus to all party members: 50 XP + 25 coins each
-      await awardQuestCompletionBonus(supabase, partyId);
-    } else {
-      // Just increment progress
-      const { error: updateError } = await supabase
-        .from("party_quests")
-        .update({ progress: newProgress })
-        .eq("id", quest.id);
-
-      if (updateError) {
-        console.error("Failed to update quest progress:", updateError);
-        continue;
-      }
+    if (rpcError) {
+      console.error("Failed to increment quest progress:", rpcError);
+      continue;
     }
 
+    const row = Array.isArray(rpcResult) ? rpcResult[0] : rpcResult;
+    if (!row || (row.new_progress === 0 && row.target === 0)) continue;
+
     questsUpdated++;
+
+    if (row.just_completed) {
+      questsCompleted++;
+      // Award bonus to all party members: 50 XP + 25 coins each
+      await awardQuestCompletionBonus(supabase, partyId);
+    }
   }
 
   return { data: { questsUpdated, questsCompleted } };
@@ -577,7 +566,7 @@ export async function incrementQuestProgress(
 
 /**
  * Awards 50 XP + 25 coins to all members of a party when a quest is completed.
- * Updates profiles.xp, profiles.coins, and profiles.level directly.
+ * Uses the atomic increment_profile_rewards RPC to avoid race conditions.
  */
 async function awardQuestCompletionBonus(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -597,32 +586,15 @@ async function awardQuestCompletionBonus(
     return;
   }
 
-  // Award bonus to each member
+  // Award bonus to each member via atomic RPC
   for (const member of members) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("xp, coins")
-      .eq("id", member.user_id)
-      .single();
+    const { error: rpcError } = await supabase.rpc(
+      "increment_profile_rewards",
+      { p_user_id: member.user_id, p_xp: XP_BONUS, p_coins: COINS_BONUS }
+    );
 
-    if (!profile) continue;
-
-    const newXp = profile.xp + XP_BONUS;
-    const newCoins = profile.coins + COINS_BONUS;
-    const newLevel = calculateLevel(newXp);
-
-    const { error: updateError } = await supabase
-      .from("profiles")
-      .update({
-        xp: newXp,
-        coins: newCoins,
-        level: newLevel,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", member.user_id);
-
-    if (updateError) {
-      console.error(`Failed to award bonus to member ${member.user_id}:`, updateError);
+    if (rpcError) {
+      console.error(`Failed to award bonus to member ${member.user_id}:`, rpcError);
     }
   }
 }

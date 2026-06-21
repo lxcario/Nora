@@ -7,8 +7,15 @@ import { callLLM, hasLLMProvider, stripCodeFences } from "@/lib/llm";
 import { rewardBatch } from "./gamification";
 import { searchOpenAlex } from "@/lib/academic-search/openalex";
 import { searchCrossref } from "@/lib/academic-search/crossref";
+import { searchSemanticScholar } from "@/lib/academic-search/semantic-scholar";
 import type { AcademicWork } from "@/lib/academic-search/types";
+import { searchTavily, hasTavilyKey, type TavilyResult } from "@/lib/web-search/tavily";
 import { validateResearchCitations } from "@/lib/research-citations";
+import { NORA_VOICE_RESEARCH } from "@/lib/nora-voice";
+
+// ---------------------------------------------------------------------------
+// Public types
+// ---------------------------------------------------------------------------
 
 export interface ResearchSource {
   title: string;
@@ -16,10 +23,13 @@ export interface ResearchSource {
   year: number | null;
   url: string | null;
   snippet: string;
-  type: "book" | "paper" | "wiki";
-  /** DOI for Unpaywall OA lookup (Task 10). */
+  /** Source category — used by UI to render distinct badges. */
+  type: "paper" | "web";
+  /** Domain for web sources (e.g. "wikipedia.org"). */
+  domain?: string;
+  /** DOI for academic sources. */
   doi?: string | null;
-  /** Direct OA PDF URL once Unpaywall has been queried (Task 10). */
+  /** Direct OA PDF URL (academic sources only). */
   oaPdfUrl?: string | null;
 }
 
@@ -28,22 +38,83 @@ export interface ResearchResult {
   sources: ResearchSource[];
   suggestedCards: { front: string; back: string }[];
   /**
-   * True when fewer than 2 academic sources were found and the system
-   * declined to synthesize a literature review from parametric memory alone.
-   * (spec Req 5.3)
+   * True when too few sources were found across both legs and the system
+   * declined to synthesize from parametric memory alone.
    */
   insufficientSources?: boolean;
+  /** Pipeline metadata for UI progress display. */
+  pipeline: PipelineMetadata;
 }
 
-/** Minimum number of distinct sources required to synthesize an answer. */
-const MIN_SOURCES_FOR_SYNTHESIS = 2;
+/** Query classification result. */
+export type QueryIntent = "academic" | "general" | "both";
+
+/** Metadata about what the pipeline did — drives the progress UI. */
+export interface PipelineMetadata {
+  intent: QueryIntent;
+  academicSourceCount: number;
+  webSourceCount: number;
+  totalSources: number;
+  synthesisModel: string;
+}
 
 // ---------------------------------------------------------------------------
-// Helpers
+// Constants
+// ---------------------------------------------------------------------------
+
+/** Minimum total sources (academic + web combined) to synthesize. */
+const MIN_SOURCES_FOR_SYNTHESIS = 2;
+/** Maximum combined sources fed to synthesis. */
+const MAX_COMBINED_SOURCES = 12;
+
+// ---------------------------------------------------------------------------
+// Step 1: Query Classification
 // ---------------------------------------------------------------------------
 
 /**
- * Deduplicate AcademicWork results from multiple providers by DOI.
+ * Classify the query as academic-leaning, general-leaning, or both.
+ * Uses a fast, cheap LLM call (groqOnly, low maxTokens).
+ * Falls back to "both" if classification fails.
+ */
+async function classifyQuery(query: string): Promise<QueryIntent> {
+  if (!hasLLMProvider()) return "both";
+
+  try {
+    const response = await callLLM({
+      system: `Classify the user's research question into exactly one category. Respond with ONLY one word — no explanation:
+- "academic" — primarily about published research, scientific findings, theories, peer-reviewed studies
+- "general" — about everyday knowledge, current events, how-to, general facts, non-academic topics
+- "both" — has both academic and general components, or you're unsure
+
+Examples:
+"What are the effects of sleep deprivation on memory?" → academic
+"What's the capital of France?" → general
+"How does spaced repetition work and what apps use it?" → both
+"Meta-analysis of CBT effectiveness for anxiety" → academic
+"Best study techniques for exams" → both`,
+      user: query,
+      temperature: 0,
+      maxTokens: 10,
+      groqTimeoutMs: 5000,
+      groqOnly: true,
+    });
+
+    const cleaned = response.trim().toLowerCase();
+    if (cleaned === "academic" || cleaned === "general" || cleaned === "both") {
+      return cleaned;
+    }
+    return "both";
+  } catch {
+    return "both";
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Step 2: Parallel Search
+// ---------------------------------------------------------------------------
+
+/**
+ * Deduplicate AcademicWork results from multiple providers by DOI/title.
  * OpenAlex entries win when DOIs collide.
  */
 function deduplicateWorks(works: AcademicWork[]): AcademicWork[] {
@@ -55,130 +126,100 @@ function deduplicateWorks(works: AcademicWork[]): AcademicWork[] {
   return [...seen.values()];
 }
 
-/** Map an AcademicWork to the ResearchSource DTO used by the UI. */
-function mapWorkToSource(w: AcademicWork): ResearchSource {
+/** Map an AcademicWork to the ResearchSource DTO. */
+function mapWorkToSource(w: AcademicWork & { tldr?: string | null }): ResearchSource {
+  // Prefer TLDR over raw abstract when available (richer context).
+  const snippet = w.tldr
+    ? `TLDR: ${w.tldr}\n${w.abstract?.slice(0, 300) ?? ""}`
+    : w.abstract?.slice(0, 400) ?? "(no abstract available)";
+
   return {
     title: w.title,
     authors: w.authors,
     year: w.year,
     url: w.url,
-    snippet: w.abstract?.slice(0, 400) ?? "(no abstract available)",
+    snippet,
     type: "paper",
     doi: w.doi,
     oaPdfUrl: w.oaPdfUrl,
   };
 }
 
-/**
- * Strip citation markers [N] from `answer` where N is out of range.
- * Implemented in a pure module (server-action files can only export async).
- */
-
-// ---------------------------------------------------------------------------
-// performResearch
-// ---------------------------------------------------------------------------
-
-/**
- * Performs AI-powered research on a topic using real academic sources.
- *
- * Flow (spec Req 5.1–5.4):
- *   1. Query OpenAlex (primary, CC0) + Crossref (supplementary) in parallel.
- *   2. Deduplicate by DOI; cap at 8 sources.
- *   3. If fewer than 2 sources found → return "insufficient sources" (never
- *      hallucinate a literature review from parametric memory alone).
- *   4. Synthesize answer constrained to retrieved abstracts; cite as [N].
- *   5. Validate every [N] marker maps to an actual retrieved source; strip
- *      any that don't.
- */
-export async function performResearch(query: string): Promise<{
-  data?: ResearchResult;
-  error?: string;
-}> {
-  if (!query?.trim() || query.trim().length < 5) {
-    return { error: "Enter a more detailed research question (at least 5 characters)." };
-  }
-
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (user) {
-    const rateCheck = checkRateLimit(user.id, "research", RATE_LIMITS.ai_heavy.maxRequests, RATE_LIMITS.ai_heavy.windowMs);
-    if (!rateCheck.allowed) {
-      return { error: `Too many requests. Please wait ${Math.ceil((rateCheck.retryAfterMs ?? 0) / 1000)} seconds.` };
-    }
-  }
-
-  // 1. Fetch from real academic APIs in parallel (spec Req 5.1).
-  const [openAlexWorks, crossrefWorks] = await Promise.all([
-    searchOpenAlex(query, { limit: 6 }),
-    searchCrossref(query, { limit: 4 }),
-  ]);
-
-  // 2. Deduplicate and cap (OpenAlex wins on DOI collisions).
-  const works = deduplicateWorks([...openAlexWorks, ...crossrefWorks]).slice(0, 8);
-  const sources: ResearchSource[] = works.map(mapWorkToSource);
-
-  // 3. Insufficient sources branch (spec Req 5.3).
-  if (sources.length < MIN_SOURCES_FOR_SYNTHESIS) {
-    return {
-      data: {
-        answer:
-          "I couldn't find enough academic sources to answer this question reliably. " +
-          "Try rephrasing with more specific academic terms, or search for a narrower topic. " +
-          "I won't present unsourced claims as a literature review.",
-        sources,
-        suggestedCards: [],
-        insufficientSources: true,
-      },
-    };
-  }
-
-  // 4. Synthesize answer constrained to retrieved abstracts.
-  const aiResult = await synthesizeResearch(query, sources);
-  if (aiResult.error) return { error: aiResult.error };
-
-  // 5. Validate citations (RESEARCH-1): strip any [N] without a backing source.
-  const cleanedAnswer = validateResearchCitations(
-    aiResult.answer!,
-    sources.length
-  );
-
+/** Map a Tavily web result to the ResearchSource DTO. */
+function mapTavilyToSource(r: TavilyResult): ResearchSource {
   return {
-    data: {
-      answer: cleanedAnswer,
-      sources,
-      suggestedCards: aiResult.suggestedCards!,
-    },
+    title: r.title,
+    authors: [],
+    year: null,
+    url: r.url,
+    snippet: r.content || r.snippet,
+    type: "web",
+    domain: r.domain,
   };
 }
 
-async function extractSearchKeywords(query: string): Promise<string> {
-  if (!process.env.GROQ_API_KEY) return query;
-
-  try {
-    const keywords = (
-      await callLLM({
-        system: `Extract 2-4 optimal search keywords from the user's research question. Return ONLY the keywords separated by spaces — no explanation, no quotes, no punctuation. Think about what technical terms would return good results on Wikipedia and book searches.
-
-Examples:
-- "How can I become a good person?" → "ethics morality virtue self-improvement"
-- "What is the difference between x64 and x86?" → "x86-64 architecture processor comparison"
-- "How does spaced repetition work?" → "spaced repetition memory learning science"
-- "Can you explain quantum entanglement?" → "quantum entanglement physics mechanics"`,
-        user: query,
-        temperature: 0.3,
-        maxTokens: 30,
-        groqTimeoutMs: 8000,
-        groqOnly: true,
-      })
-    ).trim();
-
-    if (keywords && keywords.length > 2) return keywords;
-  } catch {
-    // Fall through
-  }
-
-  return query; // fallback to original
+interface SearchResults {
+  academicSources: ResearchSource[];
+  webSources: ResearchSource[];
 }
+
+/**
+ * Run parallel search across academic and web legs based on query intent.
+ */
+async function parallelSearch(
+  query: string,
+  intent: QueryIntent
+): Promise<SearchResults> {
+  const runAcademic = intent === "academic" || intent === "both";
+  const runWeb = intent === "general" || intent === "both";
+
+  // Academic leg: OpenAlex + Crossref + Semantic Scholar
+  const academicPromise = runAcademic
+    ? Promise.all([
+        searchOpenAlex(query, { limit: 6 }),
+        searchCrossref(query, { limit: 4 }),
+        searchSemanticScholar(query, { limit: 5 }),
+      ]).then(([oaWorks, crWorks, s2Works]) => {
+        const allWorks = deduplicateWorks([...oaWorks, ...crWorks, ...s2Works]);
+        return allWorks.slice(0, 8).map(mapWorkToSource);
+      })
+    : Promise.resolve([]);
+
+  // Web leg: Tavily (only if configured)
+  const webPromise =
+    runWeb && hasTavilyKey()
+      ? searchTavily(query, { maxResults: 5, searchDepth: "basic" }).then(
+          (results) => results.map(mapTavilyToSource)
+        )
+      : Promise.resolve([]);
+
+  const [academicSources, webSources] = await Promise.all([
+    academicPromise,
+    webPromise,
+  ]);
+
+  return { academicSources, webSources };
+}
+
+// ---------------------------------------------------------------------------
+// Step 3: Source Assembly
+// ---------------------------------------------------------------------------
+
+/**
+ * Assemble and cap the combined source list.
+ * Academic sources come first, then web sources.
+ */
+function assembleSources(
+  academicSources: ResearchSource[],
+  webSources: ResearchSource[]
+): ResearchSource[] {
+  const combined = [...academicSources, ...webSources];
+  return combined.slice(0, MAX_COMBINED_SOURCES);
+}
+
+// ---------------------------------------------------------------------------
+// Step 4: Synthesis
+// ---------------------------------------------------------------------------
 
 async function synthesizeResearch(
   query: string,
@@ -186,34 +227,40 @@ async function synthesizeResearch(
 ): Promise<{ answer?: string; suggestedCards?: { front: string; back: string }[]; error?: string }> {
   if (!hasLLMProvider()) return { error: "No AI key configured" };
 
-  // Build a numbered source list from the retrieved abstracts.
+  // Build a numbered source list distinguishing academic from web.
   const sourcesContext = sources
-    .map(
-      (s, i) =>
-        `[${i + 1}] "${s.title}"` +
-        (s.authors.length > 0 ? ` by ${s.authors.slice(0, 3).join(", ")}` : "") +
-        (s.year ? ` (${s.year})` : "") +
-        (s.doi ? ` DOI:${s.doi}` : "") +
-        `\n   ${s.snippet}`
-    )
+    .map((s, i) => {
+      const typeLabel = s.type === "paper" ? "📄 Academic" : "🌐 Web";
+      const authorLine =
+        s.authors.length > 0 ? ` by ${s.authors.slice(0, 3).join(", ")}` : "";
+      const yearLine = s.year ? ` (${s.year})` : "";
+      const doiLine = s.doi ? ` DOI:${s.doi}` : "";
+      const domainLine = s.domain ? ` [${s.domain}]` : "";
+
+      return (
+        `[${i + 1}] ${typeLabel}: "${s.title}"${authorLine}${yearLine}${doiLine}${domainLine}\n` +
+        `   ${s.snippet}`
+      );
+    })
     .join("\n\n");
 
-  // Grounded synthesis prompt (spec Req 5.2, 5.4):
-  // - Citations must map to numbered sources above.
-  // - Any claim NOT found in the abstracts must be visibly labeled.
-  const systemPrompt = `You are a research assistant helping a university student. You have retrieved the following academic sources for their question.
+  const systemPrompt = `${NORA_VOICE_RESEARCH}
+
+---
+
+You are a research assistant helping a university student. You have retrieved the following sources — both peer-reviewed academic papers and web pages — for their question.
 
 RETRIEVED SOURCES (numbered):
 ${sourcesContext}
 
 YOUR TASK:
-1. Write a thorough research summary (6–10 paragraphs) that answers the student's question.
+1. Write a thorough, well-structured research summary (6–10 paragraphs) that answers the student's question comprehensively.
 2. Every factual claim MUST cite a retrieved source using its number [1], [2], etc.
-3. If you include knowledge not found in the above abstracts, you MUST label it explicitly:
-   "Note (model knowledge, unverified by sources): ..."
-4. Do NOT emit a citation number [N] unless it maps to one of the numbered sources above.
-5. Synthesise across sources — identify agreements, disagreements, and gaps.
-6. Generate 4–8 flashcard Q/A pairs covering the key findings from the sources.
+3. Distinguish between academic sources (peer-reviewed, higher confidence) and web sources (general, verify independently) in your narrative where relevant.
+4. If you include knowledge not found in the above sources, you MUST label it explicitly: "Note (model knowledge, unverified by sources): ..."
+5. Do NOT emit a citation number [N] unless it maps to one of the numbered sources above.
+6. Synthesise across sources — identify agreements, disagreements, and gaps.
+7. Generate 4–8 flashcard Q/A pairs covering the key findings.
 
 IMPORTANT: If the sources do not cover the question well, say so explicitly rather than inventing citations.
 
@@ -232,7 +279,7 @@ Respond ONLY with valid JSON (use \\n for newlines inside strings):
       openRouterTimeoutMs: 45000,
     });
 
-    if (!content.trim()) return { error: "AI synthesis failed" };
+    if (!content.trim()) return { error: "AI synthesis failed — empty response." };
     return parseSynthesisResponse(content);
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Research failed";
@@ -242,8 +289,7 @@ Respond ONLY with valid JSON (use \\n for newlines inside strings):
 }
 
 /**
- * Parses the research synthesis JSON, with progressive recovery for the
- * common failure mode of raw (unescaped) control characters inside strings.
+ * Parses the research synthesis JSON with progressive recovery.
  */
 function parseSynthesisResponse(
   content: string
@@ -254,7 +300,7 @@ function parseSynthesisResponse(
     const parsed = JSON.parse(jsonStr);
     return { answer: parsed.answer, suggestedCards: parsed.suggestedCards ?? [] };
   } catch {
-    // Escape stray control characters (newlines/tabs) that break JSON strings.
+    // Escape stray control characters that break JSON.
     const fixedJson = jsonStr.replace(/[\x00-\x1F\x7F]/g, (ch: string) => {
       if (ch === "\n") return "\\n";
       if (ch === "\r") return "\\r";
@@ -265,7 +311,7 @@ function parseSynthesisResponse(
       const parsed = JSON.parse(fixedJson);
       return { answer: parsed.answer, suggestedCards: parsed.suggestedCards ?? [] };
     } catch {
-      // Last resort: extract the answer text directly.
+      // Last resort: regex extraction.
       const answerMatch = jsonStr.match(/"answer"\s*:\s*"([\s\S]*?)(?:"\s*,\s*"suggestedCards|"\s*})/);
       if (answerMatch) {
         return { answer: answerMatch[1].replace(/\\n/g, "\n"), suggestedCards: [] };
@@ -274,6 +320,99 @@ function parseSynthesisResponse(
     }
   }
 }
+
+// ---------------------------------------------------------------------------
+// Main pipeline: performResearch
+// ---------------------------------------------------------------------------
+
+/**
+ * Performs AI-powered research using a hybrid academic + web search pipeline.
+ *
+ * Pipeline:
+ *   1. Classify query intent (academic / general / both) — ~1s
+ *   2. Parallel search: academic APIs + Tavily web search — ~3-6s
+ *   3. Assemble and cap sources — instant
+ *   4. Synthesize with citations (Groq/OpenRouter) — ~5-15s
+ *
+ * Total expected latency: 10-25s (vs. old pipeline's 3-6s).
+ */
+export async function performResearch(query: string): Promise<{
+  data?: ResearchResult;
+  error?: string;
+}> {
+  if (!query?.trim() || query.trim().length < 5) {
+    return { error: "Enter a more detailed research question (at least 5 characters)." };
+  }
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user) {
+    const rateCheck = checkRateLimit(user.id, "research", RATE_LIMITS.ai_heavy.maxRequests, RATE_LIMITS.ai_heavy.windowMs);
+    if (!rateCheck.allowed) {
+      return { error: `Too many requests. Please wait ${Math.ceil((rateCheck.retryAfterMs ?? 0) / 1000)} seconds.` };
+    }
+  }
+
+  // ── Step 1: Classify query intent ──────────────────────────────────────────
+  const intent = await classifyQuery(query.trim());
+
+  // ── Step 2: Parallel search ────────────────────────────────────────────────
+  const { academicSources, webSources } = await parallelSearch(query.trim(), intent);
+
+  // ── Step 3: Assemble sources ───────────────────────────────────────────────
+  const sources = assembleSources(academicSources, webSources);
+
+  // Insufficient sources check — applies to COMBINED total.
+  if (sources.length < MIN_SOURCES_FOR_SYNTHESIS) {
+    return {
+      data: {
+        answer:
+          "I couldn't find enough sources to answer this question reliably. " +
+          "Try rephrasing with more specific terms, or search for a narrower topic. " +
+          "I won't present unsourced claims as research.",
+        sources,
+        suggestedCards: [],
+        insufficientSources: true,
+        pipeline: {
+          intent,
+          academicSourceCount: academicSources.length,
+          webSourceCount: webSources.length,
+          totalSources: sources.length,
+          synthesisModel: "none",
+        },
+      },
+    };
+  }
+
+  // ── Step 4: Synthesize ─────────────────────────────────────────────────────
+  const aiResult = await synthesizeResearch(query.trim(), sources);
+  if (aiResult.error) return { error: aiResult.error };
+
+  // Validate citations: strip any [N] not backed by a real source.
+  const cleanedAnswer = validateResearchCitations(
+    aiResult.answer!,
+    sources.length
+  );
+
+  return {
+    data: {
+      answer: cleanedAnswer,
+      sources,
+      suggestedCards: aiResult.suggestedCards!,
+      pipeline: {
+        intent,
+        academicSourceCount: academicSources.length,
+        webSourceCount: webSources.length,
+        totalSources: sources.length,
+        synthesisModel: process.env.GROQ_API_KEY ? "groq" : "openrouter",
+      },
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Other exports (unchanged)
+// ---------------------------------------------------------------------------
 
 /**
  * Saves a paper/book to the user's collection.
@@ -313,31 +452,15 @@ export async function saveSource(
 
 /**
  * Ingests an open-access PDF for a DOI via Unpaywall, feeding it into
- * the existing Paper RAG pipeline (`ingestFromUrl`). (spec Req 5.6)
- *
- * Flow:
- *   1. Look up the DOI with Unpaywall to get `best_oa_location.url_for_pdf`.
- *   2. Run SSRF guard on the PDF URL before downloading.
- *   3. Call the existing `ingestFromUrl` pipeline (parse → chunk → embed).
- *   4. Optionally link the ingested paper to a known paper record and topic.
- *
- * Gracefully returns an error when:
- *   - Unpaywall has no OA PDF for this DOI.
- *   - `ACADEMIC_API_EMAIL` is not configured (Req 8.5).
- *   - The PDF URL resolves to a private/metadata address (SSRF guard).
+ * the existing Paper RAG pipeline (`ingestFromUrl`).
  */
 export async function ingestOpenAccessPdf(
   doi: string,
   options: {
-    /** Existing `papers.id` to update in-place (from a prior `saveSource` call). */
     existingPaperId?: string;
-    /** Associate the new paper record with a topic. */
     topicId?: string;
-    /** Override title for the paper record (from the research source). */
     title?: string;
-    /** Authors array. */
     authors?: string[];
-    /** Publication year. */
     year?: number | null;
   } = {}
 ): Promise<{ data?: { paperId: string; status: string }; error?: string }> {
@@ -352,7 +475,6 @@ export async function ingestOpenAccessPdf(
   } = await supabase.auth.getUser();
   if (!user) return { error: "Not authenticated" };
 
-  // 1. Resolve OA PDF URL from Unpaywall (email from env; null = not configured).
   const { lookupUnpaywall } = await import("@/lib/academic-search/unpaywall");
   const oaResult = await lookupUnpaywall(trimmedDoi);
 
@@ -373,15 +495,12 @@ export async function ingestOpenAccessPdf(
 
   const pdfUrl = oaResult.bestOaLocation.urlForPdf;
 
-  // 2. SSRF guard — the OA PDF URL comes from an external API; validate it.
   const { assertPublicHttpUrl } = await import("@/lib/ssrf");
   const ssrfCheck = await assertPublicHttpUrl(pdfUrl);
   if (!ssrfCheck.ok) {
     return { error: `OA PDF URL is not safe to download: ${ssrfCheck.error}` };
   }
 
-  // 3. If we don't already have a paper record, create one with the known
-  //    metadata so the ingested paper has a proper title from the start.
   let paperId: string | undefined = options.existingPaperId;
 
   if (!paperId) {
@@ -403,7 +522,6 @@ export async function ingestOpenAccessPdf(
       .single();
 
     if (insertError) {
-      // Duplicate DOI — find the existing record and re-ingest it.
       if (insertError.code === "23505") {
         const { data: existing } = await supabase
           .from("papers")
@@ -420,7 +538,6 @@ export async function ingestOpenAccessPdf(
     }
   }
 
-  // 4. Ingest from the validated OA PDF URL using the existing pipeline.
   const { ingestFromUrl } = await import(
     "@/app/(protected)/app/_actions/rag"
   );
@@ -451,7 +568,6 @@ export async function createCardsFromResearch(
   const { error } = await supabase.from("cards").insert(cardsToInsert);
   if (error) return { error: error.message };
 
-  // Award XP for all cards in a single DB round-trip
   await rewardBatch("card_created", cards.length);
 
   revalidatePath("/app/review");

@@ -3,6 +3,7 @@
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { createClient } from "@/lib/supabase/server";
 import { callLLM, hasLLMProvider } from "@/lib/llm";
+import { NORA_VOICE_UTILITY } from "@/lib/nora-voice";
 
 /**
  * Generates an inline *scaffold* for the Feynman explanation editor.
@@ -34,7 +35,9 @@ export async function getCompletionSuggestion(
     return { error: "No AI key configured" };
   }
 
-  const systemPrompt = `You are a Socratic study coach helping a student write a Feynman-style explanation about "${topicName}" (Subject: ${subjectName}).
+  const systemPrompt = `${NORA_VOICE_UTILITY}
+
+You are a Socratic study coach helping a student write a Feynman-style explanation about "${topicName}" (Subject: ${subjectName}).
 
 Your job is to nudge the student to keep explaining IN THEIR OWN WORDS — never to write the explanation for them.
 

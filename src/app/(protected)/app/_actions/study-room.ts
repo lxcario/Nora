@@ -19,12 +19,14 @@ import {
   validateTimeRange,
   sliceTranscript,
   buildNotePrompt,
+  validateNoteOffsets,
 } from "./study-room/transcript-utils";
 import { rewardAction, rewardBatch } from "./gamification";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { callLLM } from "@/lib/llm";
 import { computeComprehensionScore, normalizeSegmentStatus } from "@/lib/feynman-score";
 import type { GapAnalysis } from "./feynman";
+import { NORA_VOICE_EVALUATOR } from "@/lib/nora-voice";
 
 // === Constants ===
 
@@ -679,6 +681,16 @@ export async function generateNotes(
     })),
   };
 
+  // Validate offsets — clamp to segment bounds, fix citation/numeric disagreements.
+  // This prevents hallucinated timestamps from sending students to wrong video positions.
+  const { keyConcepts: validatedConcepts, flashcards: validatedFlashcards, corrections } =
+    validateNoteOffsets(generatedNotes.keyConcepts, generatedNotes.flashcards, startSeconds, endSeconds);
+  generatedNotes.keyConcepts = validatedConcepts;
+  generatedNotes.flashcards = validatedFlashcards;
+  if (corrections > 0) {
+    console.warn(`Note generation: corrected ${corrections} out-of-bounds timestamp offset(s) for video ${videoId}.`);
+  }
+
   // Save note to `notes` table with numrange time_segment format: [start, end)
   const { error: insertError } = await supabase.from("notes").insert({
     user_id: user.id,
@@ -1020,7 +1032,11 @@ export async function saveVideoCards(
  * Augments the standard Feynman evaluation with the transcript segment
  * as ground truth so the AI can evaluate accuracy against actual video content.
  */
-const FEYNMAN_VIDEO_PROMPT = `You are the "Inquisitive Student" — a knowledgeable evaluator who deeply understands the topic the student is studying. You have access to the original video transcript as ground truth.
+const FEYNMAN_VIDEO_PROMPT = `${NORA_VOICE_EVALUATOR}
+
+---
+
+You are the "Inquisitive Student" — a knowledgeable evaluator who deeply understands the topic the student is studying. You have access to the original video transcript as ground truth.
 
 THE STUDENT WATCHED A VIDEO SEGMENT AND IS EXPLAINING WHAT THEY LEARNED.
 
@@ -1061,7 +1077,11 @@ Respond ONLY with valid JSON (no markdown, no code fences, no extra text):
  * Fallback Feynman prompt when transcript is unavailable.
  * Uses only the video title for context.
  */
-const FEYNMAN_VIDEO_FALLBACK_PROMPT = `You are the "Inquisitive Student" — a knowledgeable evaluator who deeply understands the topic the student is studying.
+const FEYNMAN_VIDEO_FALLBACK_PROMPT = `${NORA_VOICE_EVALUATOR}
+
+---
+
+You are the "Inquisitive Student" — a knowledgeable evaluator who deeply understands the topic the student is studying.
 
 THE STUDENT WATCHED A VIDEO AND IS EXPLAINING WHAT THEY LEARNED.
 Video title: "{{VIDEO_TITLE}}"

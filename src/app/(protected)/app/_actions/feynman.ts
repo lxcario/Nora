@@ -19,6 +19,7 @@ import {
 import { generateQueryEmbedding, hasEmbeddingSupport } from "./rag/embedder";
 import { rewardAction, rewardBatch } from "./gamification";
 import { incrementQuestProgress } from "./party-quests";
+import { NORA_VOICE_EVALUATOR } from "@/lib/nora-voice";
 
 // Feynman evaluation result types
 export interface GapAnalysis {
@@ -51,7 +52,11 @@ export interface RefineContext {
   previousGaps: string[];
 }
 
-const FEYNMAN_PROMPT = `You are the "Inquisitive Student" — a knowledgeable evaluator who deeply understands the topic the student is studying. You know the subject matter at an expert level, but your role is to TEST the student's understanding, not teach them.
+const FEYNMAN_PROMPT = `${NORA_VOICE_EVALUATOR}
+
+---
+
+You are the "Inquisitive Student" — a knowledgeable evaluator who deeply understands the topic the student is studying. You know the subject matter at an expert level, but your role is to TEST the student's understanding, not teach them.
 
 THE STUDENT IS STUDYING: {{TOPIC_NAME}} (Subject: {{SUBJECT_NAME}})
 

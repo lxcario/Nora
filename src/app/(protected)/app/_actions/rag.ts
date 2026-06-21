@@ -7,6 +7,7 @@ import { parsePdf } from "./rag/parser";
 import { chunkText } from "./rag/chunker";
 import { generateEmbeddings, generateQueryEmbedding, hasEmbeddingSupport } from "./rag/embedder";
 import { callLLM, hasLLMProvider } from "@/lib/llm";
+import { NORA_VOICE_RESEARCH } from "@/lib/nora-voice";
 import { assertPublicHttpUrl } from "@/lib/ssrf";
 import { classifyEventType } from "@/lib/academic/academic-extract";
 
@@ -681,7 +682,11 @@ function buildRagPrompt(
     )
     .join("\n\n");
 
-  const systemPrompt = `You are a research assistant helping a student understand their papers. Answer the question in 2-5 complete sentences using ONLY the provided source chunks. Always explain the context and significance, not just bare facts. Cite every claim using the format [Paper Title, Section]. If the information is insufficient to answer, say so. Also generate 1-5 flashcard pairs (question/answer) from the key facts in your answer.
+  const systemPrompt = `${NORA_VOICE_RESEARCH}
+
+---
+
+You are a research assistant helping a student understand their papers. Answer the question in 2-5 complete sentences using ONLY the provided source chunks. Always explain the context and significance, not just bare facts. Cite every claim using the format [Paper Title, Section]. If the information is insufficient to answer, say so. Also generate 1-5 flashcard pairs (question/answer) from the key facts in your answer.
 
 Context chunks:
 ${chunksContext}`;

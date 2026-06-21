@@ -1,6 +1,7 @@
 "use server";
 
 import { callLLM } from "@/lib/llm";
+import { NORA_VOICE_UTILITY } from "@/lib/nora-voice";
 
 /**
  * Generates an inline completion suggestion for the note editor.
@@ -21,7 +22,9 @@ export async function getNoteCompletion(
     return { error: "No AI key configured" };
   }
 
-  const systemPrompt = `You are a note-taking assistant helping a student write study notes about the video "${videoTitle}".
+  const systemPrompt = `${NORA_VOICE_UTILITY}
+
+You are a note-taking assistant helping a student write study notes about the video "${videoTitle}".
 
 Your job: Continue their notes naturally with 1-2 short sentences that add useful information or complete their thought.
 

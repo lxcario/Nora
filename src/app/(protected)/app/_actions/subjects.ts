@@ -28,10 +28,16 @@ export async function createSubject(formData: FormData) {
 
 export async function deleteSubject(subjectId: string) {
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
+
   const { error } = await supabase
     .from("subjects")
     .delete()
-    .eq("id", subjectId);
+    .eq("id", subjectId)
+    .eq("user_id", user.id);
 
   if (error) return { error: error.message };
 
@@ -68,7 +74,16 @@ export async function createTopic(formData: FormData) {
 
 export async function deleteTopic(topicId: string) {
   const supabase = await createClient();
-  const { error } = await supabase.from("topics").delete().eq("id", topicId);
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
+
+  const { error } = await supabase
+    .from("topics")
+    .delete()
+    .eq("id", topicId)
+    .eq("user_id", user.id);
 
   if (error) return { error: error.message };
 

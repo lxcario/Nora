@@ -2,7 +2,6 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import { calculateLevel } from "@/lib/gamification";
 
 /**
  * XP/Coin reward rules:
@@ -28,7 +27,23 @@ interface RewardResult {
 }
 
 /**
- * Awards XP and coins for a study action.
+ * Resolve XP and coin amounts for a given action.
+ */
+function getRewardAmounts(action: string): { xp: number; coins: number; affinity: number } {
+  switch (action) {
+    case "feynman": return { xp: 15, coins: 5, affinity: 3 };
+    case "review_good": return { xp: 3, coins: 1, affinity: 1 };
+    case "review_bad": return { xp: 1, coins: 0, affinity: 0 };
+    case "card_created": return { xp: 2, coins: 0, affinity: 0 };
+    case "session_complete": return { xp: 10, coins: 3, affinity: 2 };
+    case "missions_complete": return { xp: 20, coins: 10, affinity: 5 };
+    default: return { xp: 0, coins: 0, affinity: 0 };
+  }
+}
+
+/**
+ * Awards XP and coins for a study action using atomic DB increments.
+ * Eliminates the read-modify-write race condition.
  */
 export async function rewardAction(
   action: "feynman" | "review_good" | "review_bad" | "card_created" | "session_complete" | "missions_complete"
@@ -39,88 +54,33 @@ export async function rewardAction(
   } = await supabase.auth.getUser();
   if (!user) return { error: "Not authenticated" };
 
-  // Get current profile
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("xp, coins, level")
-    .eq("id", user.id)
-    .single();
+  const { xp: xpGained, coins: coinsGained, affinity: petAffinityChange } = getRewardAmounts(action);
 
-  if (!profile) return { error: "Profile not found" };
+  // Atomic increment — no read-then-write race
+  const { data: rpcResult, error: rpcError } = await supabase.rpc(
+    "increment_profile_rewards",
+    { p_user_id: user.id, p_xp: xpGained, p_coins: coinsGained }
+  );
 
-  // Determine rewards
-  let xpGained = 0;
-  let coinsGained = 0;
-  let petAffinityChange = 0;
-
-  switch (action) {
-    case "feynman":
-      xpGained = 15;
-      coinsGained = 5;
-      petAffinityChange = 3;
-      break;
-    case "review_good":
-      xpGained = 3;
-      coinsGained = 1;
-      petAffinityChange = 1;
-      break;
-    case "review_bad":
-      xpGained = 1;
-      coinsGained = 0;
-      petAffinityChange = 0;
-      break;
-    case "card_created":
-      xpGained = 2;
-      coinsGained = 0;
-      petAffinityChange = 0;
-      break;
-    case "session_complete":
-      xpGained = 10;
-      coinsGained = 3;
-      petAffinityChange = 2;
-      break;
-    case "missions_complete":
-      xpGained = 20;
-      coinsGained = 10;
-      petAffinityChange = 5;
-      break;
+  if (rpcError) {
+    return { error: rpcError.message };
   }
 
-  const newXp = profile.xp + xpGained;
-  const newCoins = profile.coins + coinsGained;
-  const newLevel = calculateLevel(newXp);
-  const leveledUp = newLevel > profile.level;
+  const row = Array.isArray(rpcResult) ? rpcResult[0] : rpcResult;
+  if (!row) return { error: "Profile not found" };
 
-  // Update profile
-  const { error: updateError } = await supabase
-    .from("profiles")
-    .update({
-      xp: newXp,
-      coins: newCoins,
-      level: newLevel,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", user.id);
+  const newXp = row.new_xp as number;
+  const newCoins = row.new_coins as number;
+  const newLevel = row.new_level as number;
+  const oldLevel = row.old_level as number;
+  const leveledUp = newLevel > oldLevel;
 
-  if (updateError) return { error: updateError.message };
-
-  // Update pet affinity
+  // Atomic pet affinity increment
   if (petAffinityChange > 0) {
-    const { data: pet } = await supabase
-      .from("pets")
-      .select("affinity")
-      .eq("user_id", user.id)
-      .single();
-
-    if (pet) {
-      const newAffinity = Math.min(100, pet.affinity + petAffinityChange);
-      const newState = newAffinity > 70 ? "happy" : newAffinity > 40 ? "neutral" : "sad";
-
-      await supabase
-        .from("pets")
-        .update({ affinity: newAffinity, state: newState, updated_at: new Date().toISOString() })
-        .eq("user_id", user.id);
-    }
+    await supabase.rpc("increment_pet_affinity", {
+      p_user_id: user.id,
+      p_amount: petAffinityChange,
+    });
   }
 
   // Only revalidate the full layout on level-up (structural change that
@@ -145,7 +105,7 @@ export async function rewardAction(
 }
 
 /**
- * Awards XP and coins for multiple instances of the same action in a single DB round-trip.
+ * Awards XP and coins for multiple instances of the same action using atomic DB increments.
  * Use this instead of calling rewardAction() in a loop.
  */
 export async function rewardBatch(
@@ -161,67 +121,37 @@ export async function rewardBatch(
   } = await supabase.auth.getUser();
   if (!user) return { error: "Not authenticated" };
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("xp, coins, level")
-    .eq("id", user.id)
-    .single();
-
-  if (!profile) return { error: "Profile not found" };
-
-  // Calculate per-action rewards
-  let xpPerAction = 0;
-  let coinsPerAction = 0;
-  let affinityPerAction = 0;
-
-  switch (action) {
-    case "feynman": xpPerAction = 15; coinsPerAction = 5; affinityPerAction = 3; break;
-    case "review_good": xpPerAction = 3; coinsPerAction = 1; affinityPerAction = 1; break;
-    case "review_bad": xpPerAction = 1; coinsPerAction = 0; affinityPerAction = 0; break;
-    case "card_created": xpPerAction = 2; coinsPerAction = 0; affinityPerAction = 0; break;
-    case "session_complete": xpPerAction = 10; coinsPerAction = 3; affinityPerAction = 2; break;
-    case "missions_complete": xpPerAction = 20; coinsPerAction = 10; affinityPerAction = 5; break;
-  }
+  const { xp: xpPerAction, coins: coinsPerAction, affinity: affinityPerAction } = getRewardAmounts(action);
 
   const xpGained = xpPerAction * count;
   const coinsGained = coinsPerAction * count;
   const petAffinityChange = affinityPerAction * count;
 
-  const newXp = profile.xp + xpGained;
-  const newCoins = profile.coins + coinsGained;
-  const newLevel = calculateLevel(newXp);
-  const leveledUp = newLevel > profile.level;
+  // Atomic increment — no read-then-write race
+  const { data: rpcResult, error: rpcError } = await supabase.rpc(
+    "increment_profile_rewards",
+    { p_user_id: user.id, p_xp: xpGained, p_coins: coinsGained }
+  );
 
-  // Single DB update for profile
-  const { error: updateError } = await supabase
-    .from("profiles")
-    .update({
-      xp: newXp,
-      coins: newCoins,
-      level: newLevel,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", user.id);
+  if (rpcError) {
+    return { error: rpcError.message };
+  }
 
-  if (updateError) return { error: updateError.message };
+  const row = Array.isArray(rpcResult) ? rpcResult[0] : rpcResult;
+  if (!row) return { error: "Profile not found" };
 
-  // Single DB update for pet affinity
+  const newXp = row.new_xp as number;
+  const newCoins = row.new_coins as number;
+  const newLevel = row.new_level as number;
+  const oldLevel = row.old_level as number;
+  const leveledUp = newLevel > oldLevel;
+
+  // Atomic pet affinity increment
   if (petAffinityChange > 0) {
-    const { data: pet } = await supabase
-      .from("pets")
-      .select("affinity")
-      .eq("user_id", user.id)
-      .single();
-
-    if (pet) {
-      const newAffinity = Math.min(100, pet.affinity + petAffinityChange);
-      const newState = newAffinity > 70 ? "happy" : newAffinity > 40 ? "neutral" : "sad";
-
-      await supabase
-        .from("pets")
-        .update({ affinity: newAffinity, state: newState, updated_at: new Date().toISOString() })
-        .eq("user_id", user.id);
-    }
+    await supabase.rpc("increment_pet_affinity", {
+      p_user_id: user.id,
+      p_amount: petAffinityChange,
+    });
   }
 
   // Only revalidate on level-up — same logic as rewardAction.

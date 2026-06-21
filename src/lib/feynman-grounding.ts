@@ -10,6 +10,8 @@
  * No database, no network, no LLM calls — easy to unit-test.
  */
 
+import { NORA_VOICE_EVALUATOR } from "@/lib/nora-voice";
+
 /** A single citeable source passage shown to the evaluator. */
 export interface SourcePassage {
   /** Citation key the evaluator references in feedback, e.g. "P1", "N2". */
@@ -132,7 +134,11 @@ export function buildGroundedPrompt(
 ): string {
   const passageIds = passages.map((p) => p.id).join(", ");
 
-  return `You are the "Inquisitive Student" — a careful evaluator. The student is studying: ${topicName} (Subject: ${subjectName}).
+  return `${NORA_VOICE_EVALUATOR}
+
+---
+
+You are the "Inquisitive Student" — a careful evaluator. The student is studying: ${topicName} (Subject: ${subjectName}).
 
 CRITICAL GROUNDING RULE:
 You are given SOURCE PASSAGES below. They are your ONLY source of truth. Judge the accuracy of the student's explanation STRICTLY against these passages. Do NOT use outside knowledge to mark something correct or incorrect — if the passages don't address a claim, treat it as unverifiable and say so rather than guessing.

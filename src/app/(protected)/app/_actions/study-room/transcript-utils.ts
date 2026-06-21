@@ -1,4 +1,5 @@
 import { TranscriptSegment } from "@/lib/supabase/database.types";
+import { NORA_VOICE_NOTES } from "@/lib/nora-voice";
 
 /**
  * Slices a transcript array to include only segments whose offset
@@ -116,7 +117,11 @@ export function buildNotePrompt(
     .map((seg) => `[${formatSeconds(seg.offset)}] ${seg.text}`)
     .join("\n");
 
-  const system = `You are an expert academic tutor. Analyze the provided timestamped transcript segment from the video "${videoTitle}" (segment: ${startFormatted} to ${endFormatted}).
+  const system = `${NORA_VOICE_NOTES}
+
+---
+
+You are an expert academic tutor. Analyze the provided timestamped transcript segment from the video "${videoTitle}" (segment: ${startFormatted} to ${endFormatted}).
 
 Generate structured study materials. Your output must be a single, valid JSON object:
 
@@ -149,4 +154,164 @@ Rules:
   const user = `[TRANSCRIPT SEGMENT: ${startFormatted} to ${endFormatted}]\n${formattedSegments}\n[END SEGMENT]`;
 
   return { system, user };
+}
+
+
+// ---------------------------------------------------------------------------
+// Offset validation (post-LLM, pre-return)
+// ---------------------------------------------------------------------------
+
+/**
+ * Maximum allowed disagreement (seconds) between a citation string ("MM:SS")
+ * and the corresponding numeric offset_seconds before we override one.
+ *
+ * Rationale: LLMs commonly round offsets to the nearest :10 or :15 mark (e.g.
+ * a segment at [07:23] gets cited as offset 440 = 7:20). A 10-second window
+ * absorbs that rounding while still catching genuine mismatches (e.g. citation
+ * "05:30" = 330 vs offset 180 = 03:00, which differs by 150s >> 10s).
+ *
+ * For segments spanning 2-10 minutes, 10s is ~2-8% of the range — tight enough
+ * to be meaningful, loose enough to avoid over-correcting round numbers.
+ */
+const CITATION_OFFSET_TOLERANCE_S = 10;
+
+/**
+ * Validates and corrects LLM-generated timestamp offsets against the actual
+ * transcript segment boundaries.
+ *
+ * Strategy (clamp, don't drop):
+ *   1. Parse timestamp_citation string to seconds; if it disagrees with
+ *      offset_seconds by more than CITATION_OFFSET_TOLERANCE_S, trust the
+ *      citation string (since the model sees [MM:SS] prefixes in the prompt).
+ *   2. Clamp the resolved offset to [startSeconds, endSeconds].
+ *   3. Reconcile: update both offset_seconds and timestamp_citation to agree.
+ *
+ * Rationale: The content (concept/definition) is still valuable even if the
+ * offset is imprecise. Clamping keeps the student within the relevant segment
+ * rather than losing the concept entirely.
+ */
+export function validateNoteOffsets(
+  keyConcepts: {
+    concept: string;
+    definition: string;
+    timestampCitation: string;
+    offsetSeconds: number;
+  }[],
+  flashcards: {
+    front: string;
+    back: string;
+    offsetSeconds: number;
+  }[],
+  startSeconds: number,
+  endSeconds: number
+): {
+  keyConcepts: {
+    concept: string;
+    definition: string;
+    timestampCitation: string;
+    offsetSeconds: number;
+  }[];
+  flashcards: {
+    front: string;
+    back: string;
+    offsetSeconds: number;
+  }[];
+  corrections: number;
+} {
+  let corrections = 0;
+
+  const validatedConcepts = keyConcepts.map((kc) => {
+    const resolved = resolveOffset(
+      kc.offsetSeconds,
+      kc.timestampCitation,
+      startSeconds,
+      endSeconds
+    );
+    if (resolved.corrected) corrections++;
+    return {
+      ...kc,
+      offsetSeconds: resolved.offset,
+      timestampCitation: formatSeconds(resolved.offset),
+    };
+  });
+
+  const validatedFlashcards = flashcards.map((fc) => {
+    const resolved = resolveOffset(
+      fc.offsetSeconds,
+      null, // flashcards don't have a citation string
+      startSeconds,
+      endSeconds
+    );
+    if (resolved.corrected) corrections++;
+    return {
+      ...fc,
+      offsetSeconds: resolved.offset,
+    };
+  });
+
+  return { keyConcepts: validatedConcepts, flashcards: validatedFlashcards, corrections };
+}
+
+/**
+ * Resolve a single offset:
+ *   1. If citation string parses to a valid time and disagrees with numeric
+ *      offset by more than the tolerance, prefer the citation (the model sees
+ *      [MM:SS] prefixes in the prompt, making it the more grounded signal).
+ *   2. Guard against NaN / non-finite values — default to startSeconds.
+ *   3. Clamp result to [start, end].
+ */
+function resolveOffset(
+  numericOffset: number,
+  citationStr: string | null,
+  startSeconds: number,
+  endSeconds: number
+): { offset: number; corrected: boolean } {
+  let best = numericOffset;
+
+  // Cross-check: if citation string parses and meaningfully disagrees, trust it.
+  if (citationStr) {
+    const parsed = parseTimeCitation(citationStr);
+    if (parsed !== null && Number.isFinite(parsed)) {
+      if (!Number.isFinite(best) || Math.abs(parsed - best) > CITATION_OFFSET_TOLERANCE_S) {
+        best = parsed;
+      }
+    }
+  }
+
+  // NaN / non-finite guard: if nothing resolved to a real number, fall back to
+  // the segment start. Math.max/Math.min with NaN returns NaN in JS — this
+  // explicit check prevents that from propagating silently.
+  if (!Number.isFinite(best)) {
+    return { offset: startSeconds, corrected: true };
+  }
+
+  // Clamp to segment bounds.
+  const clamped = Math.max(startSeconds, Math.min(endSeconds, best));
+  const corrected = clamped !== numericOffset;
+
+  return { offset: clamped, corrected };
+}
+
+/**
+ * Parse a "MM:SS" or "H:MM:SS" citation string to total seconds.
+ * Returns null for unparseable strings.
+ */
+function parseTimeCitation(citation: string): number | null {
+  if (!citation || typeof citation !== "string") return null;
+  const trimmed = citation.trim();
+  const parts = trimmed.split(":");
+  if (parts.length === 2) {
+    const m = parseInt(parts[0], 10);
+    const s = parseInt(parts[1], 10);
+    if (isNaN(m) || isNaN(s) || m < 0 || s < 0 || s >= 60) return null;
+    return m * 60 + s;
+  }
+  if (parts.length === 3) {
+    const h = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10);
+    const s = parseInt(parts[2], 10);
+    if (isNaN(h) || isNaN(m) || isNaN(s) || h < 0 || m < 0 || s < 0) return null;
+    return h * 3600 + m * 60 + s;
+  }
+  return null;
 }

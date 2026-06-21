@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useTransition } from "react";
+import { useState, useEffect, useRef, useTransition, useCallback } from "react";
 import {
   performResearch,
   createCardsFromResearch,
@@ -26,6 +26,8 @@ import {
   Check,
   Brain,
   AlertTriangle,
+  X,
+  FileText,
 } from "lucide-react";
 import { DialogFrame } from "@/components/pixel-ui";
 import { ResearchModeToggle } from "./research-mode-toggle";
@@ -52,6 +54,48 @@ interface Paper {
   topicId: string | null;
 }
 
+// ---------------------------------------------------------------------------
+// Research progress stages
+// ---------------------------------------------------------------------------
+
+type ResearchStage =
+  | "classifying"
+  | "searching_academic"
+  | "searching_web"
+  | "reading_sources"
+  | "synthesizing"
+  | "done"
+  | "cancelled";
+
+const STAGE_LABELS: Record<ResearchStage, string> = {
+  classifying: "Classifying your question...",
+  searching_academic: "Searching academic databases...",
+  searching_web: "Searching the web...",
+  reading_sources: "Reading sources...",
+  synthesizing: "Synthesizing answer with citations...",
+  done: "Done",
+  cancelled: "Cancelled",
+};
+
+const STAGE_ORDER: ResearchStage[] = [
+  "classifying",
+  "searching_academic",
+  "searching_web",
+  "reading_sources",
+  "synthesizing",
+  "done",
+];
+
+// Simulated stage progression timings (since server actions can't stream).
+// These represent typical durations for each step in the pipeline.
+const STAGE_TIMINGS_MS: Partial<Record<ResearchStage, number>> = {
+  classifying: 1500,
+  searching_academic: 4000,
+  searching_web: 5500,
+  reading_sources: 7000,
+  synthesizing: 9000,
+};
+
 export function ResearchDesk({ topics }: { topics: TopicOption[] }) {
   // Mode toggle state
   const [mode, setMode] = useState<"web" | "papers">("web");
@@ -63,6 +107,9 @@ export function ResearchDesk({ topics }: { topics: TopicOption[] }) {
   const [isPending, startTransition] = useTransition();
   const [selectedTopic, setSelectedTopic] = useState(topics[0]?.id ?? "");
   const [cardsSaved, setCardsSaved] = useState(false);
+  const [currentStage, setCurrentStage] = useState<ResearchStage | null>(null);
+  const abortRef = useRef(false);
+  const stageTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   // --- Papers / RAG state ---
   const [papers, setPapers] = useState<Paper[]>([]);
@@ -78,8 +125,7 @@ export function ResearchDesk({ topics }: { topics: TopicOption[] }) {
     }
   }, [mode]);
 
-  // Live ingestion status: while any paper is still pending/processing, poll
-  // the library every 3s so statuses update to "Ready" without a manual reload.
+  // Live ingestion status polling
   useEffect(() => {
     const hasInflight = papers.some(
       (p) => p.parseStatus === "pending" || p.parseStatus === "processing"
@@ -100,7 +146,6 @@ export function ResearchDesk({ topics }: { topics: TopicOption[] }) {
     };
   }, [papers, mode]);
 
-  // Clean up the poller on unmount.
   useEffect(() => {
     return () => {
       if (pollRef.current) clearInterval(pollRef.current);
@@ -112,21 +157,73 @@ export function ResearchDesk({ topics }: { topics: TopicOption[] }) {
       const res = await getUserPapers();
       setPapers(res.papers ?? []);
     } catch {
-      // Silently fail; papers list will be empty
+      // Silently fail
     }
   }
+
+  // --- Progress stage simulation ---
+  const startStageProgression = useCallback(() => {
+    // Clear any existing timers
+    stageTimersRef.current.forEach(clearTimeout);
+    stageTimersRef.current = [];
+
+    setCurrentStage("classifying");
+
+    for (const stage of STAGE_ORDER) {
+      if (stage === "done") continue;
+      const delay = STAGE_TIMINGS_MS[stage];
+      if (delay !== undefined) {
+        const timer = setTimeout(() => {
+          if (!abortRef.current) {
+            const nextIdx = STAGE_ORDER.indexOf(stage) + 1;
+            if (nextIdx < STAGE_ORDER.length - 1) {
+              setCurrentStage(STAGE_ORDER[nextIdx]);
+            }
+          }
+        }, delay);
+        stageTimersRef.current.push(timer);
+      }
+    }
+  }, []);
+
+  const clearStageProgression = useCallback(() => {
+    stageTimersRef.current.forEach(clearTimeout);
+    stageTimersRef.current = [];
+  }, []);
 
   // --- Web research handlers ---
   function handleResearch() {
     setError(null);
     setResult(null);
     setCardsSaved(false);
+    abortRef.current = false;
+
+    startStageProgression();
 
     startTransition(async () => {
       const res = await performResearch(query);
+
+      clearStageProgression();
+
+      if (abortRef.current) {
+        setCurrentStage("cancelled");
+        setTimeout(() => setCurrentStage(null), 1500);
+        return;
+      }
+
+      setCurrentStage("done");
+      setTimeout(() => setCurrentStage(null), 800);
+
       if (res.error) setError(res.error);
       if (res.data) setResult(res.data);
     });
+  }
+
+  function handleCancel() {
+    abortRef.current = true;
+    clearStageProgression();
+    setCurrentStage("cancelled");
+    setTimeout(() => setCurrentStage(null), 1500);
   }
 
   function handleSaveCards() {
@@ -215,11 +312,12 @@ export function ResearchDesk({ topics }: { topics: TopicOption[] }) {
                 <input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleResearch()}
+                  onKeyDown={(e) => e.key === "Enter" && !isPending && handleResearch()}
                   type="text"
                   placeholder="e.g. What are the psychological benefits of spaced repetition?"
                   className="w-full"
                   style={{ paddingLeft: "36px" }}
+                  disabled={isPending}
                 />
               </div>
               <button
@@ -238,26 +336,45 @@ export function ResearchDesk({ topics }: { topics: TopicOption[] }) {
             <div className="mt-3">{topicSelect}</div>
             <p className="mt-2 flex items-start gap-1.5 text-xs text-[var(--pixel-text-muted)]">
               <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0 text-[var(--pixel-warning)]" />
-              AI-generated overview drawing on books, Wikipedia, and the model&apos;s
-              own knowledge. Treat it as a starting point and verify key claims.
+              Searches peer-reviewed academic databases (OpenAlex, Crossref, Semantic
+              Scholar) and the live web (Tavily). AI synthesizes findings with numbered
+              citations. Verify key claims against the linked sources.
             </p>
           </DialogFrame>
 
-          {/* Loading */}
-          {isPending && (
+          {/* Progress stages */}
+          {isPending && currentStage && (
             <DialogFrame state="warning">
-              <div className="flex items-center gap-3">
-                <Loader2 className="h-5 w-5 animate-spin text-[var(--pixel-accent)]" />
-                <div>
-                  <p className="text-sm font-medium text-[var(--pixel-text-primary)]">
-                    Researching your question...
-                  </p>
-                  <p className="text-xs text-[var(--pixel-text-secondary)]">
-                    Searching books &amp; Wikipedia, then synthesizing with AI.
-                  </p>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Loader2 className="h-5 w-5 animate-spin text-[var(--pixel-accent)]" />
+                  <div>
+                    <p className="text-sm font-medium text-[var(--pixel-text-primary)]">
+                      Deep research in progress
+                    </p>
+                    <p className="text-xs text-[var(--pixel-text-secondary)]">
+                      This takes 10-25 seconds for thorough results.
+                    </p>
+                  </div>
                 </div>
+                <button
+                  onClick={handleCancel}
+                  className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-[var(--pixel-text-muted)] hover:text-[var(--pixel-error)] hover:bg-[var(--pixel-bg-secondary)] transition-colors"
+                  title="Cancel research"
+                >
+                  <X className="h-3 w-3" />
+                  Cancel
+                </button>
               </div>
+              <ResearchProgressSteps currentStage={currentStage} />
             </DialogFrame>
+          )}
+
+          {/* Cancelled notice */}
+          {currentStage === "cancelled" && !isPending && (
+            <div className="rounded-lg border-2 border-[var(--pixel-border)] bg-[var(--pixel-bg-secondary)] p-3 text-sm text-[var(--pixel-text-muted)]">
+              Research cancelled.
+            </div>
           )}
 
           {/* Error */}
@@ -270,6 +387,23 @@ export function ResearchDesk({ topics }: { topics: TopicOption[] }) {
           {/* Research result */}
           {result && (
             <div className="space-y-6">
+              {/* Pipeline info badge */}
+              {result.pipeline && (
+                <div className="flex flex-wrap gap-2 text-xs text-[var(--pixel-text-muted)]">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-[var(--pixel-bg-secondary)] px-2 py-0.5">
+                    <FileText className="h-3 w-3" />
+                    {result.pipeline.academicSourceCount} academic
+                  </span>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-[var(--pixel-bg-secondary)] px-2 py-0.5">
+                    <Globe className="h-3 w-3" />
+                    {result.pipeline.webSourceCount} web
+                  </span>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-[var(--pixel-bg-secondary)] px-2 py-0.5">
+                    Intent: {result.pipeline.intent}
+                  </span>
+                </div>
+              )}
+
               {/* AI synthesized answer */}
               <DialogFrame title="Research Analysis">
                 <div className="space-y-3 text-sm leading-relaxed text-[var(--pixel-text-secondary)]">
@@ -286,8 +420,7 @@ export function ResearchDesk({ topics }: { topics: TopicOption[] }) {
                 <div className="space-y-2">
                   {result.sources.length === 0 && (
                     <p className="text-sm text-[var(--pixel-text-muted)]">
-                      No external sources matched — answer is from the model&apos;s
-                      own knowledge.
+                      No sources found.
                     </p>
                   )}
                   {result.sources.map((source, i) => (
@@ -348,10 +481,8 @@ export function ResearchDesk({ topics }: { topics: TopicOption[] }) {
       {/* Papers / RAG mode */}
       {mode === "papers" && (
         <div className="space-y-6">
-          {/* Paper upload */}
           <PaperUpload onUploadComplete={handleUploadComplete} />
 
-          {/* Paper library */}
           <PaperLibrary
             papers={papers}
             onRetry={handleRetry}
@@ -359,7 +490,6 @@ export function ResearchDesk({ topics }: { topics: TopicOption[] }) {
             onIngestUrl={handleIngestUrl}
           />
 
-          {/* RAG query panel */}
           <DialogFrame title="Ask Your Papers">
             <div className="mb-3">{topicSelect}</div>
             <RagQueryPanel
@@ -372,7 +502,6 @@ export function ResearchDesk({ topics }: { topics: TopicOption[] }) {
             />
           </DialogFrame>
 
-          {/* RAG loading steps */}
           {ragLoading && (
             <DialogFrame>
               <div className="flex items-center gap-3">
@@ -385,17 +514,14 @@ export function ResearchDesk({ topics }: { topics: TopicOption[] }) {
             </DialogFrame>
           )}
 
-          {/* RAG error */}
           {ragError && (
             <div className="rounded-lg border-2 border-[var(--pixel-error)] bg-[var(--pixel-bg-secondary)] p-3 text-sm text-[var(--pixel-error)]">
               {ragError}
             </div>
           )}
 
-          {/* RAG answer display */}
           {ragAnswer && <RagAnswerDisplay answer={ragAnswer} />}
 
-          {/* Suggested cards from RAG */}
           {ragAnswer && ragAnswer.suggestedCards.length > 0 && (
             <CardFromRag
               suggestedCards={ragAnswer.suggestedCards}
@@ -408,8 +534,58 @@ export function ResearchDesk({ topics }: { topics: TopicOption[] }) {
   );
 }
 
+// ---------------------------------------------------------------------------
+// Research progress steps (driven by stage, not timers)
+// ---------------------------------------------------------------------------
+
+function ResearchProgressSteps({ currentStage }: { currentStage: ResearchStage }) {
+  const stageIdx = STAGE_ORDER.indexOf(currentStage);
+
+  return (
+    <div className="mt-3 space-y-1.5">
+      {STAGE_ORDER.filter((s) => s !== "done").map((stage, i) => {
+        const isComplete = i < stageIdx;
+        const isCurrent = stage === currentStage;
+        const isFuture = i > stageIdx;
+
+        return (
+          <div
+            key={stage}
+            className={`flex items-center gap-2 text-xs transition-opacity duration-300 ${
+              isFuture ? "opacity-30" : "opacity-100"
+            }`}
+          >
+            {isComplete ? (
+              <Check className="h-3 w-3 text-[var(--pixel-accent)]" />
+            ) : isCurrent ? (
+              <Loader2 className="h-3 w-3 animate-spin text-[var(--pixel-accent)]" />
+            ) : (
+              <div className="h-3 w-3 rounded-full border border-[var(--pixel-border-light)]" />
+            )}
+            <span
+              className={
+                isComplete || isCurrent
+                  ? "text-[var(--pixel-text-primary)]"
+                  : "text-[var(--pixel-text-muted)]"
+              }
+            >
+              {STAGE_LABELS[stage]}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Source item (updated for paper vs web distinction)
+// ---------------------------------------------------------------------------
+
 function SourceItem({ source, index }: { source: ResearchSource; index: number }) {
-  const TypeIcon = source.type === "wiki" ? Globe : BookOpen;
+  const isPaper = source.type === "paper";
+  const TypeIcon = isPaper ? BookOpen : Globe;
+  const typeBadge = isPaper ? "Academic" : source.domain || "Web";
 
   return (
     <div
@@ -432,10 +608,25 @@ function SourceItem({ source, index }: { source: ResearchSource; index: number }
             {source.title}
           </span>
         </div>
-        <p className="mt-0.5 text-xs text-[var(--pixel-text-muted)]">
-          {source.authors.slice(0, 2).join(", ")}
-          {source.year ? ` · ${source.year}` : ""}
-        </p>
+        <div className="mt-0.5 flex items-center gap-2">
+          <span
+            className="inline-block rounded px-1.5 py-0.5 text-[10px] font-medium"
+            style={{
+              backgroundColor: isPaper
+                ? "var(--pixel-accent-soft, rgba(99,102,241,0.15))"
+                : "var(--pixel-success-soft, rgba(34,197,94,0.15))",
+              color: isPaper ? "var(--pixel-accent)" : "var(--pixel-success)",
+            }}
+          >
+            {typeBadge}
+          </span>
+          <p className="text-xs text-[var(--pixel-text-muted)] truncate">
+            {source.authors.length > 0
+              ? source.authors.slice(0, 2).join(", ")
+              : ""}
+            {source.year ? ` · ${source.year}` : ""}
+          </p>
+        </div>
       </div>
       {source.url && (
         <a
@@ -443,6 +634,7 @@ function SourceItem({ source, index }: { source: ResearchSource; index: number }
           target="_blank"
           rel="noopener noreferrer"
           className="flex-shrink-0 rounded p-1 text-[var(--pixel-text-muted)] hover:text-[var(--pixel-accent)]"
+          title="Open source"
         >
           <ExternalLink className="h-3.5 w-3.5" />
         </a>
@@ -450,6 +642,10 @@ function SourceItem({ source, index }: { source: ResearchSource; index: number }
     </div>
   );
 }
+
+// ---------------------------------------------------------------------------
+// RAG search steps (papers mode — unchanged)
+// ---------------------------------------------------------------------------
 
 function RagSearchSteps() {
   const [step, setStep] = useState(0);

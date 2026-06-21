@@ -24,7 +24,7 @@ export default async function ResearchPage() {
     <div className="space-y-6">
       <PageHeader
         title="AI Research Desk"
-        description="Ask a research question. AI searches books and encyclopedias, then synthesizes a cited answer."
+        description="Ask a research question. AI searches academic databases and the web, then synthesizes a cited answer."
       />
       <ResearchDesk topics={topicOptions} />
     </div>
