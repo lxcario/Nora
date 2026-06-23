@@ -51,3 +51,5 @@ next-env.d.ts
 /assets/Thank You for Purchasing!.txt
 
 .vercel
+
+testsprite_tests\tmp\config.json

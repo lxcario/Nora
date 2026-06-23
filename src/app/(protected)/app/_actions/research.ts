@@ -10,7 +10,7 @@ import { searchCrossref } from "@/lib/academic-search/crossref";
 import { searchSemanticScholar } from "@/lib/academic-search/semantic-scholar";
 import type { AcademicWork } from "@/lib/academic-search/types";
 import { searchTavily, hasTavilyKey, type TavilyResult } from "@/lib/web-search/tavily";
-import { validateResearchCitations } from "@/lib/research-citations";
+import { validateResearchCitations, validateCitationGrounding, type GroundingSource } from "@/lib/research-citations";
 import { NORA_VOICE_RESEARCH } from "@/lib/nora-voice";
 
 // ---------------------------------------------------------------------------
@@ -171,7 +171,9 @@ async function parallelSearch(
   intent: QueryIntent
 ): Promise<SearchResults> {
   const runAcademic = intent === "academic" || intent === "both";
-  const runWeb = intent === "general" || intent === "both";
+  // Always run web search — even academic queries benefit from web context
+  // (blog posts, documentation, Wikipedia overviews supplement papers).
+  const runWeb = true;
 
   // Academic leg: OpenAlex + Crossref + Semantic Scholar
   const academicPromise = runAcademic
@@ -202,35 +204,201 @@ async function parallelSearch(
 }
 
 // ---------------------------------------------------------------------------
-// Step 3: Source Assembly
+// Step 3: Source Assembly & Relevance Filtering
 // ---------------------------------------------------------------------------
+
+/**
+ * Tokenize text into meaningful words for relevance scoring.
+ * Strips punctuation, lowercases, removes very short words and stopwords.
+ */
+function tokenize(text: string): Set<string> {
+  const stopwords = new Set([
+    "the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for",
+    "of", "with", "by", "from", "is", "are", "was", "were", "be", "been",
+    "have", "has", "had", "do", "does", "did", "will", "would", "could",
+    "should", "may", "might", "can", "this", "that", "these", "those",
+    "it", "its", "not", "no", "as", "if", "than", "then", "so", "very",
+    "bir", "ve", "de", "da", "ile", "için", "bu", "olan", "olarak", "gibi",
+    "den", "dan", "ya", "veya", "ama", "her", "daha", "çok", "en",
+    "yang", "dan", "dari", "ke", "di", "ini", "itu", "dengan", "untuk",
+  ]);
+
+  return new Set(
+    text
+      .toLowerCase()
+      .replace(/[^\p{L}\p{N}\s]/gu, " ")
+      .split(/\s+/)
+      .filter((w) => w.length > 2 && !stopwords.has(w))
+  );
+}
+
+/**
+ * Score a source's relevance to a query using term overlap.
+ * Returns a score between 0 and 1.
+ *
+ * Uses both title and snippet, with title terms weighted 2x.
+ */
+function scoreSourceRelevance(source: ResearchSource, queryTokens: Set<string>): number {
+  if (queryTokens.size === 0) return 0.5; // Can't score, pass through
+
+  const titleTokens = tokenize(source.title);
+  const snippetTokens = tokenize(source.snippet);
+
+  // Count query terms found in title (weight 2x) and snippet (weight 1x)
+  let matchScore = 0;
+  let maxPossible = queryTokens.size * 2; // Best case: all query terms in title
+
+  for (const qt of queryTokens) {
+    if (titleTokens.has(qt)) matchScore += 2;
+    else if (snippetTokens.has(qt)) matchScore += 1;
+  }
+
+  // Normalize to 0–1 range
+  return Math.min(matchScore / maxPossible, 1);
+}
+
+/** Minimum relevance score for a source to be included in synthesis. */
+const MIN_RELEVANCE_SCORE = 0.15;
+
+/**
+ * Filter sources by relevance to the query.
+ * Removes sources with near-zero topical overlap.
+ *
+ * Floor logic: only backfill below-threshold sources if ALL sources scored
+ * low (i.e., the query itself is hard to match). If at least one source
+ * passes threshold, only return those that pass — don't pad with garbage.
+ */
+function filterByRelevance(
+  sources: ResearchSource[],
+  query: string
+): ResearchSource[] {
+  const queryTokens = tokenize(query);
+
+  const scored = sources.map((s) => ({
+    source: s,
+    score: scoreSourceRelevance(s, queryTokens),
+  }));
+
+  // Sort by score descending
+  scored.sort((a, b) => b.score - a.score);
+
+  // Keep sources above threshold
+  const relevant = scored.filter((s) => s.score >= MIN_RELEVANCE_SCORE);
+
+  if (relevant.length > 0) {
+    // At least some sources are relevant — return only those, no padding
+    return relevant.map((s) => s.source);
+  }
+
+  // No source passed threshold — the query is likely too niche or
+  // all retrieval results are off-topic. Return top 3 by score as
+  // best-effort (better than nothing for synthesis to acknowledge gaps).
+  return scored.slice(0, 3).map((s) => s.source);
+}
 
 /**
  * Assemble and cap the combined source list.
  * Academic sources come first, then web sources.
+ * Applies relevance filtering to remove off-topic sources.
  */
 function assembleSources(
   academicSources: ResearchSource[],
-  webSources: ResearchSource[]
+  webSources: ResearchSource[],
+  query: string
 ): ResearchSource[] {
   const combined = [...academicSources, ...webSources];
-  return combined.slice(0, MAX_COMBINED_SOURCES);
+  const capped = combined.slice(0, MAX_COMBINED_SOURCES);
+  return filterByRelevance(capped, query);
 }
 
 // ---------------------------------------------------------------------------
 // Step 4: Synthesis
 // ---------------------------------------------------------------------------
 
-async function synthesizeResearch(
-  query: string,
-  sources: ResearchSource[]
-): Promise<{ answer?: string; suggestedCards?: { front: string; back: string }[]; error?: string }> {
-  if (!hasLLMProvider()) return { error: "No AI key configured" };
+/**
+ * Detect and remove repetition loops from LLM output.
+ * Splits by paragraph, detects duplicates (normalized), keeps first occurrence.
+ */
+function deduplicateParagraphs(text: string): string {
+  const paragraphs = text.split(/\n\n+/).filter((p) => p.trim().length > 0);
+  if (paragraphs.length <= 3) return text;
 
-  // Build a numbered source list distinguishing academic from web.
-  const sourcesContext = sources
+  const seen = new Set<string>();
+  const unique: string[] = [];
+
+  for (const para of paragraphs) {
+    // Normalize: lowercase, collapse whitespace, strip citation markers for comparison
+    const normalized = para
+      .toLowerCase()
+      .replace(/\[\d+\]/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    // Skip if we've seen this paragraph (or very similar — first 100 chars match)
+    const fingerprint = normalized.slice(0, 120);
+    if (seen.has(fingerprint)) continue;
+
+    // Also check for high overlap with any existing paragraph (>80% shared words)
+    let isDuplicate = false;
+    const words = new Set(normalized.split(" ").filter((w) => w.length > 3));
+    for (const existingFp of seen) {
+      const existingWords = new Set(existingFp.split(" ").filter((w: string) => w.length > 3));
+      if (existingWords.size === 0 || words.size === 0) continue;
+      let overlap = 0;
+      for (const w of words) {
+        if (existingWords.has(w)) overlap++;
+      }
+      const overlapRatio = overlap / Math.min(words.size, existingWords.size);
+      if (overlapRatio > 0.75) {
+        isDuplicate = true;
+        break;
+      }
+    }
+
+    if (!isDuplicate) {
+      seen.add(fingerprint);
+      unique.push(para);
+    }
+  }
+
+  return unique.join("\n\n");
+}
+
+/**
+ * Assign credibility tiers to sources for prompt context.
+ * Tier 1: Peer-reviewed academic papers with abstracts
+ * Tier 2: Academic papers without abstracts / reputable web (.edu, .gov, mdpi, ieee, springer, etc.)
+ * Tier 3: General web sources (blogs, product pages, videos)
+ */
+function getSourceTier(source: ResearchSource): 1 | 2 | 3 {
+  if (source.type === "paper") {
+    if (source.snippet && !source.snippet.includes("(no abstract available)")) {
+      return 1;
+    }
+    return 2;
+  }
+  // Web source — check domain reputation
+  const domain = source.domain?.toLowerCase() ?? "";
+  const reputableDomains = [
+    ".edu", ".gov", ".ac.", "ieee.org", "springer.com", "wiley.com",
+    "nature.com", "sciencedirect.com", "mdpi.com", "arxiv.org",
+    "nih.gov", "pubmed", "researchgate.net",
+  ];
+  if (reputableDomains.some((d) => domain.includes(d))) return 2;
+  return 3;
+}
+
+function buildSourceContext(sources: ResearchSource[]): string {
+  return sources
     .map((s, i) => {
-      const typeLabel = s.type === "paper" ? "📄 Academic" : "🌐 Web";
+      const tier = getSourceTier(s);
+      const tierLabel =
+        tier === 1
+          ? "⭐ PEER-REVIEWED"
+          : tier === 2
+          ? "📚 REPUTABLE"
+          : "🌐 GENERAL WEB";
+      const typeLabel = s.type === "paper" ? "Academic" : "Web";
       const authorLine =
         s.authors.length > 0 ? ` by ${s.authors.slice(0, 3).join(", ")}` : "";
       const yearLine = s.year ? ` (${s.year})` : "";
@@ -238,34 +406,116 @@ async function synthesizeResearch(
       const domainLine = s.domain ? ` [${s.domain}]` : "";
 
       return (
-        `[${i + 1}] ${typeLabel}: "${s.title}"${authorLine}${yearLine}${doiLine}${domainLine}\n` +
+        `[${i + 1}] ${tierLabel} | ${typeLabel}: "${s.title}"${authorLine}${yearLine}${doiLine}${domainLine}\n` +
         `   ${s.snippet}`
       );
     })
     .join("\n\n");
+}
+
+async function synthesizeResearch(
+  query: string,
+  sources: ResearchSource[]
+): Promise<{ answer?: string; suggestedCards?: { front: string; back: string }[]; error?: string }> {
+  if (!hasLLMProvider()) return { error: "No AI key configured" };
+
+  const sourcesContext = buildSourceContext(sources);
+
+  // Count tiers for adaptive instructions
+  const tier1Count = sources.filter((s) => getSourceTier(s) === 1).length;
+  const tier3Count = sources.filter((s) => getSourceTier(s) === 3).length;
+
+  const credibilityNote =
+    tier3Count > 0
+      ? `\nCREDIBILITY NOTE: Sources marked "GENERAL WEB" (blogs, product pages) should be cited with lower confidence. Prefer peer-reviewed and reputable sources for core claims. Use web sources only for supplementary context, definitions, or to fill gaps.`
+      : "";
+
+  // ── Adaptive section structure based on source count ──────────────────────
+  // Few sources → fewer sections, to prevent the model from fabricating content
+  // to fill sections that have no source support.
+  const sectionInstructions = sources.length <= 2
+    ? `YOUR TASK — write a FOCUSED research synthesis using EXACTLY these sections:
+
+## SECTION 1: Overview (1–2 paragraphs)
+Define the topic and summarize what the available sources tell us. Include specific details, numbers, and data points from the sources.
+
+## SECTION 2: Key Details (1–2 paragraphs)
+Expand on the most important findings or mechanisms described in the sources. Extract concrete information — no vague summaries.
+
+## SECTION 3: Gaps & Limitations (1 paragraph — MAX 3 sentences)
+Acknowledge what the sources do NOT cover. Be specific about what's missing.
+
+NOTE: You only have ${sources.length} source(s). Do NOT attempt to fill sections with content that isn't backed by these sources. Short, honest, and specific is far better than long and fabricated.`
+    : sources.length <= 5
+    ? `YOUR TASK — write a structured research synthesis using EXACTLY these sections:
+
+## SECTION 1: Background & Definitions (1–2 paragraphs)
+Define key terms and establish context.
+
+## SECTION 2: Core Mechanisms & Technical Details (1–2 paragraphs)
+Explain HOW the technology/concept works. Include specific numbers from the sources.
+
+## SECTION 3: Applications & Current State (1 paragraph)
+Where is this being used today?
+
+## SECTION 4: Limitations & Conclusion (1 paragraph — MAX 4 sentences)
+What's missing from these sources? One-sentence takeaway.`
+    : `YOUR TASK — write a structured research synthesis using EXACTLY these sections:
+
+## SECTION 1: Background & Definitions (1–2 paragraphs)
+Define key terms and establish context. What is this topic about? Why does it matter?
+
+## SECTION 2: Core Mechanisms & Technical Details (2–3 paragraphs)
+Explain HOW the technology/concept works. Include specific numbers: voltages, temperatures, frequencies, efficiencies, percentages from the sources. No vague statements — if a source says "3.3 eV bandgap" or ">100kHz switching," include those figures.
+
+## SECTION 3: Comparative Analysis (1–2 paragraphs)
+If the question involves comparing things (e.g., materials, approaches, old vs. new), directly compare them with a table-like structure or explicit side-by-side statements. If no comparison is asked, compare to the status quo or alternatives mentioned in sources.
+
+## SECTION 4: Applications & Current State (1–2 paragraphs)
+Where is this being used today? What are real-world deployments, products, or industry trends?
+
+## SECTION 5: Limitations & Open Questions (1 paragraph)
+What do the sources NOT answer? What are acknowledged limitations, challenges, or gaps?
+
+## SECTION 6: Conclusion (1 paragraph — MAX 3 sentences)
+One-paragraph takeaway. Do NOT repeat earlier content. State the single most important finding.`;
+
+  const cardCount = Math.min(6, Math.max(3, sources.length));
 
   const systemPrompt = `${NORA_VOICE_RESEARCH}
 
 ---
 
-You are a research assistant helping a university student. You have retrieved the following sources — both peer-reviewed academic papers and web pages — for their question.
+You are a research assistant helping a university student. You have retrieved ${sources.length} sources (${tier1Count} peer-reviewed, ${sources.length - tier1Count} other) for their question.
 
-RETRIEVED SOURCES (numbered):
+RETRIEVED SOURCES (numbered, with credibility tier):
 ${sourcesContext}
+${credibilityNote}
 
-YOUR TASK:
-1. Write a thorough, well-structured research summary (6–10 paragraphs) that answers the student's question comprehensively.
-2. Every factual claim MUST cite a retrieved source using its number [1], [2], etc.
-3. Distinguish between academic sources (peer-reviewed, higher confidence) and web sources (general, verify independently) in your narrative where relevant.
-4. If you include knowledge not found in the above sources, you MUST label it explicitly: "Note (model knowledge, unverified by sources): ..."
-5. Do NOT emit a citation number [N] unless it maps to one of the numbered sources above.
-6. Synthesise across sources — identify agreements, disagreements, and gaps.
-7. Generate 4–8 flashcard Q/A pairs covering the key findings.
+${sectionInstructions}
 
-IMPORTANT: If the sources do not cover the question well, say so explicitly rather than inventing citations.
+CITATION RULES:
+- Every factual claim MUST cite [N] referencing a source above.
+- Prefer Tier 1 (⭐) sources for core claims.
+- If you use knowledge NOT in the sources, prefix with "Note (unverified): "
+- Do NOT emit [N] unless N is a valid source number (1–${sources.length}).
+- Do NOT use "According to [N], X" as your default sentence pattern. Vary your citation style: inline [N], parenthetical, or end-of-sentence.
 
-Respond ONLY with valid JSON (use \\n for newlines inside strings):
-{"answer":"...","suggestedCards":[{"front":"...","back":"..."}]}`;
+ANTI-REPETITION RULES:
+- NEVER write "more research is needed" or "further studies are required" — it's filler.
+- NEVER repeat a point you already made. Each sentence must add new information.
+- STOP writing immediately after the final section's conclusion. Do not add any text after.
+- If you catch yourself repeating, STOP and move to the next section.
+
+EMPTY SECTION RULE:
+- If a section has NO supporting sources with relevant information, write exactly: "No relevant sources were retrieved for this section." Do NOT fabricate citations or make up claims to fill the section.
+- It is BETTER to have a short, honest section than a long section with decorative citations that don't actually support the claims.
+- Only cite a source if you can point to SPECIFIC content from that source's snippet/abstract that backs your claim.
+
+FLASHCARDS: Generate exactly ${cardCount} Q/A pairs testing specific technical details (numbers, comparisons, mechanisms), NOT vague definitions.
+
+Respond ONLY with valid JSON. Use \\n for newlines inside strings. No markdown code fences:
+{"answer":"Section 1...\\n\\nSection 2...","suggestedCards":[{"front":"Q","back":"A"}]}`;
 
   const userMessage = `Research question: "${query}"`;
 
@@ -273,14 +523,25 @@ Respond ONLY with valid JSON (use \\n for newlines inside strings):
     const content = await callLLM({
       system: systemPrompt,
       user: userMessage,
-      temperature: 0.4,
-      maxTokens: 4096,
-      groqTimeoutMs: 45000,
-      openRouterTimeoutMs: 45000,
+      temperature: 0.3,
+      maxTokens: 5000,
+      frequencyPenalty: 0.6,
+      presencePenalty: 0.4,
+      groqTimeoutMs: 60000,
+      openRouterTimeoutMs: 60000,
     });
 
     if (!content.trim()) return { error: "AI synthesis failed — empty response." };
-    return parseSynthesisResponse(content);
+
+    const parsed = parseSynthesisResponse(content);
+    if (parsed.error) return parsed;
+
+    // Post-process: detect and strip repetition loops
+    if (parsed.answer) {
+      parsed.answer = deduplicateParagraphs(parsed.answer);
+    }
+
+    return parsed;
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Research failed";
     if (msg.includes("abort")) return { error: "Research timed out. Try a simpler question." };
@@ -290,35 +551,212 @@ Respond ONLY with valid JSON (use \\n for newlines inside strings):
 
 /**
  * Parses the research synthesis JSON with progressive recovery.
+ * Handles common LLM JSON failures: unescaped newlines, quotes inside text,
+ * truncated output, and mixed content before/after JSON.
  */
 function parseSynthesisResponse(
   content: string
 ): { answer?: string; suggestedCards?: { front: string; back: string }[]; error?: string } {
-  const jsonStr = stripCodeFences(content);
+  const jsonStr = stripCodeFences(content).trim();
 
+  // ── Attempt 1: Direct parse ────────────────────────────────────────────────
   try {
     const parsed = JSON.parse(jsonStr);
     return { answer: parsed.answer, suggestedCards: parsed.suggestedCards ?? [] };
   } catch {
-    // Escape stray control characters that break JSON.
-    const fixedJson = jsonStr.replace(/[\x00-\x1F\x7F]/g, (ch: string) => {
-      if (ch === "\n") return "\\n";
-      if (ch === "\r") return "\\r";
-      if (ch === "\t") return "\\t";
-      return "";
-    });
-    try {
-      const parsed = JSON.parse(fixedJson);
-      return { answer: parsed.answer, suggestedCards: parsed.suggestedCards ?? [] };
-    } catch {
-      // Last resort: regex extraction.
-      const answerMatch = jsonStr.match(/"answer"\s*:\s*"([\s\S]*?)(?:"\s*,\s*"suggestedCards|"\s*})/);
-      if (answerMatch) {
-        return { answer: answerMatch[1].replace(/\\n/g, "\n"), suggestedCards: [] };
+    // Continue to recovery strategies
+  }
+
+  // ── Attempt 2: Fix unescaped control characters ────────────────────────────
+  const fixedControl = jsonStr.replace(/[\x00-\x1F\x7F]/g, (ch: string) => {
+    if (ch === "\n") return "\\n";
+    if (ch === "\r") return "\\r";
+    if (ch === "\t") return "\\t";
+    return "";
+  });
+  try {
+    const parsed = JSON.parse(fixedControl);
+    return { answer: parsed.answer, suggestedCards: parsed.suggestedCards ?? [] };
+  } catch {
+    // Continue
+  }
+
+  // ── Attempt 3: Extract answer field manually with balanced-quote parsing ───
+  // Find "answer" key and extract value between balanced quotes,
+  // handling escaped quotes inside the value.
+  const answerStart = jsonStr.indexOf('"answer"');
+  if (answerStart !== -1) {
+    // Find the opening quote of the value
+    const colonPos = jsonStr.indexOf(":", answerStart + 8);
+    if (colonPos !== -1) {
+      const valueStart = jsonStr.indexOf('"', colonPos + 1);
+      if (valueStart !== -1) {
+        // Walk forward to find the unescaped closing quote
+        let answer = "";
+        let i = valueStart + 1;
+        while (i < jsonStr.length) {
+          if (jsonStr[i] === "\\" && i + 1 < jsonStr.length) {
+            // Escaped character — keep both
+            answer += jsonStr[i] + jsonStr[i + 1];
+            i += 2;
+          } else if (jsonStr[i] === '"') {
+            // Unescaped quote — check if it's likely the end of the value
+            // (followed by comma, closing brace, or "suggestedCards")
+            const remaining = jsonStr.slice(i + 1).trimStart();
+            if (
+              remaining.startsWith(",") ||
+              remaining.startsWith("}") ||
+              remaining.startsWith('"suggestedCards') ||
+              remaining.length === 0
+            ) {
+              break; // End of answer value
+            }
+            // Otherwise it's an unescaped quote inside the text — escape it
+            answer += '\\"';
+            i++;
+          } else {
+            answer += jsonStr[i];
+            i++;
+          }
+        }
+
+        // Process the answer: unescape standard sequences
+        const processedAnswer = answer
+          .replace(/\\n/g, "\n")
+          .replace(/\\r/g, "")
+          .replace(/\\t/g, "\t")
+          .replace(/\\"/g, '"')
+          .replace(/\\\\/g, "\\");
+
+        if (processedAnswer.length > 50) {
+          // Try to extract suggestedCards too
+          const cards = extractSuggestedCards(jsonStr);
+          return { answer: processedAnswer, suggestedCards: cards };
+        }
       }
-      return { error: "Failed to parse AI response" };
     }
   }
+
+  // ── Attempt 4: Broad regex for any substantial text block ──────────────────
+  // If the response is mostly prose with some JSON wrapping that's broken
+  const proseMatch = jsonStr.match(/"answer"\s*:\s*"([\s\S]{50,})$/);
+  if (proseMatch) {
+    // Strip trailing incomplete JSON
+    let text = proseMatch[1];
+    // Remove trailing "} or ,"suggestedCards... if present
+    text = text.replace(/"\s*,?\s*"suggestedCards[\s\S]*$/, "");
+    text = text.replace(/"\s*}\s*$/, "");
+    const cleanText = text
+      .replace(/\\n/g, "\n")
+      .replace(/\\r/g, "")
+      .replace(/\\t/g, "\t")
+      .replace(/\\"/g, '"')
+      .replace(/\\\\/g, "\\");
+    if (cleanText.length > 50) {
+      return { answer: cleanText, suggestedCards: [] };
+    }
+  }
+
+  // ── Attempt 5: The LLM may have output prose without JSON wrapper ──────────
+  // If content is long enough and doesn't look like JSON at all, just use it.
+  if (jsonStr.length > 200 && !jsonStr.startsWith("{")) {
+    return { answer: jsonStr, suggestedCards: [] };
+  }
+
+  return { error: "Failed to parse AI response" };
+}
+
+/**
+ * Attempts to extract suggestedCards array from a (possibly malformed) JSON string.
+ */
+function extractSuggestedCards(jsonStr: string): { front: string; back: string }[] {
+  const cardsStart = jsonStr.indexOf('"suggestedCards"');
+  if (cardsStart === -1) return [];
+
+  // Find the array opening bracket
+  const bracketStart = jsonStr.indexOf("[", cardsStart);
+  if (bracketStart === -1) return [];
+
+  // Find the matching closing bracket (count nesting)
+  let depth = 0;
+  let bracketEnd = -1;
+  for (let i = bracketStart; i < jsonStr.length; i++) {
+    if (jsonStr[i] === "[") depth++;
+    else if (jsonStr[i] === "]") {
+      depth--;
+      if (depth === 0) {
+        bracketEnd = i;
+        break;
+      }
+    }
+  }
+
+  if (bracketEnd === -1) {
+    // Try to find at least partial cards — find the last complete }
+    const partialStr = jsonStr.slice(bracketStart);
+    const lastBrace = partialStr.lastIndexOf("}");
+    if (lastBrace > 0) {
+      bracketEnd = bracketStart + lastBrace + 1;
+      // Force-close the array
+      const arrayStr = jsonStr.slice(bracketStart, bracketEnd) + "]";
+      try {
+        const cards = JSON.parse(arrayStr);
+        if (Array.isArray(cards)) {
+          return cards.filter(
+            (c: unknown) =>
+              typeof c === "object" &&
+              c !== null &&
+              "front" in c &&
+              "back" in c &&
+              typeof (c as Record<string, unknown>).front === "string" &&
+              typeof (c as Record<string, unknown>).back === "string"
+          ) as { front: string; back: string }[];
+        }
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  }
+
+  const arrayStr = jsonStr.slice(bracketStart, bracketEnd + 1);
+  // Fix control characters before parsing
+  const fixedArray = arrayStr.replace(/[\x00-\x1F\x7F]/g, (ch: string) => {
+    if (ch === "\n") return "\\n";
+    if (ch === "\r") return "\\r";
+    if (ch === "\t") return "\\t";
+    return "";
+  });
+
+  try {
+    const cards = JSON.parse(fixedArray);
+    if (Array.isArray(cards)) {
+      return cards.filter(
+        (c: unknown) =>
+          typeof c === "object" &&
+          c !== null &&
+          "front" in c &&
+          "back" in c &&
+          typeof (c as Record<string, unknown>).front === "string" &&
+          typeof (c as Record<string, unknown>).back === "string"
+      ) as { front: string; back: string }[];
+    }
+  } catch {
+    // Try individual card extraction via regex
+    const cardMatches = arrayStr.matchAll(
+      /\{\s*"front"\s*:\s*"([^"]*(?:\\.[^"]*)*)"\s*,\s*"back"\s*:\s*"([^"]*(?:\\.[^"]*)*)"\s*\}/g
+    );
+    const cards: { front: string; back: string }[] = [];
+    for (const m of cardMatches) {
+      cards.push({
+        front: m[1].replace(/\\"/g, '"').replace(/\\n/g, "\n"),
+        back: m[2].replace(/\\"/g, '"').replace(/\\n/g, "\n"),
+      });
+    }
+    return cards;
+  }
+
+  return [];
 }
 
 // ---------------------------------------------------------------------------
@@ -360,7 +798,7 @@ export async function performResearch(query: string): Promise<{
   const { academicSources, webSources } = await parallelSearch(query.trim(), intent);
 
   // ── Step 3: Assemble sources ───────────────────────────────────────────────
-  const sources = assembleSources(academicSources, webSources);
+  const sources = assembleSources(academicSources, webSources, query.trim());
 
   // Insufficient sources check — applies to COMBINED total.
   if (sources.length < MIN_SOURCES_FOR_SYNTHESIS) {
@@ -388,11 +826,19 @@ export async function performResearch(query: string): Promise<{
   const aiResult = await synthesizeResearch(query.trim(), sources);
   if (aiResult.error) return { error: aiResult.error };
 
-  // Validate citations: strip any [N] not backed by a real source.
-  const cleanedAnswer = validateResearchCitations(
+  // Validate citations: strip any [N] not backed by a real source index.
+  let cleanedAnswer = validateResearchCitations(
     aiResult.answer!,
     sources.length
   );
+
+  // Grounding check: strip citations where the claim has near-zero overlap
+  // with the cited source's actual content.
+  const groundingSources: GroundingSource[] = sources.map((s) => ({
+    title: s.title,
+    snippet: s.snippet,
+  }));
+  cleanedAnswer = validateCitationGrounding(cleanedAnswer, groundingSources);
 
   return {
     data: {

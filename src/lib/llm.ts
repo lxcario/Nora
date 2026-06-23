@@ -42,6 +42,10 @@ export interface LLMOptions {
   temperature?: number;
   /** Max completion tokens (provider default when omitted). */
   maxTokens?: number;
+  /** Frequency penalty to reduce repetition (0.0–2.0, default 0). */
+  frequencyPenalty?: number;
+  /** Presence penalty to encourage topic diversity (0.0–2.0, default 0). */
+  presencePenalty?: number;
   /** Groq request timeout in ms (default 15000). */
   groqTimeoutMs?: number;
   /** OpenRouter request timeout in ms (default 45000). */
@@ -91,6 +95,8 @@ async function callGroq(opts: LLMOptions): Promise<string | null> {
         messages: buildMessages(opts.system, opts.user),
         temperature: opts.temperature ?? 0.7,
         ...(opts.maxTokens ? { max_tokens: opts.maxTokens } : {}),
+        ...(opts.frequencyPenalty ? { frequency_penalty: opts.frequencyPenalty } : {}),
+        ...(opts.presencePenalty ? { presence_penalty: opts.presencePenalty } : {}),
       }),
       signal: controller.signal,
     });
@@ -134,6 +140,8 @@ async function callOpenRouter(opts: LLMOptions): Promise<string | null> {
         messages: buildMessages(opts.system, opts.user),
         temperature: opts.temperature ?? 0.7,
         ...(opts.maxTokens ? { max_tokens: opts.maxTokens } : {}),
+        ...(opts.frequencyPenalty ? { frequency_penalty: opts.frequencyPenalty } : {}),
+        ...(opts.presencePenalty ? { presence_penalty: opts.presencePenalty } : {}),
       }),
       signal: controller.signal,
     });

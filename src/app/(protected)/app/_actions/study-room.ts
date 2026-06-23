@@ -345,14 +345,24 @@ export async function fetchTranscript(videoId: string): Promise<{
     return { error: "Video not found. Please load the video first." };
   }
 
-  // Check cache: video_transcripts by video_id + language
-  const { data: cached } = await supabase
+  // Check cache: video_transcripts by video_id (try "en" first, then any)
+  let cached = (await supabase
     .from("video_transcripts")
     .select("segments, source")
     .eq("video_id", videoId)
     .eq("language", "en")
     .limit(1)
-    .single();
+    .single()).data;
+
+  if (!cached) {
+    // Try any language — handles non-English videos
+    cached = (await supabase
+      .from("video_transcripts")
+      .select("segments, source")
+      .eq("video_id", videoId)
+      .limit(1)
+      .single()).data;
+  }
 
   if (cached) {
     // Cache hit — return stored transcript
@@ -579,14 +589,24 @@ export async function generateNotes(
     return { error: rangeValidation.error };
   }
 
-  // Fetch cached transcript
-  const { data: transcriptRow } = await supabase
+  // Fetch cached transcript — try "en" first, then any available language
+  let transcriptRow = (await supabase
     .from("video_transcripts")
     .select("segments")
     .eq("video_id", videoId)
     .eq("language", "en")
     .limit(1)
-    .single();
+    .single()).data;
+
+  if (!transcriptRow || !transcriptRow.segments) {
+    // Fallback: try any language (e.g., Turkish lecture with "tr" transcript)
+    transcriptRow = (await supabase
+      .from("video_transcripts")
+      .select("segments")
+      .eq("video_id", videoId)
+      .limit(1)
+      .single()).data;
+  }
 
   if (!transcriptRow || !transcriptRow.segments) {
     return { error: "No transcript available. Please fetch the transcript first." };

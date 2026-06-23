@@ -14,7 +14,7 @@
 const TAVILY_URL = "https://api.tavily.com/search";
 const DEFAULT_TIMEOUT_MS = 15_000;
 const DEFAULT_MAX_RESULTS = 5;
-const CONTENT_CHAR_LIMIT = 2000;
+const CONTENT_CHAR_LIMIT = 4000;
 
 // ---------------------------------------------------------------------------
 // Types

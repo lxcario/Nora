@@ -73,7 +73,7 @@ export function NoteEditor({
     editorProps: {
       attributes: {
         class:
-          "prose prose-sm dark:prose-invert max-w-none min-h-[200px] p-3 focus:outline-none",
+          "prose prose-sm dark:prose-invert max-w-none min-h-[200px] p-3 focus:outline-none break-words overflow-wrap-anywhere",
       },
       handleClick: (_view, _pos, event) => {
         // Handle timestamp mark clicks
@@ -258,7 +258,7 @@ export function NoteEditor({
   }
 
   return (
-    <div className="flex h-full flex-col rounded-lg border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+    <div className="flex h-full flex-col rounded-lg border border-zinc-200 bg-white overflow-hidden dark:border-zinc-800 dark:bg-zinc-900">
       {/* Toolbar */}
       <Toolbar editor={editor} saveStatus={saveStatus} />
 

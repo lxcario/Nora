@@ -80,6 +80,7 @@ export function StudyRoomLayout({
   // Note generation
   const [generatedNotes, setGeneratedNotes] = useState<GeneratedNotesData | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [noteError, setNoteError] = useState<string | null>(null);
 
   // Video load error
   const [videoLoadError, setVideoLoadError] = useState<string | null>(null);
@@ -224,12 +225,15 @@ export function StudyRoomLayout({
       if (!videoRecord) return;
       setIsGenerating(true);
       setGeneratedNotes(null);
+      setNoteError(null);
 
       const result = await generateNotes(videoRecord.id, startSeconds, endSeconds);
 
       if (result.data) {
         setGeneratedNotes(result.data);
         showXpToast(10, 3);
+      } else if (result.error) {
+        setNoteError(result.error);
       }
       setIsGenerating(false);
     },
@@ -379,7 +383,7 @@ export function StudyRoomLayout({
       {/* Split Layout: Player (left) / Editor (right) */}
       <div className="flex flex-col gap-4 lg:flex-row">
         {/* Left Panel — Player + Controls (60% on desktop) */}
-        <div className="w-full space-y-3 lg:w-[60%]">
+        <div className="w-full min-w-0 space-y-3 lg:w-[60%]">
           {/* YouTube Player */}
           <YouTubePlayer
             videoId={videoId}
@@ -416,6 +420,13 @@ export function StudyRoomLayout({
             onSaveCards={handleSaveCards}
           />
 
+          {/* Note Generation Error */}
+          {noteError && !isGenerating && (
+            <div className="rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-800 dark:bg-red-900/20">
+              <p className="text-sm text-red-700 dark:text-red-300">{noteError}</p>
+            </div>
+          )}
+
           {/* Feynman Video Prompt */}
           {videoRecord && (
             <FeynmanVideoPrompt
@@ -432,7 +443,7 @@ export function StudyRoomLayout({
         </div>
 
         {/* Right Panel — Note Editor (40% on desktop) */}
-        <div className="w-full lg:w-[40%]">
+        <div className="w-full min-w-0 lg:w-[40%]">
           {videoRecord && (
             <div className="sticky top-4">
               <NoteEditor

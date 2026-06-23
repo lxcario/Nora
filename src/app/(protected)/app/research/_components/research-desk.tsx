@@ -409,7 +409,7 @@ export function ResearchDesk({ topics }: { topics: TopicOption[] }) {
                 <div className="space-y-3 text-sm leading-relaxed text-[var(--pixel-text-secondary)]">
                   {result.answer.split("\n").map((paragraph, i) => (
                     <p key={i} className="text-[var(--pixel-text-secondary)]">
-                      {paragraph}
+                      {renderResearchParagraph(paragraph)}
                     </p>
                   ))}
                 </div>
@@ -532,6 +532,52 @@ export function ResearchDesk({ topics }: { topics: TopicOption[] }) {
       )}
     </div>
   );
+}
+
+// ---------------------------------------------------------------------------
+// Inline text renderer for research paragraphs
+// Highlights [N] citations and [unverified] markers distinctly.
+// ---------------------------------------------------------------------------
+
+function renderResearchParagraph(text: string) {
+  // Split on citation markers [N] and [unverified]
+  const parts = text.split(/(\[\d+\]|\[unverified\])/g);
+  if (parts.length === 1) return text;
+
+  return parts.map((part, i) => {
+    if (/^\[\d+\]$/.test(part)) {
+      // Citation number — styled as a small superscript badge
+      return (
+        <span
+          key={i}
+          className="inline-flex items-center justify-center mx-0.5 px-1 py-0 rounded text-[10px] font-bold align-super"
+          style={{
+            backgroundColor: "var(--pixel-accent-soft, rgba(99,102,241,0.15))",
+            color: "var(--pixel-accent)",
+          }}
+        >
+          {part.slice(1, -1)}
+        </span>
+      );
+    }
+    if (part === "[unverified]") {
+      // Unverified marker — visually distinct warning badge
+      return (
+        <span
+          key={i}
+          className="inline-flex items-center gap-0.5 mx-0.5 px-1.5 py-0 rounded text-[10px] font-medium align-super"
+          style={{
+            backgroundColor: "var(--pixel-warning-soft, rgba(234,179,8,0.15))",
+            color: "var(--pixel-warning, #ca8a04)",
+          }}
+          title="This claim could not be verified against any retrieved source"
+        >
+          unverified
+        </span>
+      );
+    }
+    return part;
+  });
 }
 
 // ---------------------------------------------------------------------------

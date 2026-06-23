@@ -76,7 +76,8 @@ export function TimeRangeSelector({
                 if (error) setError(null);
               }}
               placeholder="00:00"
-              className="w-24 rounded-md border border-zinc-200 bg-white py-1.5 pl-7 pr-2 font-mono text-xs text-zinc-700 placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:border-indigo-500 focus:ring-indigo-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:placeholder:text-zinc-500"
+              className="w-24 rounded-md border border-zinc-200 bg-white font-mono text-xs text-zinc-700 placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:border-indigo-500 focus:ring-indigo-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:placeholder:text-zinc-500"
+              style={{ paddingLeft: "28px", paddingRight: "8px", paddingTop: "6px", paddingBottom: "6px" }}
             />
           </div>
         </div>
@@ -107,7 +108,8 @@ export function TimeRangeSelector({
                 if (error) setError(null);
               }}
               placeholder={formatSeconds(videoDuration)}
-              className="w-24 rounded-md border border-zinc-200 bg-white py-1.5 pl-7 pr-2 font-mono text-xs text-zinc-700 placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:border-indigo-500 focus:ring-indigo-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:placeholder:text-zinc-500"
+              className="w-24 rounded-md border border-zinc-200 bg-white font-mono text-xs text-zinc-700 placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:border-indigo-500 focus:ring-indigo-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:placeholder:text-zinc-500"
+              style={{ paddingLeft: "28px", paddingRight: "8px", paddingTop: "6px", paddingBottom: "6px" }}
             />
           </div>
         </div>
@@ -117,14 +119,15 @@ export function TimeRangeSelector({
           type="button"
           onClick={handleGenerate}
           disabled={isLoading || !startInput.trim() || !endInput.trim()}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-indigo-500 dark:hover:bg-indigo-600"
+          className="inline-flex items-center gap-1.5 rounded-lg text-xs font-medium text-white shadow-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+          style={{ padding: "6px 12px", backgroundColor: "var(--pixel-accent, #4f46e5)", border: "none" }}
         >
           {isLoading ? (
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
           ) : (
             <Sparkles className="h-3.5 w-3.5" />
           )}
-          {isLoading ? "Generating…" : "Generate Notes"}
+          {isLoading ? "Generating..." : "Generate Notes"}
         </button>
       </div>
 

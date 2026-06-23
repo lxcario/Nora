@@ -40,11 +40,17 @@ export class YouTubeCaptionProvider implements TranscriptProvider {
   name = "youtube";
 
   async fetch(youtubeId: string): Promise<TranscriptSegment[]> {
-    // fetchTranscript returns TranscriptSegment[] from youtube-transcript-plus
-    // Each segment has: text, duration, offset, lang
-    const rawSegments: YTTranscriptSegment[] = await ytFetchTranscript(youtubeId, {
-      lang: "en",
-    });
+    // Try English first, then fall back to any available language.
+    // Many non-English videos only have captions in their original language.
+    let rawSegments: YTTranscriptSegment[];
+
+    try {
+      rawSegments = await ytFetchTranscript(youtubeId, { lang: "en" });
+    } catch {
+      // English captions not available — try without language constraint
+      // (gets whatever language is available, typically the video's native language)
+      rawSegments = await ytFetchTranscript(youtubeId);
+    }
 
     // Normalize to our internal TranscriptSegment format (drop `lang` field)
     return parseTranscriptResponse(rawSegments);
