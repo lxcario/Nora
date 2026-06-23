@@ -1,18 +1,16 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { DialogFrame, PixelButton, PixelInput } from "@/components/pixel-ui";
-import { matchEntities } from "@/lib/academic/university-registry";
 import { VALID_TERM_KINDS } from "@/lib/academic/identity-validation";
 import type { TermKind } from "@/lib/supabase/database.types";
 import {
   saveAcademicIdentity,
   setEnrolledCourseCodes,
 } from "@/app/(protected)/app/_actions/academic/onboarding";
-import type {
-  RegistryUniversityOption,
-  RegistryFacultyOption,
-  RegistryProgramOption,
+import {
+  searchUniversities,
+  type UniversitySearchResult,
 } from "@/app/(protected)/app/_actions/academic/registry";
 
 const STEPS = ["Institution", "Department", "Year & Term", "Courses", "Documents"] as const;
@@ -24,16 +22,17 @@ const TERM_KIND_LABELS: Record<TermKind, string> = {
   block: "Block",
 };
 
-export function OnboardingWizard({ registry }: { registry: RegistryUniversityOption[] }) {
+export function OnboardingWizard() {
   const [step, setStep] = useState(0);
 
   // Step 0 — institution
   const [uniQuery, setUniQuery] = useState("");
-  const [selectedUni, setSelectedUni] = useState<RegistryUniversityOption | null>(null);
+  const [selectedUni, setSelectedUni] = useState<UniversitySearchResult | null>(null);
+  const [suggestions, setSuggestions] = useState<UniversitySearchResult[]>([]);
+  const [searching, setSearching] = useState(false);
 
-  // Step 1 — faculty / department
-  const [selectedFaculty, setSelectedFaculty] = useState<RegistryFacultyOption | null>(null);
-  const [selectedProgram, setSelectedProgram] = useState<RegistryProgramOption | null>(null);
+  // Step 1 — faculty / department (free-text only now — faculties/programs
+  // are not prefetched in bulk anymore)
   const [facultyFreeText, setFacultyFreeText] = useState("");
   const [programFreeText, setProgramFreeText] = useState("");
 
@@ -49,25 +48,60 @@ export function OnboardingWizard({ registry }: { registry: RegistryUniversityOpt
   const [globalError, setGlobalError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
-  const suggestions = useMemo(() => {
-    if (!uniQuery.trim()) return [];
-    return matchEntities(uniQuery, registry).slice(0, 6);
-  }, [uniQuery, registry]);
+  // ─── Debounced server search ─────────────────────────────────────────────
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const doSearch = useCallback(async (query: string) => {
+    const q = query.trim();
+    if (q.length < 2) {
+      setSuggestions([]);
+      setSearching(false);
+      return;
+    }
+    setSearching(true);
+    try {
+      const results = await searchUniversities(q);
+      setSuggestions(results);
+    } catch {
+      setSuggestions([]);
+    } finally {
+      setSearching(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    // When the user has already selected a university, don't re-search
+    if (selectedUni) return;
+
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    if (uniQuery.trim().length < 2) {
+      setSuggestions([]);
+      return;
+    }
+
+    setSearching(true);
+    debounceRef.current = setTimeout(() => {
+      doSearch(uniQuery);
+    }, 300);
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [uniQuery, selectedUni, doSearch]);
+
+  // ─── Selection helpers ───────────────────────────────────────────────────
 
   const usingRegistryUni = selectedUni !== null;
 
-  function selectUniversity(u: RegistryUniversityOption) {
+  function selectUniversity(u: UniversitySearchResult) {
     setSelectedUni(u);
     setUniQuery(u.name);
-    // Reset downstream choices that depended on the previous university.
-    setSelectedFaculty(null);
-    setSelectedProgram(null);
+    setSuggestions([]);
   }
 
   function clearUniversitySelection(nextQuery: string) {
     setSelectedUni(null);
-    setSelectedFaculty(null);
-    setSelectedProgram(null);
     setUniQuery(nextQuery);
   }
 
@@ -106,10 +140,10 @@ export function OnboardingWizard({ registry }: { registry: RegistryUniversityOpt
     const res = await saveAcademicIdentity({
       universityId: selectedUni?.id ?? null,
       universityNameRaw: selectedUni?.name ?? uniQuery,
-      facultyId: selectedFaculty?.id ?? null,
-      facultyNameRaw: selectedFaculty?.name ?? facultyFreeText,
-      programId: selectedProgram?.id ?? null,
-      programNameRaw: selectedProgram?.name ?? programFreeText,
+      facultyId: null,
+      facultyNameRaw: facultyFreeText,
+      programId: null,
+      programNameRaw: programFreeText,
       yearOfStudy: year,
       term,
       termKind,
@@ -179,18 +213,24 @@ export function OnboardingWizard({ registry }: { registry: RegistryUniversityOpt
                 error={fieldErrors.university}
               />
 
-              {!usingRegistryUni && suggestions.length > 0 && (
+              {!usingRegistryUni && searching && (
+                <p className="text-xs text-[var(--pixel-text-secondary)] animate-pulse">
+                  Searching...
+                </p>
+              )}
+
+              {!usingRegistryUni && !searching && suggestions.length > 0 && (
                 <ul className="pixel-panel pixel-panel-inset divide-y divide-[var(--pixel-border)]">
-                  {suggestions.map((m) => (
-                    <li key={m.entity.id}>
+                  {suggestions.map((u) => (
+                    <li key={u.id}>
                       <button
                         type="button"
-                        onClick={() => selectUniversity(m.entity)}
+                        onClick={() => selectUniversity(u)}
                         className="w-full text-left px-3 py-2 text-sm text-[var(--pixel-text-primary)] hover:bg-[var(--pixel-bg-primary)] transition-colors"
                       >
-                        {m.entity.name}
+                        {u.name}
                         <span className="block text-[10px] text-[var(--pixel-text-secondary)]">
-                          {m.entity.primaryDomain}
+                          {u.primaryDomain}
                         </span>
                       </button>
                     </li>
@@ -203,7 +243,10 @@ export function OnboardingWizard({ registry }: { registry: RegistryUniversityOpt
                   ✓ Matched {selectedUni?.name}. Change the text above to pick another.
                 </p>
               ) : (
-                uniQuery.trim().length > 0 && (
+                uniQuery.trim().length > 0 &&
+                !searching &&
+                suggestions.length === 0 &&
+                uniQuery.trim().length >= 2 && (
                   <p className="text-xs text-[var(--pixel-text-secondary)]">
                     Not in the list? We&apos;ll use &quot;{uniQuery.trim()}&quot; and try to discover it
                     automatically.
@@ -215,57 +258,20 @@ export function OnboardingWizard({ registry }: { registry: RegistryUniversityOpt
 
           {step === 1 && (
             <div className="space-y-3">
-              {usingRegistryUni && (selectedUni?.faculties.length ?? 0) > 0 ? (
-                <>
-                  <PixelInput
-                    type="select"
-                    label="Faculty / School"
-                    value={selectedFaculty?.id ?? ""}
-                    options={[
-                      { label: "Select faculty (optional)", value: "" },
-                      ...(selectedUni?.faculties ?? []).map((f) => ({ label: f.name, value: f.id })),
-                    ]}
-                    onChange={(v) => {
-                      const fac = selectedUni?.faculties.find((f) => f.id === (v as string)) ?? null;
-                      setSelectedFaculty(fac);
-                      setSelectedProgram(null);
-                    }}
-                  />
-                  {selectedFaculty && selectedFaculty.programs.length > 0 && (
-                    <PixelInput
-                      type="select"
-                      label="Department / Program"
-                      value={selectedProgram?.id ?? ""}
-                      options={[
-                        { label: "Select department (optional)", value: "" },
-                        ...selectedFaculty.programs.map((p) => ({ label: p.name, value: p.id })),
-                      ]}
-                      onChange={(v) => {
-                        const prog =
-                          selectedFaculty.programs.find((p) => p.id === (v as string)) ?? null;
-                        setSelectedProgram(prog);
-                      }}
-                    />
-                  )}
-                </>
-              ) : (
-                <>
-                  <PixelInput
-                    type="text"
-                    label="Faculty / School (optional)"
-                    placeholder="e.g. Faculty of Engineering"
-                    value={facultyFreeText}
-                    onChange={(v) => setFacultyFreeText(v as string)}
-                  />
-                  <PixelInput
-                    type="text"
-                    label="Department / Major (optional)"
-                    placeholder="e.g. Electrical & Electronics Engineering"
-                    value={programFreeText}
-                    onChange={(v) => setProgramFreeText(v as string)}
-                  />
-                </>
-              )}
+              <PixelInput
+                type="text"
+                label="Faculty / School (optional)"
+                placeholder="e.g. Faculty of Engineering"
+                value={facultyFreeText}
+                onChange={(v) => setFacultyFreeText(v as string)}
+              />
+              <PixelInput
+                type="text"
+                label="Department / Major (optional)"
+                placeholder="e.g. Electrical & Electronics Engineering"
+                value={programFreeText}
+                onChange={(v) => setProgramFreeText(v as string)}
+              />
               <p className="text-xs text-[var(--pixel-text-secondary)]">
                 You can skip this — only your university, year, and term are required.
               </p>

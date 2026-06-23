@@ -26,66 +26,54 @@ export interface RegistryUniversityOption {
 }
 
 /**
- * Returns the full (tiny) university registry with faculties and programs
- * nested. Readable by any authenticated user (Requirement 2.1); returns an
- * empty list when the registry has not been seeded yet, so the wizard can
- * still fall back to free-text entry (Requirement 2.5).
+ * @deprecated Use `searchUniversities()` instead. This previously loaded the
+ * entire registry on page load (7,000+ rows). Now returns an empty array.
  */
 export async function getRegistry(): Promise<RegistryUniversityOption[]> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return [];
+  return [];
+}
 
-  const { data: unis } = await supabase
+// ─── Lightweight search result (no nested faculties/programs) ────────────────
+
+export interface UniversitySearchResult {
+  id: string;
+  name: string;
+  aliases: string[];
+  primaryDomain: string;
+}
+
+/**
+ * Server-side university search for the onboarding autocomplete.
+ * Searches by name (ILIKE) and aliases (array overlap via `cs`).
+ * Returns at most 8 results. Requires min 2-char query.
+ */
+export async function searchUniversities(
+  query: string
+): Promise<UniversitySearchResult[]> {
+  const q = query.trim();
+  if (q.length < 2) return [];
+
+  const supabase = await createClient();
+
+  // Supabase ILIKE is case-insensitive. We search both name and aliases.
+  // `.or()` combines name ILIKE with an array contains-text check on aliases.
+  const pattern = `%${q}%`;
+
+  const { data, error } = await supabase
     .from("universities")
     .select("id, name, aliases, primary_domain")
-    .order("name");
+    .or(`name.ilike.${pattern},aliases.cs.{${q}}`)
+    .order("name")
+    .limit(8);
 
-  if (!unis || unis.length === 0) return [];
+  if (error || !data) return [];
 
-  const uniIds = unis.map((u: { id: string }) => u.id);
-
-  const [{ data: facs }, { data: progs }] = await Promise.all([
-    supabase
-      .from("faculties")
-      .select("id, university_id, name, aliases")
-      .in("university_id", uniIds),
-    supabase
-      .from("programs")
-      .select("id, university_id, faculty_id, name, aliases")
-      .in("university_id", uniIds),
-  ]);
-
-  type FacRow = { id: string; university_id: string; name: string; aliases: string[] | null };
-  type ProgRow = {
-    id: string;
-    university_id: string;
-    faculty_id: string | null;
-    name: string;
-    aliases: string[] | null;
-  };
-
-  const faculties = (facs ?? []) as FacRow[];
-  const programs = (progs ?? []) as ProgRow[];
-
-  return (unis as { id: string; name: string; aliases: string[] | null; primary_domain: string }[]).map(
-    (u) => ({
+  return data.map(
+    (u: { id: string; name: string; aliases: string[] | null; primary_domain: string }) => ({
       id: u.id,
       name: u.name,
       aliases: u.aliases ?? [],
       primaryDomain: u.primary_domain,
-      faculties: faculties
-        .filter((f) => f.university_id === u.id)
-        .map((f) => ({
-          id: f.id,
-          name: f.name,
-          aliases: f.aliases ?? [],
-          programs: programs
-            .filter((p) => p.faculty_id === f.id)
-            .map((p) => ({ id: p.id, name: p.name, aliases: p.aliases ?? [] })),
-        })),
     })
   );
 }

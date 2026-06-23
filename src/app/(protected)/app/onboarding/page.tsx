@@ -1,4 +1,3 @@
-import { getRegistry } from "@/app/(protected)/app/_actions/academic/registry";
 import { getAcademicProfile } from "@/app/(protected)/app/_actions/academic/onboarding";
 import { OnboardingWizard } from "@/app/(protected)/app/_components/onboarding-wizard";
 import { redirect } from "next/navigation";
@@ -10,6 +9,5 @@ export default async function OnboardingPage() {
     redirect("/app");
   }
 
-  const registry = await getRegistry();
-  return <OnboardingWizard registry={registry} />;
+  return <OnboardingWizard />;
 }
