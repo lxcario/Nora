@@ -131,7 +131,7 @@ export function StudyRoomLayout({
   // sites to match server rewardAction rules. Drift risk if rules change.
   const showXpToast = useCallback((xp: number, coins: number) => {
     setXpToastData({ xp, coins, visible: true });
-    setTimeout(() => setXpToastData((prev) => ({ ...prev, visible: false })), 100);
+    setTimeout(() => setXpToastData((prev) => ({ ...prev, visible: false })), 3000);
     addReward(xp, coins);
   }, [addReward]);
 

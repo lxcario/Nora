@@ -103,7 +103,7 @@ export async function getHistory(filters: HistoryFilters): Promise<{
   // --- Video Notes ---
   if (filters.type === "all" || filters.type === "video") {
     let notesQuery = supabase
-      .from("notes")
+      .from("video_notes")
       .select("id, video_id, time_segment, note_content, source, created_at, videos(title, topic_id, topics(name))")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });

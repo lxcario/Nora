@@ -97,7 +97,7 @@ export function AnalyticsDashboard({ data }: { data: AnalyticsData }) {
                       <div
                         className="h-full transition-all"
                         style={{
-                          width: `${(topic.avgGrade / 5) * 100}%`,
+                          width: `${(topic.avgGrade / 4) * 100}%`,
                           backgroundColor: color,
                         }}
                       />
@@ -107,7 +107,7 @@ export function AnalyticsDashboard({ data }: { data: AnalyticsData }) {
                     className="w-16 text-right text-xs"
                     style={{ color: "var(--pixel-text-secondary)" }}
                   >
-                    {topic.avgGrade}/5 ({topic.totalReviews})
+                    {topic.avgGrade}/4 ({topic.totalReviews})
                   </span>
                 </div>
               );

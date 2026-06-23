@@ -70,11 +70,11 @@ export function StudySession({ queue }: { queue: StudyItem[] }) {
     if (currentIndex + 1 >= totalItems) {
       setSessionComplete(true);
       setShowComplete(true);
-      setTimeout(() => setShowComplete(false), 100);
+      setTimeout(() => setShowComplete(false), 3000);
       // TODO(option-2-refactor): Session complete XP/coins hardcoded to match
       // rewardAction("session_complete"). Drift risk if server rules change.
       setXpToastData({ xp: 10, coins: 3, visible: true });
-      setTimeout(() => setXpToastData((prev) => ({ ...prev, visible: false })), 100);
+      setTimeout(() => setXpToastData((prev) => ({ ...prev, visible: false })), 3000);
       addReward(10, 3);
       playSessionComplete();
     } else {
@@ -96,7 +96,7 @@ export function StudySession({ queue }: { queue: StudyItem[] }) {
       const xp = passed ? 3 : 1;
       const coins = passed ? 1 : 0;
       setXpToastData({ xp, coins, visible: true });
-      setTimeout(() => setXpToastData((prev) => ({ ...prev, visible: false })), 100);
+      setTimeout(() => setXpToastData((prev) => ({ ...prev, visible: false })), 3000);
       addReward(xp, coins);
 
       advanceToNext();

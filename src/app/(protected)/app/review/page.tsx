@@ -10,7 +10,7 @@ export default async function ReviewPage() {
     <div className="space-y-6">
       <PageHeader
         title="Review Cards"
-        description="SM-2 spaced repetition. Grade your recall from 0 (blackout) to 5 (perfect)."
+        description="FSRS spaced repetition. Grade each card: Again, Hard, Good, or Easy — the algorithm schedules your next review automatically."
       />
 
       {/* Stats bar */}

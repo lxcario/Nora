@@ -6,8 +6,8 @@ import {
   LayoutDashboard,
   PenLine,
   FlaskConical,
-  CalendarDays,
-  BarChart3,
+  BookOpen,
+  DoorOpen,
 } from "lucide-react";
 import { IconSprite } from "./icon-sprite";
 
@@ -18,10 +18,10 @@ import { IconSprite } from "./icon-sprite";
 
 const bottomNavItems = [
   { href: "/app", label: "Home", icon: "home", fallback: LayoutDashboard },
+  { href: "/app/review", label: "Review", icon: "book", fallback: BookOpen },
   { href: "/app/feynman", label: "Feynman", icon: "pen", fallback: PenLine },
   { href: "/app/research", label: "Research", icon: "flask", fallback: FlaskConical },
-  { href: "/app/planner", label: "Planner", icon: "calendar", fallback: CalendarDays },
-  { href: "/app/analytics", label: "Stats", icon: "chart", fallback: BarChart3 },
+  { href: "/app/room", label: "Room", icon: "door", fallback: DoorOpen },
 ];
 
 // ---------------------------------------------------------------------------
@@ -40,7 +40,11 @@ export function BottomNav() {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-50 flex items-center justify-around border-t-2 border-pixel-border bg-pixel-bg px-2 py-1 md:hidden"
+      className="fixed inset-x-0 bottom-0 z-50 flex items-center justify-around px-2 py-1 md:hidden"
+      style={{
+        borderTop: "2px solid var(--pixel-border)",
+        backgroundColor: "var(--pixel-bg-surface)",
+      }}
       role="navigation"
       aria-label="Mobile navigation"
     >
@@ -54,11 +58,12 @@ export function BottomNav() {
           <Link
             key={item.href}
             href={item.href}
-            className={`flex min-h-[44px] min-w-[44px] flex-col items-center justify-center gap-0.5 rounded-lg px-2 py-1 transition-colors ${
-              isActive
-                ? "text-pixel-accent"
-                : "text-pixel-text-muted hover:text-pixel-text"
-            }`}
+            className="flex min-h-[44px] min-w-[44px] flex-col items-center justify-center gap-0.5 rounded-lg px-2 py-1 transition-opacity"
+            style={{
+              color: isActive
+                ? "var(--pixel-accent)"
+                : "var(--pixel-text-muted)",
+            }}
           >
             <IconSprite
               name={item.icon}

@@ -108,7 +108,7 @@ export function ReviewSession({ initialCards }: { initialCards: DueCard[] }) {
       const xp = rating !== Rating.Again ? 3 : 1;
       const coins = rating !== Rating.Again ? 1 : 0;
       setXpToastData({ xp, coins, visible: true });
-      setTimeout(() => setXpToastData((prev) => ({ ...prev, visible: false })), 100);
+      setTimeout(() => setXpToastData((prev) => ({ ...prev, visible: false })), 3000);
       addReward(xp, coins);
 
       if (rating === Rating.Again) {
@@ -125,7 +125,7 @@ export function ReviewSession({ initialCards }: { initialCards: DueCard[] }) {
         if (nextIndex >= totalCards) {
           setSessionComplete(true);
           setShowComplete(true);
-          setTimeout(() => setShowComplete(false), 100);
+          setTimeout(() => setShowComplete(false), 3000);
           playSessionComplete();
         } else {
           setCurrentIndex(nextIndex);

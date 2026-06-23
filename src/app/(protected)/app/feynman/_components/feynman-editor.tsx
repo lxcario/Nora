@@ -218,7 +218,7 @@ export function FeynmanEditor({ topics }: { topics: TopicOption[] }) {
           );
           setIsRefining(false);
           setShowXpToast(true);
-          setTimeout(() => setShowXpToast(false), 100);
+          setTimeout(() => setShowXpToast(false), 3000);
           addReward(15, 5);
           loadScoreHistory(selectedTopic);
         }
@@ -477,7 +477,7 @@ export function FeynmanEditor({ topics }: { topics: TopicOption[] }) {
               onSaved={() => {
                 setCardsSaved(true);
                 setShowSuccessCheck(true);
-                setTimeout(() => setShowSuccessCheck(false), 100);
+                setTimeout(() => setShowSuccessCheck(false), 3000);
               }}
               saved={cardsSaved}
             />
