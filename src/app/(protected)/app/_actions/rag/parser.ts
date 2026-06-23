@@ -1,9 +1,11 @@
-// pdf-parse v1 — lazy import. We must pass the buffer directly to avoid
-// the library's built-in test file read (which looks for test/data/*.pdf).
+// pdf-parse v1 — lazy import. The library's index.js has a self-test that
+// reads `./test/data/05-versions-space.pdf` when `!module.parent` — which
+// triggers ENOENT on Vercel serverless where `test/` isn't in the bundle.
+// Import the inner lib directly to bypass the self-test wrapper entirely.
 async function parsePdfBuffer(buffer: Buffer): Promise<{ text: string; numpages: number; info: Record<string, string> }> {
-  // pdf-parse v1 default export is a function that accepts (dataBuffer, options)
-  // Dynamic import avoids module-evaluation side effects
-  const pdfParse = (await import("pdf-parse")).default;
+  // pdf-parse/lib/pdf-parse.js exports the PDF(buffer) function directly
+  // without the require('fs').readFileSync self-test in index.js.
+  const { default: pdfParse } = await import("pdf-parse/lib/pdf-parse.js" as string);
   return pdfParse(buffer);
 }
 
