@@ -164,36 +164,30 @@ interface SearchResults {
 }
 
 /**
- * Run parallel search across academic and web legs based on query intent.
+ * Run parallel search across both academic and web legs.
+ * Always runs both — the cost is negligible (parallel API calls) and
+ * limiting to one leg causes missed results for borderline queries.
  */
 async function parallelSearch(
   query: string,
-  intent: QueryIntent
+  _intent: QueryIntent
 ): Promise<SearchResults> {
-  const runAcademic = intent === "academic" || intent === "both";
-  // Always run web search — even academic queries benefit from web context
-  // (blog posts, documentation, Wikipedia overviews supplement papers).
-  const runWeb = true;
+  // Academic leg: OpenAlex + Crossref + Semantic Scholar (always run)
+  const academicPromise = Promise.all([
+    searchOpenAlex(query, { limit: 6 }),
+    searchCrossref(query, { limit: 4 }),
+    searchSemanticScholar(query, { limit: 5 }),
+  ]).then(([oaWorks, crWorks, s2Works]) => {
+    const allWorks = deduplicateWorks([...oaWorks, ...crWorks, ...s2Works]);
+    return allWorks.slice(0, 8).map(mapWorkToSource);
+  });
 
-  // Academic leg: OpenAlex + Crossref + Semantic Scholar
-  const academicPromise = runAcademic
-    ? Promise.all([
-        searchOpenAlex(query, { limit: 6 }),
-        searchCrossref(query, { limit: 4 }),
-        searchSemanticScholar(query, { limit: 5 }),
-      ]).then(([oaWorks, crWorks, s2Works]) => {
-        const allWorks = deduplicateWorks([...oaWorks, ...crWorks, ...s2Works]);
-        return allWorks.slice(0, 8).map(mapWorkToSource);
-      })
+  // Web leg: Tavily (always run if configured)
+  const webPromise = hasTavilyKey()
+    ? searchTavily(query, { maxResults: 5, searchDepth: "basic" }).then(
+        (results) => results.map(mapTavilyToSource)
+      )
     : Promise.resolve([]);
-
-  // Web leg: Tavily (only if configured)
-  const webPromise =
-    runWeb && hasTavilyKey()
-      ? searchTavily(query, { maxResults: 5, searchDepth: "basic" }).then(
-          (results) => results.map(mapTavilyToSource)
-        )
-      : Promise.resolve([]);
 
   const [academicSources, webSources] = await Promise.all([
     academicPromise,
@@ -480,7 +474,7 @@ What do the sources NOT answer? What are acknowledged limitations, challenges, o
 ## SECTION 6: Conclusion (1 paragraph — MAX 3 sentences)
 One-paragraph takeaway. Do NOT repeat earlier content. State the single most important finding.`;
 
-  const cardCount = Math.min(6, Math.max(3, sources.length));
+  const cardCount = Math.max(6, Math.min(8, sources.length + 2));
 
   const systemPrompt = `${NORA_VOICE_RESEARCH}
 
@@ -512,7 +506,7 @@ EMPTY SECTION RULE:
 - It is BETTER to have a short, honest section than a long section with decorative citations that don't actually support the claims.
 - Only cite a source if you can point to SPECIFIC content from that source's snippet/abstract that backs your claim.
 
-FLASHCARDS: Generate exactly ${cardCount} Q/A pairs testing specific technical details (numbers, comparisons, mechanisms), NOT vague definitions.
+FLASHCARDS: Generate ${cardCount} Q/A pairs (aim for 5-8) testing specific technical details (numbers, comparisons, mechanisms, definitions). Cover different aspects of the topic — do NOT cluster all cards on one subtopic. Include at least one card that tests a comparison or trade-off, and one that tests a specific number/metric from the sources.
 
 Respond ONLY with valid JSON. Use \\n for newlines inside strings. No markdown code fences:
 {"answer":"Section 1...\\n\\nSection 2...","suggestedCards":[{"front":"Q","back":"A"}]}`;
