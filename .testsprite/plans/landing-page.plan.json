@@ -1,0 +1,14 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "Landing page loads and displays sign-up CTA",
+  "description": "Verify the Nora landing page renders correctly with the hero section, feature cards, and a visible sign-up button that navigates to the registration page.",
+  "priority": "p1",
+  "planSteps": [
+    { "type": "action", "description": "Navigate to the homepage at the target URL" },
+    { "type": "action", "description": "Wait for the page to fully load including the hero section with the heading text" },
+    { "type": "assertion", "description": "Verify the page displays a heading containing the text 'study buddy' and a 'Get Started' or 'Start studying free' button is visible" },
+    { "type": "action", "description": "Click the 'Start studying free' or 'Get Started' button" },
+    { "type": "assertion", "description": "Verify the browser navigates to a sign-up page with an email input field and a submit button visible" }
+  ]
+}
