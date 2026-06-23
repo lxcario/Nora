@@ -1,5 +1,5 @@
 import { PageHeader } from "../_components/page-header";
-import { DialogFrame, CursorPicker } from "@/components/pixel-ui";
+import { DialogFrame, CursorPicker, PreferencesPanel } from "@/components/pixel-ui";
 
 export default function CollectionPage() {
   return (
@@ -25,19 +25,10 @@ export default function CollectionPage() {
       {/* Placeholder collections — future unlockables */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <DialogFrame title="THEMES">
-          <p className="text-xs text-[var(--pixel-text-secondary)]">
-            Unlock new color palettes as you level up. Coming soon.
+          <p className="text-xs text-[var(--pixel-text-secondary)] mb-3">
+            Choose a color palette — your selection is saved and applies across the app.
           </p>
-          <div className="mt-3 grid grid-cols-4 gap-2">
-            {["#d4a526", "#7da856", "#5b9bd5", "#c45a58"].map((c) => (
-              <div
-                key={c}
-                className="pixel-panel"
-                style={{ height: 40, backgroundColor: c, opacity: 0.4 }}
-                aria-hidden
-              />
-            ))}
-          </div>
+          <PreferencesPanel />
         </DialogFrame>
 
         <DialogFrame title="DECORATIONS">

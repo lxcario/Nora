@@ -1,39 +1,24 @@
-import { PageHeaderSkeleton, PanelSkeleton, StatTileSkeleton } from "@/components/pixel-ui/skeleton-helpers";
 import { LoadingSkeleton } from "@/components/pixel-ui";
 
 export default function ReviewLoading() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 max-w-3xl mx-auto">
       {/* Page header */}
-      <PageHeaderSkeleton />
+      <LoadingSkeleton height={20} className="w-40" />
+      <LoadingSkeleton height={12} className="w-80" />
 
-      {/* Stats bar */}
-      <StatTileSkeleton />
-
-      {/* Card panel */}
-      <div className="pixel-panel" style={{ padding: "24px" }}>
-        {/* Topic badge row */}
-        <div className="pb-4 mb-4" style={{ borderBottom: "2px solid var(--pixel-border)" }}>
-          <LoadingSkeleton height={14} className="w-48" />
-        </div>
-
-        {/* Question section */}
-        <div className="py-4 space-y-2">
-          <LoadingSkeleton height={10} className="w-20" />
-          <LoadingSkeleton height={22} />
-          <LoadingSkeleton height={22} className="w-4/5" />
-        </div>
-
-        {/* Reveal button placeholder */}
-        <div className="pt-4" style={{ borderTop: "2px solid var(--pixel-border)" }}>
-          <LoadingSkeleton height={44} />
-        </div>
+      {/* Card area */}
+      <div className="pixel-panel p-6">
+        <LoadingSkeleton height={14} className="w-32 mb-4" />
+        <LoadingSkeleton height={160} className="w-full mb-4" />
+        <LoadingSkeleton height={12} className="w-64" />
       </div>
 
-      {/* Card meta row */}
-      <div className="flex items-center justify-between">
-        <LoadingSkeleton height={12} className="w-56" />
-        <LoadingSkeleton height={12} className="w-28" />
+      {/* Grade buttons */}
+      <div className="flex gap-3 justify-center">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <LoadingSkeleton key={i} height={40} className="w-24" />
+        ))}
       </div>
     </div>
   );

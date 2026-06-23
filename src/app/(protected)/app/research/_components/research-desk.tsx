@@ -373,7 +373,7 @@ export function ResearchDesk({ topics }: { topics: TopicOption[] }) {
           {/* Cancelled notice */}
           {currentStage === "cancelled" && !isPending && (
             <div className="rounded-lg border-2 border-[var(--pixel-border)] bg-[var(--pixel-bg-secondary)] p-3 text-sm text-[var(--pixel-text-muted)]">
-              Research cancelled.
+              Research cancelled. The current search may finish in the background, but its result will be discarded.
             </div>
           )}
 

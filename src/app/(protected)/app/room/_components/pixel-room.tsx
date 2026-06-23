@@ -59,6 +59,30 @@ function Furniture({
   );
 }
 
+// Map avatar head values to available sprite icons
+function getAvatarIcon(head: string): string {
+  const headMap: Record<string, string> = {
+    default: "Team",
+    male: "Team",
+    female: "Team",
+    cat: "CatHead",
+    pixel: "Gamepad",
+  };
+  return headMap[head] ?? "Team";
+}
+
+// Map accessory values to available sprite icons
+function getAccessoryIcon(accessory: string): string {
+  const accessoryMap: Record<string, string> = {
+    glasses: "Eye",
+    hat: "Trophy",
+    headphones: "MusicNotes",
+    flower: "Flower",
+    star: "Lightbulb",
+  };
+  return accessoryMap[accessory] ?? "Lightbulb";
+}
+
 export function PixelRoom({
   state,
   quote,
@@ -174,13 +198,25 @@ export function PixelRoom({
           {/* ── Avatar ── */}
           <div className="absolute bottom-[14%] left-[34%] flex flex-col items-center">
             <div className="pixel-panel flex h-12 w-12 items-center justify-center p-0">
-              <img
-                src="/sprites/travel-book/icons/CatHead.png"
-                alt="You"
-                width={28}
-                height={28}
-                className="pixel-art"
-              />
+              {/* Render avatar based on user's selected head/body from avatar table */}
+              <div className="relative flex items-center justify-center w-full h-full">
+                <img
+                  src={`/sprites/travel-book/icons/${getAvatarIcon(state.avatar.head)}.png`}
+                  alt="Your avatar"
+                  width={28}
+                  height={28}
+                  className="pixel-art"
+                />
+                {state.avatar.accessory && (
+                  <img
+                    src={`/sprites/travel-book/icons/${getAccessoryIcon(state.avatar.accessory)}.png`}
+                    alt=""
+                    width={14}
+                    height={14}
+                    className="pixel-art absolute -top-1 -right-1"
+                  />
+                )}
+              </div>
             </div>
             <span className="font-pixel mt-1 text-[10px] text-[var(--pixel-text-secondary)]">
               You

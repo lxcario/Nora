@@ -360,8 +360,12 @@ export async function getWeeklyPlan(weekOffset = 0): Promise<{
       return e.startDate <= weekEnd && end >= weekStart;
     });
 
-    // Next confirmed deadlines (today onward) → warning strip.
-    upcomingDeadlines = all.filter((e) => e.daysUntil >= 0).slice(0, 5);
+    // Next confirmed deadlines (within 14 days, but NOT already visible in
+    // the current week's calendar) → warning strip. Prevents duplication.
+    const visibleIds = new Set(academicEvents.map((e) => e.id));
+    upcomingDeadlines = all
+      .filter((e) => e.daysUntil >= 0 && e.daysUntil <= 14 && !visibleIds.has(e.id))
+      .slice(0, 5);
 
     // --- Cognitive-load-aware planning (Requirements 14.1–14.4) ---
     const loadEvents: LoadEvent[] = all

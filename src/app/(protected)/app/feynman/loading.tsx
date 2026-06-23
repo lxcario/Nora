@@ -1,29 +1,26 @@
-import { PageHeaderSkeleton, PanelSkeleton } from "@/components/pixel-ui/skeleton-helpers";
 import { LoadingSkeleton } from "@/components/pixel-ui";
 
 export default function FeynmanLoading() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 max-w-4xl mx-auto">
       {/* Page header */}
-      <PageHeaderSkeleton />
+      <LoadingSkeleton height={20} className="w-48" />
+      <LoadingSkeleton height={12} className="w-72" />
 
-      {/* Topic selector panel */}
-      <div className="pixel-panel" style={{ padding: "16px" }}>
-        <LoadingSkeleton height={12} className="w-24 mb-3" />
-        <LoadingSkeleton height={38} />
+      {/* Topic selector */}
+      <div className="pixel-panel p-4">
+        <LoadingSkeleton height={14} className="w-24 mb-3" />
+        <LoadingSkeleton height={36} className="w-full" />
       </div>
 
-      {/* Explanation editor panel */}
-      <div className="pixel-panel" style={{ padding: "16px" }}>
-        <LoadingSkeleton height={12} className="w-36 mb-3" />
-        {/* Textarea area */}
-        <LoadingSkeleton height={180} />
-        {/* Status bar */}
-        <div className="flex items-center justify-between mt-3">
-          <LoadingSkeleton height={12} className="w-32" />
-          <LoadingSkeleton height={36} className="w-40" />
-        </div>
+      {/* Editor area */}
+      <div className="pixel-panel p-4">
+        <LoadingSkeleton height={14} className="w-32 mb-3" />
+        <LoadingSkeleton height={200} className="w-full" />
       </div>
+
+      {/* Action button */}
+      <LoadingSkeleton height={40} className="w-48" />
     </div>
   );
 }

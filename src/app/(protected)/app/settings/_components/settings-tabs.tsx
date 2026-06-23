@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Check, Loader2 } from "lucide-react";
 import { playClick } from "@/lib/sfx";
+import { createClient } from "@/lib/supabase/client";
 import { AvatarUpload } from "../../_components/avatar-upload";
 import { ProfileForm } from "./profile-form";
 import { PetSelector } from "./pet-selector";
@@ -10,6 +12,7 @@ import {
   DialogFrame,
   PreferencesPanel,
   CursorPicker,
+  PixelInput,
 } from "@/components/pixel-ui";
 
 // ---------------------------------------------------------------------------
@@ -162,50 +165,37 @@ export function SettingsTabs({
 
         {/* ── Preferences ── */}
         {active === "preferences" && (
-          <DialogFrame title="STUDY PREFERENCES">
-            <p className="mb-4 text-sm" style={{ color: "var(--pixel-text-secondary)" }}>
-              Timezone, ADHD mode, and focus audio are saved under the{" "}
-              <button
-                type="button"
-                onClick={() => setActive("profile")}
-                className="font-pixel text-xs"
-                style={{
-                  color: "var(--pixel-accent)",
-                  background: "none",
-                  border: "none",
-                  padding: 0,
-                  cursor: "pointer",
-                  textDecoration: "underline",
-                }}
-              >
-                Profile
-              </button>{" "}
-              tab. Additional study-behavior settings will appear here as the app grows.
-            </p>
-            <div className="space-y-3">
-              <FeatureRow
-                icon="/sprites/travel-book/icons/Book.png"
-                label="Spaced Repetition"
-                description="SM-2 algorithm — flashcards are scheduled at scientifically optimal intervals."
-                badge="Active"
-                badgeColor="var(--pixel-success)"
-              />
-              <FeatureRow
-                icon="/sprites/travel-book/icons/Lightbulb.png"
-                label="Feynman Technique"
-                description="Explain topics in your own words; AI identifies gaps and scores your understanding."
-                badge="Active"
-                badgeColor="var(--pixel-success)"
-              />
-              <FeatureRow
-                icon="/sprites/travel-book/icons/MagnifyingGlass.png"
-                label="AI Research Desk"
-                description="Requires GROQ_API_KEY. RAG mode additionally requires OPENAI_API_KEY for embeddings."
-                badge="Requires key"
-                badgeColor="var(--pixel-warning)"
-              />
-            </div>
-          </DialogFrame>
+          <div className="space-y-6">
+            <DialogFrame title="STUDY PREFERENCES">
+              <PreferencesFields />
+            </DialogFrame>
+
+            <DialogFrame title="ACTIVE FEATURES">
+              <div className="space-y-3">
+                <FeatureRow
+                  icon="/sprites/travel-book/icons/Book.png"
+                  label="Spaced Repetition"
+                  description="FSRS algorithm — flashcards are scheduled at scientifically optimal intervals."
+                  badge="Active"
+                  badgeColor="var(--pixel-success)"
+                />
+                <FeatureRow
+                  icon="/sprites/travel-book/icons/Lightbulb.png"
+                  label="Feynman Technique"
+                  description="Explain topics in your own words; AI identifies gaps and scores your understanding."
+                  badge="Active"
+                  badgeColor="var(--pixel-success)"
+                />
+                <FeatureRow
+                  icon="/sprites/travel-book/icons/MagnifyingGlass.png"
+                  label="AI Research Desk"
+                  description="Requires GROQ_API_KEY. RAG mode additionally requires OPENAI_API_KEY for embeddings."
+                  badge="Requires key"
+                  badgeColor="var(--pixel-warning)"
+                />
+              </div>
+            </DialogFrame>
+          </div>
         )}
 
         {/* ── Subjects ── */}
@@ -308,6 +298,165 @@ function FeatureRow({
           {description}
         </p>
       </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// PreferencesFields — timezone, ADHD mode, focus audio (direct access)
+// ---------------------------------------------------------------------------
+
+const TIMEZONES = [
+  "UTC",
+  "America/New_York",
+  "America/Chicago",
+  "America/Denver",
+  "America/Los_Angeles",
+  "America/Anchorage",
+  "America/Halifax",
+  "America/Sao_Paulo",
+  "Europe/London",
+  "Europe/Paris",
+  "Europe/Berlin",
+  "Europe/Moscow",
+  "Asia/Dubai",
+  "Asia/Kolkata",
+  "Asia/Bangkok",
+  "Asia/Shanghai",
+  "Asia/Tokyo",
+  "Asia/Seoul",
+  "Australia/Sydney",
+  "Pacific/Auckland",
+];
+
+function PreferencesFields() {
+  const [timezone, setTimezone] = useState("UTC");
+  const [adhdMode, setAdhdMode] = useState(false);
+  const [focusAudio, setFocusAudio] = useState("lofi");
+  const [saving, setSaving] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function load() {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("timezone, adhd_mode, focus_audio")
+        .eq("id", user.id)
+        .single();
+      if (profile) {
+        setTimezone(profile.timezone ?? "UTC");
+        setAdhdMode(profile.adhd_mode ?? false);
+        setFocusAudio(profile.focus_audio ?? "lofi");
+      }
+    }
+    load();
+  }, []);
+
+  async function handleSave() {
+    setSaving(true);
+    setError(null);
+    setSuccess(false);
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setError("Not authenticated"); setSaving(false); return; }
+
+    const { error: err } = await supabase
+      .from("profiles")
+      .update({
+        timezone,
+        adhd_mode: adhdMode,
+        focus_audio: focusAudio,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", user.id);
+
+    if (err) {
+      setError(err.message);
+    } else {
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    }
+    setSaving(false);
+  }
+
+  return (
+    <div className="space-y-5">
+      {/* Timezone */}
+      <div className="space-y-1.5">
+        <label className="font-pixel text-xs tracking-wide" style={{ color: "var(--pixel-text-primary)" }}>
+          Timezone
+        </label>
+        <select
+          value={timezone}
+          onChange={(e) => setTimezone(e.target.value)}
+          className="w-full max-w-sm"
+        >
+          {TIMEZONES.map((tz) => (
+            <option key={tz} value={tz}>{tz.replace(/_/g, " ")}</option>
+          ))}
+        </select>
+        <p className="text-xs" style={{ color: "var(--pixel-text-muted)" }}>
+          Used to schedule review due dates at your local midnight.
+        </p>
+      </div>
+
+      {/* ADHD Mode toggle */}
+      <div className="flex items-center justify-between max-w-sm rounded-md p-3" style={{ backgroundColor: "var(--pixel-bg-secondary)" }}>
+        <div>
+          <p className="font-pixel text-xs" style={{ color: "var(--pixel-text-primary)" }}>
+            ADHD Mode
+          </p>
+          <p className="text-xs mt-0.5" style={{ color: "var(--pixel-text-muted)" }}>
+            Shorter sessions, more breaks, reduced distractions.
+          </p>
+        </div>
+        <PixelInput
+          type="toggle"
+          checked={adhdMode}
+          onChange={(val) => setAdhdMode(val as boolean)}
+        />
+      </div>
+
+      {/* Focus audio */}
+      <div className="space-y-1.5">
+        <label className="font-pixel text-xs tracking-wide" style={{ color: "var(--pixel-text-primary)" }}>
+          Default Focus Audio
+        </label>
+        <select
+          value={focusAudio}
+          onChange={(e) => setFocusAudio(e.target.value)}
+          className="w-full max-w-sm"
+        >
+          <option value="lofi">Lo-fi hip hop</option>
+          <option value="jazz">Lo-fi jazz</option>
+          <option value="ambient">Ambient / nature</option>
+          <option value="classical">Classical</option>
+          <option value="none">None (silent)</option>
+        </select>
+      </div>
+
+      {/* Error feedback */}
+      {error && (
+        <p className="text-sm" style={{ color: "var(--pixel-error)" }}>{error}</p>
+      )}
+
+      {/* Save button */}
+      <button
+        onClick={handleSave}
+        disabled={saving}
+        className="inline-flex items-center gap-2 !bg-[var(--pixel-accent)] !text-[var(--pixel-bg-primary)] hover:!brightness-110 font-pixel text-xs"
+      >
+        {saving ? (
+          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        ) : success ? (
+          <Check className="h-3.5 w-3.5" />
+        ) : null}
+        {saving ? "Saving..." : success ? "Saved!" : "Save Preferences"}
+      </button>
     </div>
   );
 }
