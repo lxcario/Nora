@@ -27,9 +27,9 @@ function getLineWidth(index: number): string {
 const shimmerStyle: React.CSSProperties = {
   backgroundColor: "var(--pixel-bg-secondary)",
   backgroundImage:
-    "linear-gradient(90deg, var(--pixel-bg-secondary) 25%, var(--pixel-bg-surface) 50%, var(--pixel-bg-secondary) 75%)",
+    "linear-gradient(90deg, var(--pixel-bg-secondary) 25%, color-mix(in srgb, var(--pixel-bg-surface) 80%, var(--pixel-accent)) 50%, var(--pixel-bg-secondary) 75%)",
   backgroundSize: "200% 100%",
-  animation: "pixel-shimmer 1.5s ease-in-out infinite",
+  animation: "pixel-shimmer 2s linear infinite",
 };
 
 // ---------------------------------------------------------------------------

@@ -724,8 +724,8 @@ body {
 
 /* Pixel shimmer animation for skeleton loading placeholders */
 @keyframes pixel-shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 /* Stepped blink (loading dots / cursor) — hard on/off, no easing */
