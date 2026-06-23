@@ -60,6 +60,18 @@ const FSRS_GRADES: GradeButton[] = [
 const FSRS_STATE_LABEL = ["New", "Learning", "Review", "Relearning"] as const;
 
 // ---------------------------------------------------------------------------
+// JOL (Judgment of Learning) confidence levels
+// ---------------------------------------------------------------------------
+
+const JOL_LEVELS = [
+  { value: 1, label: "Can't recall", color: "var(--pixel-error)" },
+  { value: 2, label: "Unsure", color: "var(--pixel-warning)" },
+  { value: 3, label: "Maybe", color: "var(--pixel-accent)" },
+  { value: 4, label: "Pretty sure", color: "var(--pixel-accent)" },
+  { value: 5, label: "Certain", color: "var(--pixel-success)" },
+] as const;
+
+// ---------------------------------------------------------------------------
 // ReviewSession
 // ---------------------------------------------------------------------------
 
@@ -75,6 +87,10 @@ export function ReviewSession({ initialCards }: { initialCards: DueCard[] }) {
   const [reviewedCount, setReviewedCount] = useState(0);
   const [sessionComplete, setSessionComplete] = useState(false);
   const [requeuedIds, setRequeuedIds] = useState<Set<string>>(new Set());
+
+  // JOL Confidence (pre-reveal gate, spec SPEC-JOL-CONFIDENCE.md Option A)
+  const [confidence, setConfidence] = useState<number | null>(null);
+  const [confidenceGiven, setConfidenceGiven] = useState(false);
 
   // Confirm delete state
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -95,9 +111,11 @@ export function ReviewSession({ initialCards }: { initialCards: DueCard[] }) {
 
   function handleGrade(rating: Grade) {
     startTransition(async () => {
-      await submitReview(currentCard.id, rating);
+      await submitReview(currentCard.id, rating, confidence ?? undefined);
       setReviewedCount((c) => c + 1);
       setRevealed(false);
+      setConfidence(null);
+      setConfidenceGiven(false);
 
       // Show XP toast
       // TODO(option-2-refactor): These XP/coin values are hardcoded to match
@@ -303,9 +321,64 @@ export function ReviewSession({ initialCards }: { initialCards: DueCard[] }) {
         {/* Reveal / Answer */}
         {!revealed ? (
           <div className="pt-4" style={{ borderTop: "2px solid var(--pixel-border)" }}>
-            <PixelButton variant="secondary" onClick={handleReveal} className="w-full">
-              Reveal Answer
-            </PixelButton>
+            {/* JOL Confidence step (pre-reveal gate) */}
+            {!confidenceGiven ? (
+              <div className="space-y-3">
+                <p
+                  className="text-center font-pixel text-[10px]"
+                  style={{ color: "var(--pixel-text-secondary)" }}
+                >
+                  Before revealing — how confident are you?
+                </p>
+                <div className="grid grid-cols-5 gap-1.5">
+                  {JOL_LEVELS.map(({ value, label, color }) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => { setConfidence(value); setConfidenceGiven(true); }}
+                      className="flex flex-col items-center gap-0.5 px-1 py-2.5 border-2 transition-colors"
+                      style={{
+                        borderColor: "var(--pixel-border)",
+                        backgroundColor: `color-mix(in srgb, ${color} 18%, var(--pixel-bg-surface))`,
+                        color,
+                      }}
+                    >
+                      <span className="font-pixel text-sm font-bold">{value}</span>
+                      <span className="font-pixel text-[7px] leading-tight opacity-80">{label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {/* Confidence badge */}
+                <div className="flex items-center justify-center gap-1.5">
+                  <span className="font-pixel text-[10px]" style={{ color: "var(--pixel-text-secondary)" }}>
+                    Confidence:
+                  </span>
+                  <span className="font-pixel text-xs flex gap-0.5">
+                    {Array.from({ length: 5 }, (_, i) => (
+                      <span
+                        key={i}
+                        style={{
+                          color: i < (confidence ?? 0)
+                            ? JOL_LEVELS[(confidence ?? 1) - 1].color
+                            : "var(--pixel-text-muted)",
+                        }}
+                      >
+                        {i < (confidence ?? 0) ? "●" : "○"}
+                      </span>
+                    ))}
+                  </span>
+                  <span className="font-pixel text-[9px]" style={{ color: JOL_LEVELS[(confidence ?? 1) - 1].color }}>
+                    ({JOL_LEVELS[(confidence ?? 1) - 1].label})
+                  </span>
+                </div>
+                <PixelButton variant="secondary" onClick={handleReveal} className="w-full">
+                  Reveal Answer
+                </PixelButton>
+              </div>
+            )}
           </div>
         ) : (
           <>

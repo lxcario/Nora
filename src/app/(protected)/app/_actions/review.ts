@@ -116,7 +116,8 @@ export async function getDueCards(limit = 50): Promise<{
  */
 export async function submitReview(
   cardId: string,
-  rating: Grade
+  rating: Grade,
+  jolConfidence?: number
 ): Promise<{ success?: boolean; error?: string }> {
   // Defensive guard: FSRS grades are 1-4 (Again/Hard/Good/Easy). Reject
   // anything else (e.g. a stale client sending an old 0-5 SM-2 grade).
@@ -187,6 +188,7 @@ export async function submitReview(
     user_id: user.id,
     card_id: cardId,
     grade: rating, // Rating.Again=1, Hard=2, Good=3, Easy=4 — within 0-5 constraint
+    jol_confidence: jolConfidence && jolConfidence >= 1 && jolConfidence <= 5 ? jolConfidence : null,
   });
 
   await rewardAction(rating !== Rating.Again ? "review_good" : "review_bad");
