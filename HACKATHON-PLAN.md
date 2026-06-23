@@ -43,7 +43,7 @@ against your live public app in the cloud. Returns structured failure bundles
 (screenshots, DOM, root-cause, fix recommendation). See Section 11 for
 verified commands.
 
-**Current status:** Pre-build preparation. Deployed at https://nora-mu-six.vercel.app/.
+**Current status:** Pre-build preparation. Deployed at https://norastudy.vercel.app/.
 Waiting on TestSprite account + API key before Day 1 execution begins.
 
 ---
@@ -140,7 +140,7 @@ That narrative is significantly more compelling than "I made a TODO app and test
 
 | Task | Status | Notes |
 |---|---|---|
-| Deploy to Vercel | [x] | Live at https://nora-mu-six.vercel.app/ |
+| Deploy to Vercel | [x] | Live at https://norastudy.vercel.app/ |
 | Verify all env vars are set in Vercel dashboard | [ ] | Supabase URL/key, Groq key minimum |
 | Confirm app loads at public URL | [ ] | Test login, onboarding, core flows |
 | Set up a test user account | [ ] | Pre-seeded account for TestSprite to interact with |
@@ -375,7 +375,7 @@ Nora is a study operating system built on cognitive science...
 ## Evidence
 - TestSprite Account: [your email]
 - Project ID: proj_xxxxxxxx
-- Live URL: https://nora-mu-six.vercel.app
+- Live URL: https://norastudy.vercel.app
 - Repo: https://github.com/lxcario/Nora
 ```
 
@@ -483,7 +483,7 @@ testsprite setup          # prompts for API key, installs agent skill
 TESTSPRITE_API_KEY=sk-... testsprite setup --from-env --yes --agent claude
 
 # Create a project (DOCUMENTATION.md § Write commands)
-testsprite project create --name "Nora" --target-url https://nora-mu-six.vercel.app
+testsprite project create --name "Nora" --target-url https://norastudy.vercel.app
 
 # The Loop — verbatim from README § Quickstart example:
 # 1. Create a test, run it, wait for verdict

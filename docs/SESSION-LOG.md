@@ -1,41 +1,41 @@
-ï»¿# Pixel Study OS â€” Session Log (June 16, 2026)
+# Pixel Study OS — Session Log (June 16, 2026)
 
 ## Overview
 
-Built Pixel Study OS from zero to a fully functional study web app in a single session. The app combines evidence-based learning workflows (Feynman technique, spaced repetition, research desk) with gentle gamification (PokÃ©mon pets, XP, missions) and a cozy pixel-art aesthetic.
+Built Pixel Study OS from zero to a fully functional study web app in a single session. The app combines evidence-based learning workflows (Feynman technique, spaced repetition, research desk) with gentle gamification (Pokémon pets, XP, missions) and a cozy pixel-art aesthetic.
 
-**Tech Stack:** Next.js 16 (TypeScript, App Router) + Supabase (Postgres, Auth, RLS) + Tailwind CSS + Lucide icons + Groq/OpenRouter AI + PokÃ©API + Sprout Lands UI Pack
+**Tech Stack:** Next.js 16 (TypeScript, App Router) + Supabase (Postgres, Auth, RLS) + Tailwind CSS + Lucide icons + Groq/OpenRouter AI + PokéAPI + Sprout Lands UI Pack
 
 ---
 
 ## What Was Built (Phase by Phase)
 
-### Phase 0 â€” Repo & Docs (Pre-existing)
-- `docs/MAIN.md` â€” Full product & architecture spec
-- `docs/PLAN.md` â€” 13-phase build roadmap
-- `docs/ASSETS.md` â€” Asset licensing & attribution guide
-- `.kiro/skills/pixel-study-os/SKILL.md` â€” Agent skill file
+### Phase 0 — Repo & Docs (Pre-existing)
+- `docs/MAIN.md` — Full product & architecture spec
+- `docs/PLAN.md` — 13-phase build roadmap
+- `docs/ASSETS.md` — Asset licensing & attribution guide
+- `.kiro/skills/pixel-study-os/SKILL.md` — Agent skill file
 
-### Phase 1 â€” Next.js + Supabase Setup âœ…
+### Phase 1 — Next.js + Supabase Setup ?
 - Initialized Next.js 16.2.9 with TypeScript, App Router, Tailwind CSS
 - Installed `@supabase/supabase-js` and `@supabase/ssr`
 - Created Supabase client utilities:
-  - `src/lib/supabase/server.ts` â€” Server-side client (uses cookies)
-  - `src/lib/supabase/client.ts` â€” Browser-side client
+  - `src/lib/supabase/server.ts` — Server-side client (uses cookies)
+  - `src/lib/supabase/client.ts` — Browser-side client
 - Created `src/proxy.ts` (Next.js 16's replacement for middleware):
   - Refreshes Supabase session on every request
   - Redirects unauthenticated users from `/app/*` to `/login`
   - Redirects authenticated users from `/login`/`/signup` to `/app`
 - Auth pages:
-  - `src/app/(auth)/login/page.tsx` â€” Email/password login with `useActionState`
-  - `src/app/(auth)/signup/page.tsx` â€” Email/password registration
-  - `src/app/(auth)/_actions/auth.ts` â€” Server actions for login, signup, signout
-  - `src/app/auth/callback/route.ts` â€” OAuth/email confirmation callback handler
+  - `src/app/(auth)/login/page.tsx` — Email/password login with `useActionState`
+  - `src/app/(auth)/signup/page.tsx` — Email/password registration
+  - `src/app/(auth)/_actions/auth.ts` — Server actions for login, signup, signout
+  - `src/app/auth/callback/route.ts` — OAuth/email confirmation callback handler
 - Protected app layout with server-side auth check
 - Connected to Supabase project: `hwoaljqtjlagxacvopnc.supabase.co`
 - Environment variables in `.env.local` (gitignored)
 
-### Phase 2 â€” Database Schema & RLS âœ…
+### Phase 2 — Database Schema & RLS ?
 - Created `supabase/migrations/001_initial_schema.sql` with:
   - `pgvector` extension enabled
   - 11 tables: `profiles`, `subjects`, `topics`, `study_sessions`, `feynman_explanations`, `cards`, `card_reviews`, `avatars`, `pets`, `papers`, `paper_chunks`
@@ -43,11 +43,11 @@ Built Pixel Study OS from zero to a fully functional study web app in a single s
   - Auto-create profile trigger (`handle_new_user`) on auth signup
   - Performance indexes (cards next_review, sessions, reviews)
   - Vector similarity index on `paper_chunks.embedding`
-- Created `src/lib/supabase/database.types.ts` â€” Hand-written TypeScript types matching the schema
-- Created `supabase/seed.sql` â€” Template for dev seed data
+- Created `src/lib/supabase/database.types.ts` — Hand-written TypeScript types matching the schema
+- Created `supabase/seed.sql` — Template for dev seed data
 - Schema was run manually via Supabase SQL Editor
 
-### Phase 3 â€” UI Shell & Navigation âœ…
+### Phase 3 — UI Shell & Navigation ?
 - Client-side sidebar component with:
   - Lucide icons for each nav item
   - Active route highlighting via `usePathname()`
@@ -60,8 +60,8 @@ Built Pixel Study OS from zero to a fully functional study web app in a single s
   - `/app/research`, `/app/planner`, `/app/analytics`, `/app/settings`
 - Dashboard with stat cards and navigation cards
 
-### Phase 4 â€” Feynman Mode âœ…
-**The core study feature â€” explain concepts, get AI evaluation.**
+### Phase 4 — Feynman Mode ?
+**The core study feature — explain concepts, get AI evaluation.**
 
 - **Subjects & Topics Management** (`_actions/subjects.ts`):
   - CRUD for subjects (name + color)
@@ -91,9 +91,9 @@ Built Pixel Study OS from zero to a fully functional study web app in a single s
   - Textarea with ghost-text autocomplete overlay
   - "Evaluate with AI" button with loading states
   - Results display: questions, paraphrase, color-coded gap analysis, suggested cards
-  - "Save All Cards" button â†’ creates cards with `source_type: 'feynman'`
+  - "Save All Cards" button › creates cards with `source_type: 'feynman'`
 
-### Phase 5 â€” SM-2 Flashcards & Review âœ…
+### Phase 5 — SM-2 Flashcards & Review ?
 **Spaced repetition engine with real scheduling.**
 
 - **SM-2 Algorithm** (`src/lib/sm2.ts`):
@@ -104,26 +104,26 @@ Built Pixel Study OS from zero to a fully functional study web app in a single s
   - Grade < 3: failed recall (reset to interval=1)
 
 - **Review Actions** (`_actions/review.ts`):
-  - `getDueCards()` â€” fetches cards where `next_review_at <= today`
-  - `submitReview()` â€” applies SM-2, updates card, logs to `card_reviews`, awards XP
-  - `deleteCard()` â€” permanently removes bad cards
+  - `getDueCards()` — fetches cards where `next_review_at <= today`
+  - `submitReview()` — applies SM-2, updates card, logs to `card_reviews`, awards XP
+  - `deleteCard()` — permanently removes bad cards
 
 - **Review Session UI** (`review/_components/review-session.tsx`):
   - Progress bar (card N of M)
-  - Card display: front (question) â†’ click "Reveal Answer" â†’ back (answer)
-  - Grade buttons 0-5 (color-coded: redâ†’orangeâ†’amberâ†’green)
+  - Card display: front (question) › click "Reveal Answer" › back (answer)
+  - Grade buttons 0-5 (color-coded: red›orange›amber›green)
   - Topic/source badge on each card
   - Delete card button for low-quality cards
   - Session complete screen with trophy
 
-### Phase 6 â€” Study Planner âœ…
+### Phase 6 — Study Planner ?
 **Weekly calendar with auto-generated suggestions.**
 
 - **Planner Actions** (`_actions/planner.ts`):
-  - `getWeeklyPlan(offset)` â€” fetches real sessions + generates suggestions:
-    - If due cards exist â†’ suggests review session for today
-    - If exam within 14 days â†’ suggests Feynman session
-  - `startSession()` / `completeSession()` â€” session lifecycle management
+  - `getWeeklyPlan(offset)` — fetches real sessions + generates suggestions:
+    - If due cards exist › suggests review session for today
+    - If exam within 14 days › suggests Feynman session
+  - `startSession()` / `completeSession()` — session lifecycle management
 
 - **Weekly Calendar UI** (`planner/_components/weekly-calendar.tsx`):
   - 7-day grid (Mon-Sun) with today highlighted
@@ -131,37 +131,37 @@ Built Pixel Study OS from zero to a fully functional study web app in a single s
   - Week navigation (Prev/Next)
   - Color-coded legend
 
-### Phase 7 â€” Pixel Room + PokÃ©API Pets âœ…
-**The gamification centerpiece â€” your PokÃ©mon study companion.**
+### Phase 7 — Pixel Room + PokéAPI Pets ?
+**The gamification centerpiece — your Pokémon study companion.**
 
-- **PokÃ©API Integration** (`src/lib/pokeapi.ts`):
-  - `getPokemon(id)` â€” fetches sprite, types, name
-  - `getEvolutionChain(id)` â€” finds evolution stages
-  - `getEvolutionForLevel(evolutions, level)` â€” determines current form based on user level
+- **PokéAPI Integration** (`src/lib/pokeapi.ts`):
+  - `getPokemon(id)` — fetches sprite, types, name
+  - `getEvolutionChain(id)` — finds evolution stages
+  - `getEvolutionForLevel(evolutions, level)` — determines current form based on user level
   - Animated Gen V pixel sprites (from raw.githubusercontent.com)
-  - 12 starter PokÃ©mon options (Pikachu, Eevee, Bulbasaur, etc.)
+  - 12 starter Pokémon options (Pikachu, Eevee, Bulbasaur, etc.)
   - Evolution tied to user level: Lv.1-4 = base, Lv.5-14 = stage 2, Lv.15+ = final form
 
 - **Room State** (`_actions/room.ts`):
   - Fetches avatar, pet, profile (XP/coins/level)
   - Computes pet state from last 3 days of study activity (happy/neutral/sad)
   - Generates today's missions from real data (due cards, Feynman completions, sessions)
-  - Checks evolution chain for current PokÃ©mon form
+  - Checks evolution chain for current Pokémon form
 
 - **Pixel Room UI** (`room/_components/pixel-room.tsx`):
-  - CSS-drawn study room (placeholder â€” needs proper tileset)
-  - Animated PokÃ©mon sprite with state-colored border
+  - CSS-drawn study room (placeholder — needs proper tileset)
+  - Animated Pokémon sprite with state-colored border
   - HUD overlay: Level, XP, Coins, Pet name, Affinity %
   - Pet status message based on mood
   - "Ready to evolve!" indicator when close to next evolution
   - Daily quote (from ZenQuotes API)
-  - Today's Missions with progress bar â€” links to actual study pages
+  - Today's Missions with progress bar — links to actual study pages
 
 - **Pet Selector** (`settings/_components/pet-selector.tsx`):
-  - Grid of 12 animated PokÃ©mon sprites
+  - Grid of 12 animated Pokémon sprites
   - Click to select, optional nickname, save to database
 
-### Phase 8 â€” AI Research Desk âœ…
+### Phase 8 — AI Research Desk ?
 **Ask questions, get deep AI-researched answers with citations.**
 
 - **Research Actions** (`_actions/research.ts`):
@@ -170,8 +170,8 @@ Built Pixel Study OS from zero to a fully functional study web app in a single s
     2. Searches Wikipedia API + Open Library in parallel
     3. Feeds sources to Groq for deep synthesis (1500+ word report)
     4. Returns: answer, sources list, suggested flashcards
-  - `createCardsFromResearch()` â€” saves cards with `source_type: 'research'`
-  - Keyword extraction step so "How can I become a good person?" â†’ searches "ethics morality virtue self-improvement"
+  - `createCardsFromResearch()` — saves cards with `source_type: 'research'`
+  - Keyword extraction step so "How can I become a good person?" › searches "ethics morality virtue self-improvement"
   - AI answers from its own knowledge + supplements with sources (not limited to sources only)
 
 - **Research Desk UI** (`research/_components/research-desk.tsx`):
@@ -182,7 +182,7 @@ Built Pixel Study OS from zero to a fully functional study web app in a single s
   - Numbered sources with type icons (book/wiki) and external links
   - Suggested flashcards with "Save All Cards" button
 
-### Phase 9 â€” Analytics Dashboard âœ…
+### Phase 9 — Analytics Dashboard ?
 **Visual feedback on progress and mastery.**
 
 - **Analytics Actions** (`_actions/analytics.ts`):
@@ -197,13 +197,13 @@ Built Pixel Study OS from zero to a fully functional study web app in a single s
   - Consistency heatmap (GitHub-style, 30 days, 4 color levels)
   - Topic mastery progress bars (color-coded by avg grade)
 
-### Phase 10 â€” Gamification (XP, Coins, Levels) âœ…
+### Phase 10 — Gamification (XP, Coins, Levels) ?
 **Rewards tied to real study behaviors.**
 
 - **Gamification Logic** (`_actions/gamification.ts` + `src/lib/gamification.ts`):
   - XP rewards:
     - Feynman explanation: +15 XP, +5 coins
-    - Card review (good, gradeâ‰¥3): +3 XP, +1 coin
+    - Card review (good, grade?3): +3 XP, +1 coin
     - Card review (bad, grade<3): +1 XP
     - Card created: +2 XP
     - Session completed: +10 XP, +3 coins
@@ -212,15 +212,15 @@ Built Pixel Study OS from zero to a fully functional study web app in a single s
     - Lv2 at 50 XP, Lv3 at 200 XP, Lv4 at 450 XP, Lv5 at 800 XP
   - Pet affinity increases with study activity
   - Pet state auto-updates based on affinity score
-  - `choosePet(pokemonId, nickname)` â€” sets/updates user's pet
+  - `choosePet(pokemonId, nickname)` — sets/updates user's pet
 
 - **Integration**: XP automatically awarded in review and feynman actions
 
-### Phase 13 â€” Polish & Accessibility âœ…
-- Landing page (`/`) â€” marketing page with feature grid, pixel font, CTAs
-- 404 page â€” pixel-styled with "Go to Dashboard" link
-- Error boundary â€” catches runtime errors, shows retry button
-- Loading state â€” spinner animation for route transitions
+### Phase 13 — Polish & Accessibility ?
+- Landing page (`/`) — marketing page with feature grid, pixel font, CTAs
+- 404 page — pixel-styled with "Go to Dashboard" link
+- Error boundary — catches runtime errors, shows retry button
+- Loading state — spinner animation for route transitions
 - Pixel font applied to headings throughout the app
 
 ### Additional Features (Beyond Original Plan)
@@ -230,7 +230,7 @@ Built Pixel Study OS from zero to a fully functional study web app in a single s
 - 5 free lo-fi/ambient internet radio streams
 - Play/pause, skip, volume control
 - Animated equalizer indicator when playing
-- No downloads, no copyright issues â€” streaming from licensed stations
+- No downloads, no copyright issues — streaming from licensed stations
 
 **Sprout Lands UI Pack Integration:**
 - Pixel font (`pixelFont-7-8x14-sproutLands.ttf`) loaded globally
@@ -250,7 +250,7 @@ Built Pixel Study OS from zero to a fully functional study web app in a single s
 | Supabase | Database, Auth, RLS | `.env.local` (NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY) |
 | Groq | Primary AI (fast, ~2-3s) | `.env.local` (GROQ_API_KEY) |
 | OpenRouter | Fallback AI (free, slower) | `.env.local` (OPENROUTER_API_KEY) |
-| PokÃ©API | PokÃ©mon sprites & data | No key needed |
+| PokéAPI | Pokémon sprites & data | No key needed |
 | Open Library | Book search | No key needed |
 | Wikipedia API | Article search | No key needed |
 | ZenQuotes | Daily quotes | No key needed |
@@ -262,90 +262,90 @@ Built Pixel Study OS from zero to a fully functional study web app in a single s
 
 ```
 src/
-â”œâ”€â”€ app/
-â”‚   â”œâ”€â”€ (auth)/
-â”‚   â”‚   â”œâ”€â”€ _actions/auth.ts          â€” Login/signup/signout server actions
-â”‚   â”‚   â”œâ”€â”€ login/page.tsx             â€” Login page
-â”‚   â”‚   â”œâ”€â”€ signup/page.tsx            â€” Signup page
-â”‚   â”‚   â””â”€â”€ layout.tsx                 â€” Auth layout
-â”‚   â”œâ”€â”€ (protected)/app/
-â”‚   â”‚   â”œâ”€â”€ _actions/
-â”‚   â”‚   â”‚   â”œâ”€â”€ feynman.ts            â€” AI evaluation + card creation
-â”‚   â”‚   â”‚   â”œâ”€â”€ autocomplete.ts       â€” Inline suggestion for Feynman editor
-â”‚   â”‚   â”‚   â”œâ”€â”€ review.ts             â€” SM-2 review + delete card
-â”‚   â”‚   â”‚   â”œâ”€â”€ subjects.ts           â€” Subject/topic CRUD
-â”‚   â”‚   â”‚   â”œâ”€â”€ planner.ts            â€” Weekly plan generation
-â”‚   â”‚   â”‚   â”œâ”€â”€ room.ts               â€” Pixel room state + PokÃ©API
-â”‚   â”‚   â”‚   â”œâ”€â”€ research.ts           â€” AI research desk
-â”‚   â”‚   â”‚   â”œâ”€â”€ analytics.ts          â€” Stats aggregation
-â”‚   â”‚   â”‚   â”œâ”€â”€ gamification.ts       â€” XP/coins/pet rewards
-â”‚   â”‚   â”‚   â””â”€â”€ quotes.ts             â€” Daily motivational quote
-â”‚   â”‚   â”œâ”€â”€ _components/
-â”‚   â”‚   â”‚   â”œâ”€â”€ sidebar.tsx            â€” Navigation sidebar
-â”‚   â”‚   â”‚   â”œâ”€â”€ page-header.tsx        â€” Reusable page header
-â”‚   â”‚   â”‚   â””â”€â”€ music-player.tsx       â€” Lo-fi music player
-â”‚   â”‚   â”œâ”€â”€ feynman/_components/feynman-editor.tsx
-â”‚   â”‚   â”œâ”€â”€ review/_components/review-session.tsx
-â”‚   â”‚   â”œâ”€â”€ research/_components/research-desk.tsx
-â”‚   â”‚   â”œâ”€â”€ room/_components/pixel-room.tsx
-â”‚   â”‚   â”œâ”€â”€ planner/_components/weekly-calendar.tsx
-â”‚   â”‚   â”œâ”€â”€ analytics/_components/analytics-dashboard.tsx
-â”‚   â”‚   â”œâ”€â”€ settings/_components/subjects-manager.tsx
-â”‚   â”‚   â”œâ”€â”€ settings/_components/pet-selector.tsx
-â”‚   â”‚   â”œâ”€â”€ layout.tsx                 â€” Protected app shell
-â”‚   â”‚   â”œâ”€â”€ page.tsx                   â€” Dashboard
-â”‚   â”‚   â”œâ”€â”€ loading.tsx                â€” Loading spinner
-â”‚   â”‚   â””â”€â”€ error.tsx                  â€” Error boundary
-â”‚   â”œâ”€â”€ auth/callback/route.ts         â€” Auth callback handler
-â”‚   â”œâ”€â”€ page.tsx                       â€” Landing page (marketing)
-â”‚   â”œâ”€â”€ not-found.tsx                  â€” 404 page
-â”‚   â”œâ”€â”€ layout.tsx                     â€” Root layout
-â”‚   â””â”€â”€ globals.css                    â€” Tailwind + pixel font + utilities
-â”œâ”€â”€ lib/
-â”‚   â”œâ”€â”€ supabase/server.ts             â€” Server Supabase client
-â”‚   â”œâ”€â”€ supabase/client.ts             â€” Browser Supabase client
-â”‚   â”œâ”€â”€ supabase/database.types.ts     â€” TypeScript DB types
-â”‚   â”œâ”€â”€ sm2.ts                         â€” SM-2 spaced repetition algorithm
-â”‚   â”œâ”€â”€ pokeapi.ts                     â€” PokÃ©API integration
-â”‚   â””â”€â”€ gamification.ts                â€” Level/XP utility functions
-â”œâ”€â”€ proxy.ts                           â€” Auth middleware (session refresh + route protection)
++¦¦ app/
+-   +¦¦ (auth)/
+-   -   +¦¦ _actions/auth.ts          — Login/signup/signout server actions
+-   -   +¦¦ login/page.tsx             — Login page
+-   -   +¦¦ signup/page.tsx            — Signup page
+-   -   L¦¦ layout.tsx                 — Auth layout
+-   +¦¦ (protected)/app/
+-   -   +¦¦ _actions/
+-   -   -   +¦¦ feynman.ts            — AI evaluation + card creation
+-   -   -   +¦¦ autocomplete.ts       — Inline suggestion for Feynman editor
+-   -   -   +¦¦ review.ts             — SM-2 review + delete card
+-   -   -   +¦¦ subjects.ts           — Subject/topic CRUD
+-   -   -   +¦¦ planner.ts            — Weekly plan generation
+-   -   -   +¦¦ room.ts               — Pixel room state + PokéAPI
+-   -   -   +¦¦ research.ts           — AI research desk
+-   -   -   +¦¦ analytics.ts          — Stats aggregation
+-   -   -   +¦¦ gamification.ts       — XP/coins/pet rewards
+-   -   -   L¦¦ quotes.ts             — Daily motivational quote
+-   -   +¦¦ _components/
+-   -   -   +¦¦ sidebar.tsx            — Navigation sidebar
+-   -   -   +¦¦ page-header.tsx        — Reusable page header
+-   -   -   L¦¦ music-player.tsx       — Lo-fi music player
+-   -   +¦¦ feynman/_components/feynman-editor.tsx
+-   -   +¦¦ review/_components/review-session.tsx
+-   -   +¦¦ research/_components/research-desk.tsx
+-   -   +¦¦ room/_components/pixel-room.tsx
+-   -   +¦¦ planner/_components/weekly-calendar.tsx
+-   -   +¦¦ analytics/_components/analytics-dashboard.tsx
+-   -   +¦¦ settings/_components/subjects-manager.tsx
+-   -   +¦¦ settings/_components/pet-selector.tsx
+-   -   +¦¦ layout.tsx                 — Protected app shell
+-   -   +¦¦ page.tsx                   — Dashboard
+-   -   +¦¦ loading.tsx                — Loading spinner
+-   -   L¦¦ error.tsx                  — Error boundary
+-   +¦¦ auth/callback/route.ts         — Auth callback handler
+-   +¦¦ page.tsx                       — Landing page (marketing)
+-   +¦¦ not-found.tsx                  — 404 page
+-   +¦¦ layout.tsx                     — Root layout
+-   L¦¦ globals.css                    — Tailwind + pixel font + utilities
++¦¦ lib/
+-   +¦¦ supabase/server.ts             — Server Supabase client
+-   +¦¦ supabase/client.ts             — Browser Supabase client
+-   +¦¦ supabase/database.types.ts     — TypeScript DB types
+-   +¦¦ sm2.ts                         — SM-2 spaced repetition algorithm
+-   +¦¦ pokeapi.ts                     — PokéAPI integration
+-   L¦¦ gamification.ts                — Level/XP utility functions
++¦¦ proxy.ts                           — Auth middleware (session refresh + route protection)
 supabase/
-â”œâ”€â”€ migrations/001_initial_schema.sql  â€” Full database schema
-â””â”€â”€ seed.sql                           â€” Dev seed data template
++¦¦ migrations/001_initial_schema.sql  — Full database schema
+L¦¦ seed.sql                           — Dev seed data template
 public/
-â”œâ”€â”€ fonts/sprout-lands.ttf             â€” Pixel font
-â””â”€â”€ sprites/ui/                        â€” Sprout Lands UI sprites
++¦¦ fonts/sprout-lands.ttf             — Pixel font
+L¦¦ sprites/ui/                        — Sprout Lands UI sprites
 assets/
-â”œâ”€â”€ lpc/                               â€” LPC sprites (CC BY-SA/GPL)
-â”œâ”€â”€ cc0/                               â€” CC0 assets (Kenney, fonts)
-â””â”€â”€ custom/                            â€” Custom assets
++¦¦ lpc/                               — LPC sprites (CC BY-SA/GPL)
++¦¦ cc0/                               — CC0 assets (Kenney, fonts)
+L¦¦ custom/                            — Custom assets
 ```
 
 ---
 
 ## Known Issues / TODO for Next Session
 
-1. **Pixel Room background** â€” Currently CSS-drawn (ugly). Need to download Sprout Lands environment tileset or another proper pixel room background.
-2. **Research Desk JSON parsing** â€” Sometimes fails on complex AI responses. Fixed with fallback parser but occasionally drops suggested cards.
-3. **Semantic Scholar** â€” Rate limits on first request. Switched to Open Library + Wikipedia as primary sources. Could add Semantic Scholar API key for higher limits.
-4. **Music player streams** â€” Some streams may go offline. Need fallback handling.
-5. **Autocomplete fires too eagerly** â€” May burn through Groq rate limits if user types a lot.
-6. **No card editing** â€” Can only save all suggested cards or none. Should allow individual card editing before saving.
-7. **No history** â€” Can't see past Feynman explanations or research sessions.
-8. **Phase 11 (Parties)** â€” Skipped. Needs schema migration for `parties`, `party_members`, `party_quests`.
-9. **Phase 12 (Full RAG)** â€” Skipped. Needs PDF parsing pipeline.
-10. **Avatar system** â€” Only pet works. Avatar is still a placeholder.
+1. **Pixel Room background** — Currently CSS-drawn (ugly). Need to download Sprout Lands environment tileset or another proper pixel room background.
+2. **Research Desk JSON parsing** — Sometimes fails on complex AI responses. Fixed with fallback parser but occasionally drops suggested cards.
+3. **Semantic Scholar** — Rate limits on first request. Switched to Open Library + Wikipedia as primary sources. Could add Semantic Scholar API key for higher limits.
+4. **Music player streams** — Some streams may go offline. Need fallback handling.
+5. **Autocomplete fires too eagerly** — May burn through Groq rate limits if user types a lot.
+6. **No card editing** — Can only save all suggested cards or none. Should allow individual card editing before saving.
+7. **No history** — Can't see past Feynman explanations or research sessions.
+8. **Phase 11 (Parties)** — Skipped. Needs schema migration for `parties`, `party_members`, `party_quests`.
+9. **Phase 12 (Full RAG)** — Skipped. Needs PDF parsing pipeline.
+10. **Avatar system** — Only pet works. Avatar is still a placeholder.
 
 ---
 
 ## How to Continue
 
-1. `npm run dev` â€” starts the app at localhost:3000
+1. `npm run dev` — starts the app at localhost:3000
 2. Sign in with your existing account
-3. Go to Settings â†’ choose a PokÃ©mon pet
-4. Try Feynman Mode â†’ explain a topic â†’ review cards
+3. Go to Settings › choose a Pokémon pet
+4. Try Feynman Mode › explain a topic › review cards
 5. Check Pixel Room for missions and pet status
-6. Research Desk â†’ ask any research question
+6. Research Desk › ask any research question
 
 Next priorities:
 - Download proper room tileset (Sprout Lands environment pack from Cup Nooble)
@@ -360,15 +360,15 @@ Next priorities:
 
 ---
 
-# Session 2 â€” June 16, 2026 (Afternoon)
+# Session 2 — June 16, 2026 (Afternoon)
 
 ## Overview
 
-Implemented Phase 11 (Social & Parties) and Phase 12 (Full RAG Research Desk) from spec to working features in a single session. Both features went through full spec-driven development: requirements â†’ design â†’ task list â†’ implementation â†’ debugging.
+Implemented Phase 11 (Social & Parties) and Phase 12 (Full RAG Research Desk) from spec to working features in a single session. Both features went through full spec-driven development: requirements › design › task list › implementation › debugging.
 
 ---
 
-## Phase 11 â€” Social & Parties âœ…
+## Phase 11 — Social & Parties ?
 
 **Goal:** Cooperative study groups with shared quests, cheers, messages, and "help me" mechanics.
 
@@ -380,23 +380,23 @@ Implemented Phase 11 (Social & Parties) and Phase 12 (Full RAG Research Desk) fr
   - UNIQUE constraint on `party_members.user_id` (one party per user)
 
 ### Server Actions (4 modules)
-- `_actions/party.ts` â€” createParty, joinPartyByCode, joinPartyPublic, leaveParty, discoverParties, getPartyState
-- `_actions/party-quests.ts` â€” generateWeeklyQuests, archiveExpiredQuests, advanceWeeklyCycle, incrementQuestProgress, checkAndGenerateHelpQuests, getActiveQuests
-- `_actions/party-social.ts` â€” sendMessage, getMessages, sendCheer, getCheers (with rate limiting, blocklist)
-- `_actions/party-admin.ts` â€” updatePartySettings, removeMember, regenerateInviteCode, disbandParty
-- `_actions/party-presence.ts` â€” getPartyPresence (polling-based, 60s refresh)
+- `_actions/party.ts` — createParty, joinPartyByCode, joinPartyPublic, leaveParty, discoverParties, getPartyState
+- `_actions/party-quests.ts` — generateWeeklyQuests, archiveExpiredQuests, advanceWeeklyCycle, incrementQuestProgress, checkAndGenerateHelpQuests, getActiveQuests
+- `_actions/party-social.ts` — sendMessage, getMessages, sendCheer, getCheers (with rate limiting, blocklist)
+- `_actions/party-admin.ts` — updatePartySettings, removeMember, regenerateInviteCode, disbandParty
+- `_actions/party-presence.ts` — getPartyPresence (polling-based, 60s refresh)
 
 ### UI Components
-- `/app/party/page.tsx` â€” server component routing between discovery and member views
-- `party-discovery.tsx` â€” public party browser + create form + invite code join
-- `create-party-form.tsx` â€” name validation, visibility toggle, invite code display
-- `party-page.tsx` â€” main party view with all sections
-- `party-members.tsx` â€” avatar circles, presence dots, contribution counts
-- `party-quests.tsx` â€” progress bars (regular + help quests with distinct styling)
-- `party-messages.tsx` â€” message feed + send form with character counter
-- `party-cheers.tsx` â€” Lucide icon emoji buttons + weekly totals
-- `party-admin.tsx` â€” settings, member management, disband with double-confirm
-- `party-presence-indicator.tsx` â€” 16Ã—16 avatars in Pixel Room
+- `/app/party/page.tsx` — server component routing between discovery and member views
+- `party-discovery.tsx` — public party browser + create form + invite code join
+- `create-party-form.tsx` — name validation, visibility toggle, invite code display
+- `party-page.tsx` — main party view with all sections
+- `party-members.tsx` — avatar circles, presence dots, contribution counts
+- `party-quests.tsx` — progress bars (regular + help quests with distinct styling)
+- `party-messages.tsx` — message feed + send form with character counter
+- `party-cheers.tsx` — Lucide icon emoji buttons + weekly totals
+- `party-admin.tsx` — settings, member management, disband with double-confirm
+- `party-presence-indicator.tsx` — 16×16 avatars in Pixel Room
 
 ### Integrations
 - Sidebar nav updated with "Party" link (Users icon)
@@ -405,14 +405,14 @@ Implemented Phase 11 (Social & Parties) and Phase 12 (Full RAG Research Desk) fr
 - Profile form made functional (was disabled placeholders)
 
 ### Key Fixes During Implementation
-- RLS infinite recursion â†’ solved with `SECURITY DEFINER` function `get_user_party_id()`
+- RLS infinite recursion › solved with `SECURITY DEFINER` function `get_user_party_id()`
 - `last_help_check_at` default changed from `now()` to `NULL`
 - Owner-can-remove-members DELETE policy added
-- Cheers switched from native emojis â†’ Lucide icons (Flame, Star, ThumbsUp, Heart, Rocket, Sparkles)
+- Cheers switched from native emojis › Lucide icons (Flame, Star, ThumbsUp, Heart, Rocket, Sparkles)
 
 ---
 
-## Phase 12 â€” Full RAG Research Desk âœ…
+## Phase 12 — Full RAG Research Desk ?
 
 **Goal:** Upload PDFs, parse/chunk/store them, and ask questions with cited answers grounded in paper content.
 
@@ -425,33 +425,33 @@ Implemented Phase 11 (Social & Parties) and Phase 12 (Full RAG Research Desk) fr
   - `papers` storage bucket with user-scoped RLS
 
 ### Pipeline Modules (`_actions/rag/`)
-- `parser.ts` â€” PDF text extraction via `pdf-parse` (lazy-loaded to avoid DOMMatrix issues), heading detection, 60s timeout
-- `chunker.ts` â€” 256-512 token chunks with 12% overlap, heading-aware splitting, undersized final chunk merging
-- `embedder.ts` â€” **Dual-mode**: OpenAI embeddings when `OPENAI_API_KEY` set, returns null[] otherwise (free FTS fallback)
-- `validation.ts` â€” 7 pure validation functions (upload, URL, question, cards, Feynman, paper state, extracted text)
+- `parser.ts` — PDF text extraction via `pdf-parse` (lazy-loaded to avoid DOMMatrix issues), heading detection, 60s timeout
+- `chunker.ts` — 256-512 token chunks with 12% overlap, heading-aware splitting, undersized final chunk merging
+- `embedder.ts` — **Dual-mode**: OpenAI embeddings when `OPENAI_API_KEY` set, returns null[] otherwise (free FTS fallback)
+- `validation.ts` — 7 pure validation functions (upload, URL, question, cards, Feynman, paper state, extracted text)
 
 ### Server Actions (`_actions/rag.ts`)
-- `ingestPdf(formData)` â€” upload â†’ storage â†’ parse â†’ chunk â†’ embed â†’ store
-- `ingestFromUrl(url, paperId?)` â€” download with 30s timeout â†’ same pipeline
-- `queryRag(question, scope)` â€” **Dual-mode retrieval**:
-  - With OPENAI_API_KEY: embed query â†’ `match_paper_chunks` RPC â†’ pgvector cosine similarity
-  - Without: Groq keyword extraction â†’ Postgres full-text search on `content_tsv`
+- `ingestPdf(formData)` — upload › storage › parse › chunk › embed › store
+- `ingestFromUrl(url, paperId?)` — download with 30s timeout › same pipeline
+- `queryRag(question, scope)` — **Dual-mode retrieval**:
+  - With OPENAI_API_KEY: embed query › `match_paper_chunks` RPC › pgvector cosine similarity
+  - Without: Groq keyword extraction › Postgres full-text search on `content_tsv`
   - Both feed top chunks to Groq/OpenRouter for synthesis with citations
-- `getIngestionStatus(paperId)` â€” parse_status polling
-- `retryIngestion(paperId)` â€” reset to pending, re-run pipeline
-- `deleteFullPaper(paperId)` â€” chunks + storage + record deletion
-- `getUserPapers()` â€” list with RAG-specific fields
-- `generateSuggestedQuestions(paperId)` â€” Groq generates 5 questions from paper content
+- `getIngestionStatus(paperId)` — parse_status polling
+- `retryIngestion(paperId)` — reset to pending, re-run pipeline
+- `deleteFullPaper(paperId)` — chunks + storage + record deletion
+- `getUserPapers()` — list with RAG-specific fields
+- `generateSuggestedQuestions(paperId)` — Groq generates 5 questions from paper content
 
 ### UI Components
-- `research-mode-toggle.tsx` â€” "From web sources" / "From your papers" tabs
-- `paper-upload.tsx` â€” drag-and-drop + URL input with client validation
-- `paper-library.tsx` â€” status badges, retry/delete/parse buttons
-- `ingestion-progress.tsx` â€” polling progress indicator (3s interval)
-- `rag-query-panel.tsx` â€” question textarea + scope selector + suggested questions
-- `rag-answer-display.tsx` â€” inline citation superscripts + expandable citations panel
-- `card-from-rag.tsx` â€” suggested flashcards with save-all/save-individual
-- `send-to-feynman.tsx` â€” selection-based navigation to Feynman mode
+- `research-mode-toggle.tsx` — "From web sources" / "From your papers" tabs
+- `paper-upload.tsx` — drag-and-drop + URL input with client validation
+- `paper-library.tsx` — status badges, retry/delete/parse buttons
+- `ingestion-progress.tsx` — polling progress indicator (3s interval)
+- `rag-query-panel.tsx` — question textarea + scope selector + suggested questions
+- `rag-answer-display.tsx` — inline citation superscripts + expandable citations panel
+- `card-from-rag.tsx` — suggested flashcards with save-all/save-individual
+- `send-to-feynman.tsx` — selection-based navigation to Feynman mode
 
 ### Key Design Decisions
 - **Dual-mode retrieval**: Free Postgres FTS for dev, OpenAI pgvector for hackathon (one env var flip)
@@ -460,7 +460,7 @@ Implemented Phase 11 (Social & Parties) and Phase 12 (Full RAG Research Desk) fr
 - **Suggested questions from paper content**: Auto-generated via Groq after indexing
 
 ### Key Fixes During Implementation
-- `pdf-parse` v2 â†’ downgraded to v1 (canvas polyfill issues)
+- `pdf-parse` v2 › downgraded to v1 (canvas polyfill issues)
 - Lazy dynamic import to avoid module evaluation side effects
 - Created `test/data/05-versions-space.pdf` dummy for pdf-parse self-test
 - Removed exported sync functions from "use server" file (must be async)
@@ -471,9 +471,9 @@ Implemented Phase 11 (Social & Parties) and Phase 12 (Full RAG Research Desk) fr
 
 ## Additional Improvements
 
-- **`src/lib/supabase/admin.ts`** â€” service role client for cross-user queries (party co-member profiles, study session presence)
-- **`settings/_components/profile-form.tsx`** â€” functional display name + ADHD mode form (was disabled)
-- **`.env.example`** â€” documents all env vars including optional OPENAI_API_KEY
+- **`src/lib/supabase/admin.ts`** — service role client for cross-user queries (party co-member profiles, study session presence)
+- **`settings/_components/profile-form.tsx`** — functional display name + ADHD mode form (was disabled)
+- **`.env.example`** — documents all env vars including optional OPENAI_API_KEY
 - **`vitest.config.ts`** + test scripts added to package.json
 - **Parser and chunker unit tests** with Vitest
 
@@ -481,7 +481,7 @@ Implemented Phase 11 (Social & Parties) and Phase 12 (Full RAG Research Desk) fr
 
 ## Files Created/Modified
 
-### New Files (Phase 11 â€” Party)
+### New Files (Phase 11 — Party)
 ```
 supabase/migrations/002_social_parties.sql
 src/app/(protected)/app/_actions/party.ts
@@ -503,7 +503,7 @@ src/lib/supabase/admin.ts
 src/app/(protected)/app/settings/_components/profile-form.tsx
 ```
 
-### New Files (Phase 12 â€” RAG)
+### New Files (Phase 12 — RAG)
 ```
 supabase/migrations/003_rag_extensions.sql
 supabase/migrations/003b_storage_bucket.sql
@@ -558,8 +558,8 @@ package.json (pdf-parse, vitest, fast-check, test scripts)
 ## How to Continue
 
 1. Run migrations in Supabase SQL Editor (003_rag_extensions.sql, 003b_storage_bucket.sql) if not done
-2. `npm run dev` â†’ test Party at `/app/party`, RAG at `/app/research` (toggle to "From your papers")
-3. Upload a PDF â†’ ask questions about it
+2. `npm run dev` › test Party at `/app/party`, RAG at `/app/research` (toggle to "From your papers")
+3. Upload a PDF › ask questions about it
 4. When ready for hackathon: add `OPENAI_API_KEY` to `.env.local` for vector search upgrade
 
 ---
@@ -569,61 +569,61 @@ package.json (pdf-parse, vitest, fast-check, test scripts)
 
 ---
 
-## Session 2 â€” Polish Wave (continued)
+## Session 2 — Polish Wave (continued)
 
-### Card Editing Before Save âœ…
+### Card Editing Before Save ?
 - Replaced "Save All Cards" in Feynman editor with per-card edit/accept/reject
-- Each card has Edit (pencil) and Accept/Reject (âœ“/âœ•) buttons
-- Cards default to selected (green border), click âœ• to reject
+- Each card has Edit (pencil) and Accept/Reject (?/?) buttons
+- Cards default to selected (green border), click ? to reject
 - Inline editing for front/back text
 - "Save Selected (N)" counter with disabled state when 0 selected
 - Component: `SuggestedCardsEditor` in `feynman-editor.tsx`
 
-### Interleaved Study Sessions âœ…
+### Interleaved Study Sessions ?
 - New `/app/study` route ("Study Mix" in sidebar with Shuffle icon)
 - Server action `study-session.ts` generates mixed queue:
   - Up to 5 due flashcards
   - Up to 3 stale Feynman topics (no explanation in 7 days)
   - Up to 2 RAG questions from indexed papers
-- Interleaves in pattern: card â†’ feynman â†’ card â†’ rag â†’ card â†’ feynman...
+- Interleaves in pattern: card › feynman › card › rag › card › feynman...
 - Client component with progress bar, type badges, and per-item views:
-  - Flashcard: reveal â†’ grade (SM-2 inline)
+  - Flashcard: reveal › grade (SM-2 inline)
   - Feynman: prompt + link to Feynman Mode
   - RAG: question + link to Research Desk
 - Session complete screen with stats (cards reviewed, topics prompted, questions explored)
 
-### Better Loading States âœ…
-- Feynman evaluation: animated 4-step progress (reading â†’ questioning â†’ gaps â†’ cards)
-- RAG query: animated 4-step progress (keywords â†’ searching â†’ synthesizing â†’ cards)
+### Better Loading States ?
+- Feynman evaluation: animated 4-step progress (reading › questioning › gaps › cards)
+- RAG query: animated 4-step progress (keywords › searching › synthesizing › cards)
 - Steps animate sequentially with checkmarks as they "complete"
 
-### View Transitions âœ…
+### View Transitions ?
 - Enabled `viewTransition: true` in `next.config.ts`
 - Added CSS keyframes for cross-fade (fade-out + slide-up, fade-in + slide-down)
 - Respects `prefers-reduced-motion` for accessibility
 - All sidebar navigation now smoothly cross-fades between routes
 
-### Micro-Interactions âœ…
+### Micro-Interactions ?
 - `XpToast` component: floating "+XP / +coins" that drifts up and fades out (2s)
 - `SuccessCheck` component: centered green checkmark pop-in with message (3s auto-hide)
 - CSS animations: `float-up-fade`, `pop-in`, `shake-happy`
 - All respect `prefers-reduced-motion`
 
-### Suggested Questions for RAG âœ…
+### Suggested Questions for RAG ?
 - After paper indexing, Groq generates 5 clickable question chips
 - Displayed as amber pill buttons above the query input
 - Regenerate when user switches paper/scope in dropdown
-- Click a question â†’ immediately queries RAG with that question
+- Click a question › immediately queries RAG with that question
 
 ---
 
 ## Remaining Polish (Not Yet Done)
 
-1. **Empty states** â€” Study Mix, Paper Library, Analytics with sparse data
-2. **RAG low-text guidance** â€” "This PDF may be image-heavy" messaging
-3. **Pixel Room tileset** â€” Proper Sprout Lands environment (still CSS-drawn)
-4. **8-bit sound effects** â€” Web Audio API with mute toggle
-5. **Inline XP/success animations wired into actual flows** â€” Components exist, need to be used in Feynman/Review/Research
+1. **Empty states** — Study Mix, Paper Library, Analytics with sparse data
+2. **RAG low-text guidance** — "This PDF may be image-heavy" messaging
+3. **Pixel Room tileset** — Proper Sprout Lands environment (still CSS-drawn)
+4. **8-bit sound effects** — Web Audio API with mute toggle
+5. **Inline XP/success animations wired into actual flows** — Components exist, need to be used in Feynman/Review/Research
 
 ---
 
@@ -632,39 +632,39 @@ package.json (pdf-parse, vitest, fast-check, test scripts)
 
 ---
 
-# Session 3 â€” June 17, 2026
+# Session 3 — June 17, 2026
 
 ## Overview
 
-Massive feature session: final polish pass, Video Study Room (full spec â†’ implementation), History & Journals page, 8-bit sound effects, project rebrand to "Nora", Vercel deployment, and various bugfixes.
+Massive feature session: final polish pass, Video Study Room (full spec › implementation), History & Journals page, 8-bit sound effects, project rebrand to "Nora", Vercel deployment, and various bugfixes.
 
 ---
 
-## Final Polish Pass âœ…
+## Final Polish Pass ?
 
 ### Empty States
-- **Study Mix** (`/app/study`) â€” Low-diversity hint when queue has â‰¤2 modalities; full empty state with action cards linking to Feynman, flashcards, Research
-- **Analytics** (`/app/analytics`) â€” "Not enough data yet" message when fewer than 3 days of history; still shows stat cards below
-- **Review** (`/app/review`) â€” Enhanced empty state: green CheckCircle, "All caught up!" messaging, links to Feynman and Research
-- **Research â†’ Papers** â€” Improved paper library empty state with richer guidance
+- **Study Mix** (`/app/study`) — Low-diversity hint when queue has ?2 modalities; full empty state with action cards linking to Feynman, flashcards, Research
+- **Analytics** (`/app/analytics`) — "Not enough data yet" message when fewer than 3 days of history; still shows stat cards below
+- **Review** (`/app/review`) — Enhanced empty state: green CheckCircle, "All caught up!" messaging, links to Feynman and Research
+- **Research › Papers** — Improved paper library empty state with richer guidance
 
 ### Reward Feedback Wiring
-- **Feynman evaluation complete** â†’ XpToast (+15 XP, +5 coins)
-- **Cards saved from Feynman** â†’ SuccessCheck ("Cards saved to your deck!")
-- **Card review graded** â†’ XpToast (+3 XP/+1 coin for grade â‰¥ 3, +1 XP for grade < 3)
-- **Review session complete** â†’ XpToast (+10 XP, +3 coins) + SuccessCheck
-- **Study Mix session complete** â†’ XpToast + SuccessCheck
-- **Cards saved from RAG** â†’ SuccessCheck ("Cards saved from your papers!")
+- **Feynman evaluation complete** › XpToast (+15 XP, +5 coins)
+- **Cards saved from Feynman** › SuccessCheck ("Cards saved to your deck!")
+- **Card review graded** › XpToast (+3 XP/+1 coin for grade ? 3, +1 XP for grade < 3)
+- **Review session complete** › XpToast (+10 XP, +3 coins) + SuccessCheck
+- **Study Mix session complete** › XpToast + SuccessCheck
+- **Cards saved from RAG** › SuccessCheck ("Cards saved from your papers!")
 
 ### Low-Text PDF Guidance
 - Papers with `parseStatus: "ready"` and 1-2 chunks show amber warning: "This document may be image-heavy."
 
 ### 8-Bit Sound Effects
-- Created `src/lib/sfx.ts` â€” Web Audio API oscillator-based sounds:
-  - `playXpGained()` â€” ascending triangle-wave chirp (C5 â†’ E5 â†’ G5)
-  - `playCardSaved()` â€” short square-wave arpeggio
-  - `playSessionComplete()` â€” triumphant melody
-  - `playLevelUp()` â€” longer fanfare with sparkle overtone
+- Created `src/lib/sfx.ts` — Web Audio API oscillator-based sounds:
+  - `playXpGained()` — ascending triangle-wave chirp (C5 › E5 › G5)
+  - `playCardSaved()` — short square-wave arpeggio
+  - `playSessionComplete()` — triumphant melody
+  - `playLevelUp()` — longer fanfare with sparkle overtone
 - Sound suppression system (bigger sounds suppress smaller ones to avoid stacking)
 - Mute state persisted in localStorage with in-memory fallback
 - `SfxToggle` component in sidebar (Volume2/VolumeX icons)
@@ -677,9 +677,9 @@ Massive feature session: final polish pass, Video Study Room (full spec â†’ impl
 
 ---
 
-## Video Study Room (Phase 14) âœ…
+## Video Study Room (Phase 14) ?
 
-**Full spec-driven development: Requirements â†’ Design â†’ Tasks â†’ Implementation**
+**Full spec-driven development: Requirements › Design › Tasks › Implementation**
 
 ### Spec Files Created
 ```
@@ -697,53 +697,53 @@ Massive feature session: final polish pass, Video Study Room (full spec â†’ impl
   - Extended `study_sessions` with `mode: 'video'`
 
 ### Server Actions (`_actions/study-room.ts` + sub-modules)
-- `searchVideos()` â€” Two-step YouTube API pipeline: search.list â†’ videos.list â†’ heuristic scoring
-- `loadVideo()` â€” UPSERT video record for user
-- `fetchTranscript()` â€” Cache-first transcript retrieval (YouTube captions â†’ Whisper fallback)
-- `generateNotes()` â€” Transcript slicing + Groq LLM â†’ structured notes with timestamp citations
-- `saveNote()` / `getVideoNotes()` â€” CRUD for timestamped notes
-- `saveVideoCards()` â€” Card creation with source_type 'video' + metadata
-- `evaluateWithTranscript()` â€” Feynman evaluation grounded in video transcript
-- `recordVideoSession()` â€” Study session tracking at 5-min cumulative play
-- `updateVideoTopic()` â€” Topic association for videos
+- `searchVideos()` — Two-step YouTube API pipeline: search.list › videos.list › heuristic scoring
+- `loadVideo()` — UPSERT video record for user
+- `fetchTranscript()` — Cache-first transcript retrieval (YouTube captions › Whisper fallback)
+- `generateNotes()` — Transcript slicing + Groq LLM › structured notes with timestamp citations
+- `saveNote()` / `getVideoNotes()` — CRUD for timestamped notes
+- `saveVideoCards()` — Card creation with source_type 'video' + metadata
+- `evaluateWithTranscript()` — Feynman evaluation grounded in video transcript
+- `recordVideoSession()` — Study session tracking at 5-min cumulative play
+- `updateVideoTopic()` — Topic association for videos
 
 ### Sub-Modules
-- `search-heuristic.ts` â€” `scoreVideo()`, `filterAndRankVideos()`, `validateSearchQuery()`, `buildSearchQuery()`, `extractYouTubeId()`
-- `transcript-provider.ts` â€” TranscriptProvider interface, YouTubeCaptionProvider, WhisperProvider (stubbed)
-- `transcript-utils.ts` â€” `sliceTranscript()`, `parseTimeInput()`, `formatSeconds()`, `validateTimeRange()`, `buildNotePrompt()`
-- `note-completion.ts` â€” AI inline completion for note editor
+- `search-heuristic.ts` — `scoreVideo()`, `filterAndRankVideos()`, `validateSearchQuery()`, `buildSearchQuery()`, `extractYouTubeId()`
+- `transcript-provider.ts` — TranscriptProvider interface, YouTubeCaptionProvider, WhisperProvider (stubbed)
+- `transcript-utils.ts` — `sliceTranscript()`, `parseTimeInput()`, `formatSeconds()`, `validateTimeRange()`, `buildNotePrompt()`
+- `note-completion.ts` — AI inline completion for note editor
 
 ### UI Components (`study-room/_components/`)
-- `youtube-player.tsx` â€” YouTube IFrame API with seekTo/pause/play/getCurrentTime, 500ms time reporting
-- `video-search.tsx` â€” Debounced search with thumbnail grid results
-- `url-input.tsx` â€” Direct YouTube URL paste with validation
-- `time-range-selector.tsx` â€” MM:SS/HH:MM:SS inputs with "From here" button
-- `generated-notes.tsx` â€” AI summary, key concepts with timestamp badges, flashcard editor
-- `timestamp-mark.ts` â€” Custom Tiptap Mark extension (clickable [MM:SS] badges)
-- `note-editor.tsx` â€” Tiptap editor with auto-save, AI completions, TimestampMark support
-- `video-card-editor.tsx` â€” Per-card edit/accept/reject with timestamp badges
-- `feynman-video-prompt.tsx` â€” "Explain what you watched" after 60s playback
-- `topic-linker.tsx` â€” Topic association dropdown
-- `study-room-layout.tsx` â€” Split-panel responsive layout (60/40 desktop, stacked mobile)
+- `youtube-player.tsx` — YouTube IFrame API with seekTo/pause/play/getCurrentTime, 500ms time reporting
+- `video-search.tsx` — Debounced search with thumbnail grid results
+- `url-input.tsx` — Direct YouTube URL paste with validation
+- `time-range-selector.tsx` — MM:SS/HH:MM:SS inputs with "From here" button
+- `generated-notes.tsx` — AI summary, key concepts with timestamp badges, flashcard editor
+- `timestamp-mark.ts` — Custom Tiptap Mark extension (clickable [MM:SS] badges)
+- `note-editor.tsx` — Tiptap editor with auto-save, AI completions, TimestampMark support
+- `video-card-editor.tsx` — Per-card edit/accept/reject with timestamp badges
+- `feynman-video-prompt.tsx` — "Explain what you watched" after 60s playback
+- `topic-linker.tsx` — Topic association dropdown
+- `study-room-layout.tsx` — Split-panel responsive layout (60/40 desktop, stacked mobile)
 
 ### Page
-- `study-room/page.tsx` â€” Server component with topic loading + URL param handling (?video=xxx&t=yyy)
+- `study-room/page.tsx` — Server component with topic loading + URL param handling (?video=xxx&t=yyy)
 
 ### Integrations
 - Sidebar nav: "Study Room" with MonitorPlay icon
-- Card source navigation: video cards in review show "View in Study Room" badge â†’ navigates back
+- Card source navigation: video cards in review show "View in Study Room" badge › navigates back
 - XP toast for note generation, card save, Feynman completion, session recording
-- Cumulative play time tracking â†’ session record at 5 minutes
+- Cumulative play time tracking › session record at 5 minutes
 
 ### Dependencies Added
-- `youtube-transcript-plus` â€” Transcript extraction
-- `@tiptap/core`, `@tiptap/react`, `@tiptap/starter-kit`, `@tiptap/pm` â€” Rich text editor
+- `youtube-transcript-plus` — Transcript extraction
+- `@tiptap/core`, `@tiptap/react`, `@tiptap/starter-kit`, `@tiptap/pm` — Rich text editor
 
 ---
 
-## History & Journals âœ…
+## History & Journals ?
 
-- `/app/history` â€” Filterable timeline of past study activity
+- `/app/history` — Filterable timeline of past study activity
 - Server action `_actions/history.ts`: queries `feynman_explanations`, `notes` (with video JOIN), `study_sessions`
 - Client filter bar: Type chips (All/Feynman/Video/Research), Topic dropdown, Date range (7d/30d/90d/All)
 - Items grouped by date, expandable with full content + AI summary
@@ -753,7 +753,7 @@ Massive feature session: final polish pass, Video Study Room (full spec â†’ impl
 
 ---
 
-## Project Rebrand: Pixel Study OS â†’ Nora âœ…
+## Project Rebrand: Pixel Study OS › Nora ?
 
 - Tagline: "a softer way to study"
 - Updated: package.json, root layout metadata, sidebar branding, landing page, login/signup, 404, all OpenRouter X-Title headers
@@ -762,9 +762,9 @@ Massive feature session: final polish pass, Video Study Room (full spec â†’ impl
 
 ---
 
-## Vercel Deployment âœ…
+## Vercel Deployment ?
 
-- Deployed to: `https://nora-mu-six.vercel.app`
+- Deployed to: `https://norastudy.vercel.app`
 - GitHub repo connected: `https://github.com/lxcario/Nora`
 - Auto-deploys on push
 - All environment variables configured (Supabase, Groq, OpenRouter, YouTube API)
@@ -778,7 +778,7 @@ Massive feature session: final polish pass, Video Study Room (full spec â†’ impl
 - Fixed: uses admin client to bypass RLS for cascading delete, while still verifying ownership through normal auth
 
 ### Dashboard Stats Fix
-- Level, XP, Cards Due, Streak were hardcoded ("1", "0", "â€”", "0 days")
+- Level, XP, Cards Due, Streak were hardcoded ("1", "0", "—", "0 days")
 - Fixed: now fetches real data from profiles table, cards (due count), and calculates streak from consecutive activity days
 
 ---
@@ -786,7 +786,7 @@ Massive feature session: final polish pass, Video Study Room (full spec â†’ impl
 ## Git History (this session)
 
 ```
-28d141e feat: Nora â€” full study OS with Feynman, SM-2, RAG, Video Study Room, Parties, and Gamification
+28d141e feat: Nora — full study OS with Feynman, SM-2, RAG, Video Study Room, Parties, and Gamification
 c0fa0a5 feat: add History & Journals page with filterable timeline
 49031c1 fix: use admin client for party disband to bypass RLS on child tables
 0c947aa feat: add Nora cat logo as favicon and sidebar brand
@@ -800,7 +800,7 @@ c0fa0a5 feat: add History & Journals page with filterable timeline
 
 ## Current State
 
-- **Live at:** https://nora-mu-six.vercel.app
+- **Live at:** https://norastudy.vercel.app
 - **GitHub:** https://github.com/lxcario/Nora
 - **All features working:** Feynman, SM-2 Review, Study Mix, Research + RAG, Video Study Room, Party, Planner, Analytics, History, Gamification, SFX, Music Player
 - **Next up:** UI/visual overhaul to cozy pixel RPG aesthetic (requires pixel art sprite assets)
@@ -812,15 +812,15 @@ c0fa0a5 feat: add History & Journals page with filterable timeline
 
 ---
 
-# Session 4 â€” June 18, 2026
+# Session 4 — June 18, 2026
 
 ## Overview
 
-Deep UX audit of the entire app, followed by full implementation of all 24 improvement tasks across 3 sprints. Resolved the "split personality" problem â€” half the app was using legacy SaaS-white styling while the other half used the pixel-art theme. Every page now uses the pixel-ui design system consistently.
+Deep UX audit of the entire app, followed by full implementation of all 24 improvement tasks across 3 sprints. Resolved the "split personality" problem — half the app was using legacy SaaS-white styling while the other half used the pixel-art theme. Every page now uses the pixel-ui design system consistently.
 
 ---
 
-## Phase 1 â€” UX Audit (Analysis Only)
+## Phase 1 — UX Audit (Analysis Only)
 
 Conducted a full codebase read of all 15 pages, their _components subdirectories, the pixel-ui library, and utility files. Produced two deliverables:
 
@@ -837,19 +837,19 @@ Conducted a full codebase read of all 15 pages, their _components subdirectories
 - 10 Tone & Copy Consistency Rules
 
 ### Spec Documents
-- `requirements.md` â€” 7 functional + 5 non-functional requirements
-- `design.md` â€” PixelConfirmDialog spec, re-skin pattern table, grade button color mapping, layout changes
-- `tasks.md` â€” 24 tasks with files, steps, acceptance criteria
+- `requirements.md` — 7 functional + 5 non-functional requirements
+- `design.md` — PixelConfirmDialog spec, re-skin pattern table, grade button color mapping, layout changes
+- `tasks.md` — 24 tasks with files, steps, acceptance criteria
 
 ---
 
-## Phase 2 â€” Sprint 1: Pre-Demo (P0 Fixes) âœ…
+## Phase 2 — Sprint 1: Pre-Demo (P0 Fixes) ?
 
 | Task | Files | Change |
 |------|-------|--------|
 | UX-001 | `layout.tsx` | Rendered BottomNav for mobile navigation (was built but never mounted) |
-| UX-002 | `error.tsx` | Full rewrite â†’ DialogFrame + PixelButton (was lucide + indigo) |
-| UX-003 | `loading.tsx` | Full rewrite â†’ LoadingSkeleton (was Loader2 + indigo) |
+| UX-002 | `error.tsx` | Full rewrite › DialogFrame + PixelButton (was lucide + indigo) |
+| UX-003 | `loading.tsx` | Full rewrite › LoadingSkeleton (was Loader2 + indigo) |
 | UX-004 | `confirm-dialog.tsx`, `pixel-button.tsx`, `index.ts` | New PixelConfirmDialog + forwardRef on PixelButton |
 | UX-005 | `review-session.tsx` | Delete card now requires PixelConfirmDialog confirmation |
 | UX-006 | `review/page.tsx`, `review-session.tsx` | Full pixel-ui reskin (DialogFrame, PixelButton, PixelProgressBar, grade buttons with CSS vars) |
@@ -857,13 +857,13 @@ Conducted a full codebase read of all 15 pages, their _components subdirectories
 
 ---
 
-## Phase 3 â€” Sprint 2: Pre-Ship (P1 Fixes) âœ…
+## Phase 3 — Sprint 2: Pre-Ship (P1 Fixes) ?
 
 | Task | Files | Change |
 |------|-------|--------|
-| Task 8 | `party-discovery.tsx` | Full reskin â†’ DialogFrame, PixelButton, PixelInput, LoadingSkeleton, EmptyState |
-| Task 9 | `party-page.tsx` | Removed window.confirm â†’ PixelConfirmDialog, DialogFrame wrappers, sprite badges |
-| Task 10 | `analytics-dashboard.tsx` | Removed lucide â†’ sprite icons, pixel-panel stats, BarChartPixel, pixel heatmap |
+| Task 8 | `party-discovery.tsx` | Full reskin › DialogFrame, PixelButton, PixelInput, LoadingSkeleton, EmptyState |
+| Task 9 | `party-page.tsx` | Removed window.confirm › PixelConfirmDialog, DialogFrame wrappers, sprite badges |
+| Task 10 | `analytics-dashboard.tsx` | Removed lucide › sprite icons, pixel-panel stats, BarChartPixel, pixel heatmap |
 | Task 11 | `history-filters.tsx`, `history-list.tsx` | pixel-panel-inset filter chips, pixel-panel cards, EmptyState |
 | Task 12 | `weekly-calendar.tsx` | pixel-panel nav, PixelButton, pixel-panel-inset day cells, accent today |
 | Task 13 | `game-top-bar.tsx`, `collection/page.tsx` | Title tooltips on XP/coins, intro sentence |
@@ -871,7 +871,7 @@ Conducted a full codebase read of all 15 pages, their _components subdirectories
 
 ---
 
-## Phase 4 â€” Sprint 3: Polish (P2+P3) âœ…
+## Phase 4 — Sprint 3: Polish (P2+P3) ?
 
 | Task | Files | Change |
 |------|-------|--------|
@@ -880,15 +880,15 @@ Conducted a full codebase read of all 15 pages, their _components subdirectories
 | Task 17 | (already fixed) | Review stats simplified in Sprint 1 |
 | Task 18 | (already fixed) | LoadingSkeleton in Sprint 2 |
 | Task 19 | `planner/page.tsx` | EmptyState when week has no sessions/events |
-| Task 20 | `party/page.tsx`, `planner/page.tsx`, `history/page.tsx`, `room/page.tsx` | All red-text errors â†’ DialogFrame state="error" |
+| Task 20 | `party/page.tsx`, `planner/page.tsx`, `history/page.tsx`, `room/page.tsx` | All red-text errors › DialogFrame state="error" |
 | Task 21 | `feynman/page.tsx` | EmptyState component with action link |
 | Task 22 | `globals.css` | Pixel-themed range input (track + thumb styling) |
-| Task 23 | `game-sidebar.tsx` | forest_rescue â†’ "ðŸŒ² Lost in forest" in warning color |
+| Task 23 | `game-sidebar.tsx` | forest_rescue › "?? Lost in forest" in warning color |
 | Task 24 | `profile-popover.tsx` | Removed dead Settings/LogOut lucide imports |
 
 ---
 
-## Phase 5 â€” Per-Page Loading Skeletons âœ…
+## Phase 5 — Per-Page Loading Skeletons ?
 
 Created layout-matched `loading.tsx` for every page route. Each skeleton mirrors the exact structure of its page content:
 
@@ -943,7 +943,7 @@ src/app/(protected)/app/settings/loading.tsx
 ```
 src/app/(protected)/app/layout.tsx (BottomNav + mobile padding)
 src/app/(protected)/app/error.tsx (full rewrite)
-src/app/(protected)/app/loading.tsx (full rewrite â€” homepage skeleton)
+src/app/(protected)/app/loading.tsx (full rewrite — homepage skeleton)
 src/app/(protected)/app/review/page.tsx (pixel-ui reskin)
 src/app/(protected)/app/review/_components/review-session.tsx (full reskin + confirm dialog)
 src/app/(protected)/app/study/page.tsx (pixel-ui reskin)
@@ -957,7 +957,7 @@ src/app/(protected)/app/history/_components/history-list.tsx (full reskin)
 src/app/(protected)/app/history/page.tsx (error standardization)
 src/app/(protected)/app/planner/_components/weekly-calendar.tsx (full reskin)
 src/app/(protected)/app/planner/page.tsx (empty state + error fix)
-src/app/(protected)/app/feynman/_components/feynman-editor.tsx (button overrides â†’ PixelButton)
+src/app/(protected)/app/feynman/_components/feynman-editor.tsx (button overrides › PixelButton)
 src/app/(protected)/app/feynman/page.tsx (EmptyState)
 src/app/(protected)/app/room/page.tsx (error standardization)
 src/app/(protected)/app/collection/page.tsx (coins intro)
@@ -975,12 +975,12 @@ src/components/pixel-ui/pixel-button.tsx (forwardRef support)
 
 ## Key Outcomes
 
-1. **Split personality resolved** â€” No more bg-white/zinc/indigo pages. Every route uses pixel-ui exclusively.
-2. **Mobile navigation fixed** â€” BottomNav now renders on mobile (was built but never wired).
-3. **Destructive actions safe** â€” PixelConfirmDialog replaces all window.confirm() and unprotected deletes.
-4. **Error states cozy** â€” All raw red-text errors replaced with DialogFrame state="error" + warm copy.
-5. **Loading states branded** â€” Every page has a layout-matched LoadingSkeleton instead of generic spinners.
-6. **Gamification explained** â€” XP bar and coins now have tooltip explanations for new users.
+1. **Split personality resolved** — No more bg-white/zinc/indigo pages. Every route uses pixel-ui exclusively.
+2. **Mobile navigation fixed** — BottomNav now renders on mobile (was built but never wired).
+3. **Destructive actions safe** — PixelConfirmDialog replaces all window.confirm() and unprotected deletes.
+4. **Error states cozy** — All raw red-text errors replaced with DialogFrame state="error" + warm copy.
+5. **Loading states branded** — Every page has a layout-matched LoadingSkeleton instead of generic spinners.
+6. **Gamification explained** — XP bar and coins now have tooltip explanations for new users.
 
 ---
 
@@ -989,89 +989,89 @@ src/components/pixel-ui/pixel-button.tsx (forwardRef support)
 
 ---
 
-# Session â€” Evidence-Based Learning Core (June 18, 2026)
+# Session — Evidence-Based Learning Core (June 18, 2026)
 
 ## Overview
 
-Implemented the full `evidence-based-learning-core` spec â€” 20 tasks upgrading Nora's seven learning features from "correct but dated" to evidence-backed and grounded, based on `geminiresearch.md` (the pedagogical/technical audit). Worked strictly task-by-task with `npm test` + `npx tsc --noEmit` after each, plus a production `npm run build` at the end.
+Implemented the full `evidence-based-learning-core` spec — 20 tasks upgrading Nora's seven learning features from "correct but dated" to evidence-backed and grounded, based on `geminiresearch.md` (the pedagogical/technical audit). Worked strictly task-by-task with `npm test` + `npx tsc --noEmit` after each, plus a production `npm run build` at the end.
 
 **Final state:** 332 tests passing (22 files), 0 TypeScript errors, production build green (23 routes).
 
 ## What Was Built (by phase)
 
-### Phase 1 â€” FSRS Scheduling Foundation (Tasks 1â€“5)
+### Phase 1 — FSRS Scheduling Foundation (Tasks 1–5)
 - Added `ts-fsrs` (MIT, FSRS-6); `engines.node >= 20`.
-- `src/lib/fsrs.ts` â€” pure module: `scheduleReview`, `createNewFSRSCard`, `initFromSM2` (SM-2â†’FSRS backfill), re-exports `Rating`/`State`/`Grade`. Fuzz off for determinism.
-- `src/lib/due.ts` â€” timezone-safe `endOfUserLocalDay` / `isDueToday` via Intl (DUE-1).
-- Migration `010_fsrs_scheduling.sql` â€” additive FSRS columns + `idx_cards_due`.
-- `review.ts` â€” dual-write during transition; `getDueCards` timezone-aware.
-- `review-session.tsx` â€” 4-button Again/Hard/Good/Easy grading + intra-session relearning (Again re-queues).
+- `src/lib/fsrs.ts` — pure module: `scheduleReview`, `createNewFSRSCard`, `initFromSM2` (SM-2›FSRS backfill), re-exports `Rating`/`State`/`Grade`. Fuzz off for determinism.
+- `src/lib/due.ts` — timezone-safe `endOfUserLocalDay` / `isDueToday` via Intl (DUE-1).
+- Migration `010_fsrs_scheduling.sql` — additive FSRS columns + `idx_cards_due`.
+- `review.ts` — dual-write during transition; `getDueCards` timezone-aware.
+- `review-session.tsx` — 4-button Again/Hard/Good/Easy grading + intra-session relearning (Again re-queues).
 
-### Phase 2 â€” Hybrid RAG (Tasks 6â€“7)
-- Migration `012_hybrid_search.sql` â€” `match_paper_chunks_hybrid` (lexical `ts_rank_cd` + vector cosine, fused via RRF; NULL embedding â†’ ranked lexical-only).
-- `src/lib/rrf.ts` â€” pure RRF mirror + `rrf.test.ts`.
-- `rag.ts#queryRag` â€” routes through the hybrid RPC; `validateCitations` ensures every citation resolves to a retrieved chunk (RAG-1); removed chunkIndex=0 fallback.
+### Phase 2 — Hybrid RAG (Tasks 6–7)
+- Migration `012_hybrid_search.sql` — `match_paper_chunks_hybrid` (lexical `ts_rank_cd` + vector cosine, fused via RRF; NULL embedding › ranked lexical-only).
+- `src/lib/rrf.ts` — pure RRF mirror + `rrf.test.ts`.
+- `rag.ts#queryRag` — routes through the hybrid RPC; `validateCitations` ensures every citation resolves to a retrieved chunk (RAG-1); removed chunkIndex=0 fallback.
 
-### Phase 3 â€” Grounded Research Desk (Tasks 8â€“10)
-- `src/lib/academic-search/{openalex,crossref,unpaywall,types}.ts` â€” server-only clients, mailto/email from env, graceful no-key handling.
-- `research.ts` â€” OpenAlex (primary) + Crossref; "insufficient sources" branch; `validateResearchCitations` strips unsupported `[N]` markers (RESEARCH-1).
-- Migration `013_research_sources.sql` â€” `doi` + `oa_url` on papers; `ingestOpenAccessPdf` (Unpaywall â†’ SSRF check â†’ existing RAG pipeline).
+### Phase 3 — Grounded Research Desk (Tasks 8–10)
+- `src/lib/academic-search/{openalex,crossref,unpaywall,types}.ts` — server-only clients, mailto/email from env, graceful no-key handling.
+- `research.ts` — OpenAlex (primary) + Crossref; "insufficient sources" branch; `validateResearchCitations` strips unsupported `[N]` markers (RESEARCH-1).
+- Migration `013_research_sources.sql` — `doi` + `oa_url` on papers; `ingestOpenAccessPdf` (Unpaywall › SSRF check › existing RAG pipeline).
 
-### Phase 4 â€” Grounded Feynman (Tasks 11â€“12)
-- Migration `014_feynman_source_attachment.sql` â€” `feynman_source_ref` JSONB on topics.
-- `feynman.ts` â€” source attachment actions; `evaluateExplanation` grades against retrieved passages (paper via hybrid RPC / notes / transcript), citing passage ids; "unverified" badge when no source. `src/lib/feynman-grounding.ts` pure helpers.
+### Phase 4 — Grounded Feynman (Tasks 11–12)
+- Migration `014_feynman_source_attachment.sql` — `feynman_source_ref` JSONB on topics.
+- `feynman.ts` — source attachment actions; `evaluateExplanation` grades against retrieved passages (paper via hybrid RPC / notes / transcript), citing passage ids; "unverified" badge when no source. `src/lib/feynman-grounding.ts` pure helpers.
 
-### Phase 5 â€” Evidence-Aware Study Mix (Tasks 13â€“15)
-- Migration `011_material_type.sql` â€” `material_type` on topics; Settings selector.
-- `src/lib/study-mix.ts#buildQueue` â€” vocab blocked (MIX-1), non-vocab interleaved by subject + weakness (MIX-2); wired into `study-session.ts`.
+### Phase 5 — Evidence-Aware Study Mix (Tasks 13–15)
+- Migration `011_material_type.sql` — `material_type` on topics; Settings selector.
+- `src/lib/study-mix.ts#buildQueue` — vocab blocked (MIX-1), non-vocab interleaved by subject + weakness (MIX-2); wired into `study-session.ts`.
 
-### Phase 6 â€” Spacing-Aware Planner (Tasks 16â€“18)
-- `src/lib/spacing.ts` â€” Cepeda ridgeline `optimalGapDays`, `examRetention`, `distributeSessions` (SPACING-1).
-- `planner.ts` â€” sessions distributed with expanding gaps; near-exam subjects get `request_retention` 0.95.
+### Phase 6 — Spacing-Aware Planner (Tasks 16–18)
+- `src/lib/spacing.ts` — Cepeda ridgeline `optimalGapDays`, `examRetention`, `distributeSessions` (SPACING-1).
+- `planner.ts` — sessions distributed with expanding gaps; near-exam subjects get `request_retention` 0.95.
 - Migration `015_planner_skips.sql` + `markSessionMissed` forward-fill (`nextFreeDate`).
 
-### Phase 7 â€” Cleanup & Docs (Tasks 19â€“20)
-- Migration `016_drop_sm2_columns.sql` â€” drops `interval/repetition/efactor/next_review_at` after backfill; `due` made NOT NULL.
+### Phase 7 — Cleanup & Docs (Tasks 19–20)
+- Migration `016_drop_sm2_columns.sql` — drops `interval/repetition/efactor/next_review_at` after backfill; `due` made NOT NULL.
 - `review.ts` rewritten FSRS-only; SM-2 references removed from planner/room/study-session/review-session.
 - README + `.env.example` rewritten (FSRS, academic APIs, hybrid RAG, optional Docling/Ragas, full migration list).
 
 ## Notable Fixes
-- **fast-check v4** requires 32-bit float bounds â†’ `Math.fround`.
-- **FSRS new-card sentinel** (stability/difficulty 0) â†’ relaxed migration CHECK to `>= 0`, split FSRS-2 property test.
-- **supabase-js literal selects** â€” string concatenation degrades to `GenericStringError`; kept select strings literal.
-- **SQL function type** â€” `1.0 / x` is `numeric`; cast `rrf_score` to `double precision` (012).
-- **Next.js 16 server-action rule** â€” `"use server"` files may export only async functions. Moved `validateResearchCitations` â†’ `lib/research-citations.ts`, `MaterialType`/`MATERIAL_TYPE_LABELS` â†’ `lib/material-type.ts`, `nextFreeDate` â†’ `lib/planner-scheduling.ts`. (Caught only at build time, not by tsc.)
+- **fast-check v4** requires 32-bit float bounds › `Math.fround`.
+- **FSRS new-card sentinel** (stability/difficulty 0) › relaxed migration CHECK to `>= 0`, split FSRS-2 property test.
+- **supabase-js literal selects** — string concatenation degrades to `GenericStringError`; kept select strings literal.
+- **SQL function type** — `1.0 / x` is `numeric`; cast `rrf_score` to `double precision` (012).
+- **Next.js 16 server-action rule** — `"use server"` files may export only async functions. Moved `validateResearchCitations` › `lib/research-citations.ts`, `MaterialType`/`MATERIAL_TYPE_LABELS` › `lib/material-type.ts`, `nextFreeDate` › `lib/planner-scheduling.ts`. (Caught only at build time, not by tsc.)
 
 ## Migrations Added
-`010`â€“`016` (FSRS, material_type, hybrid_search, research_sources, feynman_source_attachment, planner_skips, drop_sm2). `016` is destructive â€” run after backfill verification.
+`010`–`016` (FSRS, material_type, hybrid_search, research_sources, feynman_source_attachment, planner_skips, drop_sm2). `016` is destructive — run after backfill verification.
 
-## SM-2 â†’ FSRS
-`sm2.ts` retained as migration reference but no longer imported. Historical 0â€“5 grades in `card_reviews` preserved read-only.
+## SM-2 › FSRS
+`sm2.ts` retained as migration reference but no longer imported. Historical 0–5 grades in `card_reviews` preserved read-only.
 
 *Session ended June 18, 2026.*
 
 
 ---
 
-# Session â€” Frontend Performance & Motion Optimization (June 19, 2026)
+# Session — Frontend Performance & Motion Optimization (June 19, 2026)
 
 ## Overview
 
-Full rendering performance audit + motion/UX audit â†’ Gemini Deep Research â†’ two implementation passes fixing all identified issues. The session started with a dual audit (performance + "does this feel generic"), produced a highly targeted research prompt for Gemini, then applied the research results with critical corrections where the report was unsound.
+Full rendering performance audit + motion/UX audit › Gemini Deep Research › two implementation passes fixing all identified issues. The session started with a dual audit (performance + "does this feel generic"), produced a highly targeted research prompt for Gemini, then applied the research results with critical corrections where the report was unsound.
 
 **Final state:** 332 tests passing (22 files), 0 TypeScript errors, production build green. All animations now use a single consistent retro motion vocabulary (steps()-based). Layout churn from revalidatePath eliminated for normal XP gains.
 
 ---
 
-## Phase 1 â€” Dual Audit
+## Phase 1 — Dual Audit
 
-### Performance Audit (6 findings, ranked by severity Ã— frequency)
-1. **P0: `revalidatePath("/app")` full layout churn** â€” fires on every XP gain (20+ times per review session), causing full layout re-fetch, pet GIF restart, PixelCounter rAF restart
-2. **P1: Landing hero GIF not optimized** â€” raw `<img>` without lazy loading or next/image
-3. **P1: Pet GIF restart on revalidation** â€” sidebar pet sprite blinks on every card review
-4. **P2: Font FOUT** â€” SproutLands via @font-face with no preloading
-5. **P2: pixel-grid-bg scroll repaints** â€” 11-layer gradient stack on scroll container
-6. **P3: PixelCounter rAF state spam** â€” setState every frame during 600ms animation
+### Performance Audit (6 findings, ranked by severity × frequency)
+1. **P0: `revalidatePath("/app")` full layout churn** — fires on every XP gain (20+ times per review session), causing full layout re-fetch, pet GIF restart, PixelCounter rAF restart
+2. **P1: Landing hero GIF not optimized** — raw `<img>` without lazy loading or next/image
+3. **P1: Pet GIF restart on revalidation** — sidebar pet sprite blinks on every card review
+4. **P2: Font FOUT** — SproutLands via @font-face with no preloading
+5. **P2: pixel-grid-bg scroll repaints** — 11-layer gradient stack on scroll container
+6. **P3: PixelCounter rAF state spam** — setState every frame during 600ms animation
 
 ### Motion/UX Audit (13 animations evaluated, 10 flagged as generic)
 - 4 loudest offenders: pet-bob (smooth ease-in-out), pop-in (smooth ease-out), shake-happy (smooth ease-in-out), float-up-fade (smooth ease-out)
@@ -1080,7 +1080,7 @@ Full rendering performance audit + motion/UX audit â†’ Gemini Deep Research â†’ 
 
 ---
 
-## Phase 2 â€” Gemini Deep Research
+## Phase 2 — Gemini Deep Research
 
 Crafted a highly specific research prompt with full Nora context (exact tech stack, file references, current animation system, P0 problem details). 10 research directives covering:
 1. Awwwards pixel-art site motion techniques
@@ -1095,24 +1095,24 @@ Crafted a highly specific research prompt with full Nora context (exact tech sta
 10. Custom cursor + multi-layer gradient GPU compositing
 
 ### Critical Corrections Applied to Research Output
-- **Rejected Zustand recommendation** â€” contradicts Nora's no-global-store architecture
-- **Treated frame-count table as rough prior** â€” unsourced claims about Celeste/Stardew timings
-- **Rejected generic useOptimistic sample** â€” designed real fix against actual layout.tsx architecture
-- **Rejected parallel routes recommendation** â€” over-engineering when removing revalidatePath is sufficient
-- **Confirmed cursor system already optimal** â€” native CSS cursor is better than the DOM-based alternative the report suggested
+- **Rejected Zustand recommendation** — contradicts Nora's no-global-store architecture
+- **Treated frame-count table as rough prior** — unsourced claims about Celeste/Stardew timings
+- **Rejected generic useOptimistic sample** — designed real fix against actual layout.tsx architecture
+- **Rejected parallel routes recommendation** — over-engineering when removing revalidatePath is sufficient
+- **Confirmed cursor system already optimal** — native CSS cursor is better than the DOM-based alternative the report suggested
 
 ---
 
-## Phase 3 â€” Implementation Pass 1 (Core Fixes)
+## Phase 3 — Implementation Pass 1 (Core Fixes)
 
 ### B1: Iris-Wipe View Transitions
 - Replaced opacity-only `pixel-dissolve-out/in` with `clip-path: circle()` iris wipe
-- `steps(8)` at 400ms â€” chunky retro RPG battle-transition feel
+- `steps(8)` at 400ms — chunky retro RPG battle-transition feel
 - `pointer-events: none` during transition to prevent interaction
 
 ### B2: Scroll Performance (GPU Promotion)
 - Moved 11-layer gradient stack from `.pixel-grid-bg` element to a `::before` pseudo-element
-- `position: fixed; will-change: transform; transform: translateZ(0)` â€” own compositor layer
+- `position: fixed; will-change: transform; transform: translateZ(0)` — own compositor layer
 - `contain: paint layout` on the scroll container
 - Result: zero scroll repaints of the gradient
 
@@ -1122,27 +1122,27 @@ Crafted a highly specific research prompt with full Nora context (exact tech sta
 - Removed manual @font-face declaration
 
 ### B4: Animation Timing Refinements
-- `pet-bob`: 2s ease-in-out â†’ 1.6s steps(2) â€” snaps between positions like classic RPG idle
-- `pop-in`: 300ms ease-out â†’ 240ms steps(4) â€” chunky "item acquired" pop
-- `shake-happy`: 300ms ease-in-out â†’ 400ms steps(4) + added Y-hop â€” retro "happy jitter"
-- `float-up-fade`: 2s ease-out â†’ 1.2s steps(8) + initial scale pulse â€” RPG damage number
+- `pet-bob`: 2s ease-in-out › 1.6s steps(2) — snaps between positions like classic RPG idle
+- `pop-in`: 300ms ease-out › 240ms steps(4) — chunky "item acquired" pop
+- `shake-happy`: 300ms ease-in-out › 400ms steps(4) + added Y-hop — retro "happy jitter"
+- `float-up-fade`: 2s ease-out › 1.2s steps(8) + initial scale pulse — RPG damage number
 
 ### A: revalidatePath Fix (SessionStatsProvider)
-- **Created `session-stats-context.tsx`** â€” lightweight React Context tracking in-session XP/coin deltas
-- **`resetKey` prop** â€” derived from server-rendered `profile.xp + profile.coins`; resets deltas when server baseline changes (prevents double-counting on level-up)
-- **GameTopBar** now reads `profile.xp + stats.xpDelta` â€” live counter updates without server roundtrip
-- **gamification.ts** â€” `revalidatePath` now only fires on `leveledUp` (structural change), not every XP gain
-- **Producer wiring** â€” `addReward()` called in review-session, study-session, feynman-editor, study-room-layout alongside existing XP toast triggers
+- **Created `session-stats-context.tsx`** — lightweight React Context tracking in-session XP/coin deltas
+- **`resetKey` prop** — derived from server-rendered `profile.xp + profile.coins`; resets deltas when server baseline changes (prevents double-counting on level-up)
+- **GameTopBar** now reads `profile.xp + stats.xpDelta` — live counter updates without server roundtrip
+- **gamification.ts** — `revalidatePath` now only fires on `leveledUp` (structural change), not every XP gain
+- **Producer wiring** — `addReward()` called in review-session, study-session, feynman-editor, study-room-layout alongside existing XP toast triggers
 - **TODO comments** added at all hardcoded XP values flagging the option-2-refactor (return real RewardResult from server actions)
 
 ---
 
-## Phase 4 â€” Implementation Pass 2 (Motion Consistency)
+## Phase 4 — Implementation Pass 2 (Motion Consistency)
 
 ### Item 1: Feature Card Hover (Landing Page)
 - Removed `transition-all duration-300 hover:scale-[1.02]`
 - Added `filter: brightness(1.08)` with `transition: filter 80ms steps(2)` (matches .pixel-btn pattern)
-- Wrapped icon in `.nav-ico` span â†’ triggers existing `pixel-hop` keyframe on hover
+- Wrapped icon in `.nav-ico` span › triggers existing `pixel-hop` keyframe on hover
 - Extended CSS selector: `.group:hover .nav-ico` added to pixel-hop rule
 
 ### Item 2: Review Grade Button Press
@@ -1153,17 +1153,17 @@ Crafted a highly specific research prompt with full Nora context (exact tech sta
 ### Item 3: Music Player Equalizer Bars
 - Replaced 3 bars sharing `animate-pixel-float` (looked like loading skeleton)
 - Created 3 distinct keyframes (`eq-bar-1/2/3`) with different height patterns
-- `steps(1)` at slightly different periods (0.5s/0.4s/0.45s) â€” bars snap independently
+- `steps(1)` at slightly different periods (0.5s/0.4s/0.45s) — bars snap independently
 - Result: jittery 8-bit VU meter instead of synchronized floating
 
 ### Item 4: Sidebar/Nav Hover States
 - Replaced `transition-opacity hover:opacity-80` with `.pixel-hover-brighten`
 - `filter: brightness(1.1)` with `transition: filter 80ms steps(2)` (same vocabulary as .pixel-btn)
-- Pet widget link: `.pet-hover-perk:hover .animate-pet-bob { animation-duration: 0.5s }` â€” pet "perks up" on hover
+- Pet widget link: `.pet-hover-perk:hover .animate-pet-bob { animation-duration: 0.5s }` — pet "perks up" on hover
 
 ### Item 5: XP Progress Bar
-- Replaced `transition-all` with `transition: width 0.4s steps(8)` â€” discrete RPG HP/XP fill
-- Added level-up flash: when xpProgress crosses â‰¥1, bar snaps to 100% gold for 160ms, then settles
+- Replaced `transition-all` with `transition: width 0.4s steps(8)` — discrete RPG HP/XP fill
+- Added level-up flash: when xpProgress crosses ?1, bar snaps to 100% gold for 160ms, then settles
 - Also fixed in ProfilePopover (same pattern)
 - Removed `transition-all` from pixel-room mission progress bar (static, no transition needed)
 - Added documentation comments: "same stepped vocabulary as .animate-pixel-fill, transition-based because this value updates dynamically"
@@ -1202,21 +1202,21 @@ src/app/(protected)/app/room/_components/pixel-room.tsx (removed transition-all 
 
 ## Key Architectural Decisions
 
-1. **No Zustand / no new dependencies** â€” solved XP counter staleness with a lightweight React Context (SessionStatsProvider) instead of adding a state management library
-2. **Conditional revalidation** â€” only on level-up (structural change), not every XP gain. Normal gains use client-side deltas.
-3. **One motion vocabulary** â€” all interactive feedback uses the same pattern: `steps(2) 80ms` for hover/press, `steps(8)` for fills, `steps(1)` for disabled snaps. Reused existing `pixel-hop` and `pixel-fill` patterns rather than inventing new ones.
-4. **Transition vs keyframe for progress bars** â€” `transition: width steps(8)` for dynamically-updating values; `@keyframes pixel-fill` for one-shot mount animations. Same visual result, different mechanism for different use cases.
+1. **No Zustand / no new dependencies** — solved XP counter staleness with a lightweight React Context (SessionStatsProvider) instead of adding a state management library
+2. **Conditional revalidation** — only on level-up (structural change), not every XP gain. Normal gains use client-side deltas.
+3. **One motion vocabulary** — all interactive feedback uses the same pattern: `steps(2) 80ms` for hover/press, `steps(8)` for fills, `steps(1)` for disabled snaps. Reused existing `pixel-hop` and `pixel-fill` patterns rather than inventing new ones.
+4. **Transition vs keyframe for progress bars** — `transition: width steps(8)` for dynamically-updating values; `@keyframes pixel-fill` for one-shot mount animations. Same visual result, different mechanism for different use cases.
 
 ---
 
 ## Known Items for Manual Testing
 
-1. **Level-up path** â€” grind cards to level-up, confirm TopBar counter doesn't double-count or flicker
-2. **Multi-level-up in one batch** â€” big Feynman evaluation crossing two thresholds: flash should fire once
-3. **Pet GIF during rapid reviews** â€” should no longer restart/blink (revalidatePath removed for normal gains)
-4. **pet-bob steps(2) at 1.6s** â€” confirm it reads as "retro idle sprite" not "janky"
-5. **float-up XP toast steps(8) at 1.2s** â€” confirm it reads as "RPG damage number"
-6. **Level-up gold flash timing** â€” 160ms full-bar gold â†’ settle at new level's progress
+1. **Level-up path** — grind cards to level-up, confirm TopBar counter doesn't double-count or flicker
+2. **Multi-level-up in one batch** — big Feynman evaluation crossing two thresholds: flash should fire once
+3. **Pet GIF during rapid reviews** — should no longer restart/blink (revalidatePath removed for normal gains)
+4. **pet-bob steps(2) at 1.6s** — confirm it reads as "retro idle sprite" not "janky"
+5. **float-up XP toast steps(8) at 1.2s** — confirm it reads as "RPG damage number"
+6. **Level-up gold flash timing** — 160ms full-bar gold › settle at new level's progress
 
 ## Deferred (Tracked via TODO comments)
 
@@ -1229,25 +1229,25 @@ src/app/(protected)/app/room/_components/pixel-room.tsx (removed transition-all 
 
 ---
 
-# Session 5 â€” June 21, 2026
+# Session 5 — June 21, 2026
 
 ## Summary
 
-Deep codebase audit â†’ bug fixes â†’ Research Desk rebuild â†’ AI voice implementation.
+Deep codebase audit › bug fixes › Research Desk rebuild › AI voice implementation.
 
 ## Work Done
 
-1. **Codebase audit** â€” found 2 critical race conditions, 1 streak UX bug, 1 fragile timezone function, 2 missing auth checks, 1 dead code function. All features confirmed complete.
+1. **Codebase audit** — found 2 critical race conditions, 1 streak UX bug, 1 fragile timezone function, 2 missing auth checks, 1 dead code function. All features confirmed complete.
 
-2. **Bug fixes** â€” atomic RPCs for XP/quest progress (migration 017), streak mid-day fix, timezone `formatToParts`, auth on delete actions, removed dead code.
+2. **Bug fixes** — atomic RPCs for XP/quest progress (migration 017), streak mid-day fix, timezone `formatToParts`, auth on delete actions, removed dead code.
 
-3. **Research Desk rebuild** â€” hybrid pipeline: query classification â†’ parallel search (OpenAlex + Crossref + Semantic Scholar + Tavily web) â†’ source assembly (cap 12) â†’ synthesis with academic/web citation badges. UI: progress stages, cancel button, fixed disclaimer.
+3. **Research Desk rebuild** — hybrid pipeline: query classification › parallel search (OpenAlex + Crossref + Semantic Scholar + Tavily web) › source assembly (cap 12) › synthesis with academic/web citation badges. UI: progress stages, cancel button, fixed disclaimer.
 
-4. **Timestamp validation** â€” `validateNoteOffsets()` clamps video note offsets to transcript bounds, cross-checks citation strings, guards NaN.
+4. **Timestamp validation** — `validateNoteOffsets()` clamps video note offsets to transcript bounds, cross-checks citation strings, guards NaN.
 
-5. **Nora voice** â€” `src/lib/nora-voice.ts` shared across all 9 LLM features. Evaluator/research/notes/utility variants. "Honest about content, never about the student."
+5. **Nora voice** — `src/lib/nora-voice.ts` shared across all 9 LLM features. Evaluator/research/notes/utility variants. "Honest about content, never about the student."
 
-6. **Env setup** â€” added TAVILY_API_KEY, SEMANTIC_SCHOLAR_API_KEY, FIRECRAWL_API_KEY. Supabase CLI initialized and linked.
+6. **Env setup** — added TAVILY_API_KEY, SEMANTIC_SCHOLAR_API_KEY, FIRECRAWL_API_KEY. Supabase CLI initialized and linked.
 
 ## New Files
 - `src/lib/nora-voice.ts`

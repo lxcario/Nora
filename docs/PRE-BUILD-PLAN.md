@@ -40,7 +40,7 @@ the judged window — not just confirm pre-built features "still work."
 
 ### Morning: Manual End-to-End QA on deployed app
 
-Test every flow on https://nora-mu-six.vercel.app:
+Test every flow on https://norastudy.vercel.app:
 
 - [ ] Sign up with a fresh email
 - [ ] Complete onboarding (university, faculty, year, term)
