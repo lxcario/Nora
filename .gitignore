@@ -53,3 +53,6 @@ next-env.d.ts
 .vercel
 
 testsprite_tests\tmp\config.json
+
+# Kiro IDE settings (may contain API keys)
+.kiro/settings/
