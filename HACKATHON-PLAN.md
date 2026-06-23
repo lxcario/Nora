@@ -459,7 +459,11 @@ We've already analyzed the full source (index.ts, errors.ts, agent.ts, CONTRIBUT
 - [ ] Account matches (submission = test generator)
 - [ ] Follows official template exactly
 - [ ] All team members listed
-- [ ] LOOP.md / narrative complete
+- [ ] LOOP.md in repo root — agent-written, one line per iteration (MANDATORY)
+- [ ] README includes: what we built, live URL, what the loop covered (MANDATORY)
+- [ ] testsprite_tests/ subfolder with generated test cases (MANDATORY)
+- [ ] Demo video recorded and attached to Discord submission
+- [ ] Discord DMs open for organizer contact
 
 ---
 
@@ -660,8 +664,8 @@ git push -u origin feat/agent-install-kiro
 
 | Scenario | Outcome |
 |---|---|
-| **Best case** | 1st place prize + 2-3 merged CLI PRs ($300-$600 bounty) |
-| **Likely case** | Top 3 placement + 1-2 merged CLI PRs ($200-$300 bounty) |
+| **Best case** | Top 5 project prize (from $3,000 pool) + 2-3 merged CLI PRs ($300-$600 bounty) |
+| **Likely case** | Top 5 placement + 1-2 merged CLI PRs ($200-$300 bounty) |
 | **Floor** | Solid submission, full test suite banked, CLI PRs merged for cash regardless of placement |
 
 The CLI bounty is the safety net. Even if we don't place, merged PRs pay cash. And the hackathon work (deployment, test suite, new feature) improves Nora regardless of the competition outcome.
