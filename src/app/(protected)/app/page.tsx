@@ -6,6 +6,33 @@ import { endOfUserLocalDay } from "@/lib/due";
 import { computeStreak } from "@/lib/streak";
 
 // ---------------------------------------------------------------------------
+// PROPOSAL: Streak "at risk" visual cue (Part 3 — not implemented yet)
+// ---------------------------------------------------------------------------
+// When the user hasn't completed any activity today and it's past a configurable
+// hour threshold (e.g. 6 PM local time), the streak counter is "at risk" of
+// breaking. Below are 3 compassionate options (no punishment, no anxiety):
+//
+// Option A — Warm amber glow:
+//   Apply a soft amber background-tint and the .animate-pixel-float class to
+//   the streak AmbientStat icon only. Reads as "hey, your potion is floating
+//   away!" — playful, not scary. No text change needed.
+//
+// Option B — Gentle tooltip nudge:
+//   Wrap the streak stat in a hover/focus tooltip: "Keep it going? A quick
+//   review is all it takes." No color change, no animation — just a friendly
+//   reminder that appears on interaction. Least intrusive.
+//
+// Option C — Soft stepped pulse on the icon:
+//   Apply .animate-pixel-blink (already exists — slow on/off at 0.8s) at
+//   reduced intensity (opacity between 0.7–1.0 instead of 0.25–1.0). Creates
+//   a subtle "breathing" on the potion icon. Pair with the suffix changing
+//   from "3 days" to "3 days — keep going!" in muted text.
+//
+// Recommendation: Option B (tooltip) as default, with Option A available as
+// a user preference ("Streak reminders: gentle / off") in Settings.
+// ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
 // Data fetching helpers
 // ---------------------------------------------------------------------------
 
@@ -225,36 +252,33 @@ export default async function DashboardPage() {
       <PrimaryCTA cardsDue={cardsDueCount} />
 
       {/* ═══ Section 3 — Stat Row ═══ */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {/* Large: Cards Due */}
-        <StatTile
-          icon="/sprites/travel-book/icons/Book.png"
-          value={cardsDueCount}
-          label="Cards due today"
-          size="large"
-        />
-        {/* Large: Streak */}
-        <StatTile
+      {/* Prominent: Cards Due */}
+      <StatTile
+        icon="/sprites/travel-book/icons/Book.png"
+        value={cardsDueCount}
+        label="Cards due today"
+        size="hero"
+      />
+      {/* Ambient strip: streak / XP / coins */}
+      <div className="flex items-center gap-4 px-1 flex-wrap">
+        <AmbientStat
           icon="/sprites/travel-book/icons/PotionRed.png"
-          value={streak}
-          suffix={streak === 1 ? " day" : " days"}
-          label="Current streak"
-          size="large"
-          zeroText={streak === 0 ? formatStreak(0, "home") : undefined}
+          numericValue={streak > 0 ? streak : undefined}
+          textValue={streak === 0 ? formatStreak(0, "home") : undefined}
+          suffix={streak > 0 ? (streak === 1 ? " day" : " days") : undefined}
+          label="Streak"
         />
-        {/* Small: XP */}
-        <StatTile
+        <span className="text-[var(--pixel-border)]">·</span>
+        <AmbientStat
           icon="/sprites/travel-book/icons/Sun.png"
-          value={xpTotal}
-          label="Total XP"
-          size="small"
+          numericValue={xpTotal}
+          label="XP"
         />
-        {/* Small: Coins */}
-        <StatTile
+        <span className="text-[var(--pixel-border)]">·</span>
+        <AmbientStat
           icon="/sprites/travel-book/icons/Coin.png"
-          value={coins}
+          numericValue={coins}
           label="Coins"
-          size="small"
         />
       </div>
 
@@ -358,8 +382,8 @@ function PrimaryCTA({ cardsDue }: { cardsDue: number }) {
   return (
     <Link
       href={hasDue ? "/app/review" : "/app/feynman"}
-      className="pixel-panel group flex items-center justify-between gap-4 p-5 transition-all hover:brightness-110"
-      style={{ backgroundColor: "color-mix(in srgb, var(--pixel-accent) 18%, var(--pixel-bg-surface))" }}
+      className="pixel-panel group flex items-center justify-between gap-4 transition-all hover:brightness-110"
+      style={{ padding: "var(--pixel-panel-spacious)", backgroundColor: "color-mix(in srgb, var(--pixel-accent) 18%, var(--pixel-bg-surface))" }}
     >
       <div className="flex items-center gap-4">
         <img
@@ -408,7 +432,7 @@ function FriendsActivity({ feed }: { feed: FriendsFeed }) {
 
       <div className="pixel-panel p-0 overflow-hidden">
         {feed.activities.length === 0 ? (
-          <div className="flex flex-col items-center py-8 gap-2">
+          <div className="flex flex-col items-center gap-2" style={{ padding: "var(--pixel-panel-compact)" }}>
             <img
               src="/sprites/travel-book/icons/Team.png"
               alt=""
@@ -472,22 +496,27 @@ function StatTile({
   value: number;
   suffix?: string;
   label: string;
-  size?: "large" | "small";
+  size?: "hero" | "large" | "small";
   zeroText?: string;
 }) {
-  const valueClass =
-    size === "large"
+  const isHero = size === "hero";
+  const valueClass = isHero
+    ? "font-pixel text-2xl text-[var(--pixel-accent)] block leading-none"
+    : size === "large"
       ? "font-pixel text-2xl text-[var(--pixel-accent)] block leading-none"
       : "font-pixel text-lg text-[var(--pixel-text-secondary)] block leading-none";
 
   return (
-    <div className="pixel-panel flex items-center gap-3 p-3">
+    <div
+      className="pixel-panel flex items-center gap-3"
+      style={{ padding: isHero ? "var(--pixel-panel-standard)" : "var(--pixel-panel-compact)" }}
+    >
       <div className="shrink-0">
         <img
           src={icon}
           alt=""
-          width={size === "large" ? 36 : 28}
-          height={size === "large" ? 36 : 28}
+          width={isHero ? 40 : size === "large" ? 36 : 28}
+          height={isHero ? 40 : size === "large" ? 36 : 28}
           className="pixel-art"
         />
       </div>
@@ -510,14 +539,46 @@ function StatTile({
           className="text-xs block mt-1 truncate"
           style={{
             color:
-              size === "large"
-                ? "var(--pixel-text-secondary)"
-                : "var(--pixel-text-muted)",
+              size === "small"
+                ? "var(--pixel-text-muted)"
+                : "var(--pixel-text-secondary)",
           }}
         >
           {label}
         </span>
       </div>
+    </div>
+  );
+}
+
+function AmbientStat({
+  icon,
+  numericValue,
+  textValue,
+  suffix,
+  label,
+}: {
+  icon: string;
+  numericValue?: number;
+  textValue?: string;
+  suffix?: string;
+  label: string;
+}) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <img src={icon} alt="" width={16} height={16} className="pixel-art" />
+      {numericValue !== undefined ? (
+        <PixelCounter
+          value={numericValue}
+          suffix={suffix}
+          className="font-pixel text-xs text-[var(--pixel-text-secondary)]"
+        />
+      ) : (
+        <span className="font-pixel text-xs text-[var(--pixel-text-secondary)]">
+          {textValue}{suffix ?? ""}
+        </span>
+      )}
+      <span className="text-[10px] text-[var(--pixel-text-muted)]">{label}</span>
     </div>
   );
 }
@@ -538,16 +599,16 @@ function QuestItem({
   const pct = Math.min((progress / max) * 100, 100);
 
   return (
-    <div className="pixel-panel pixel-panel-inset p-2">
+    <div className="pixel-panel pixel-panel-inset" style={{ padding: "var(--pixel-panel-compact)" }}>
       <div className="flex items-center gap-2 mb-2">
         <img src={icon} alt="" width={16} height={16} className="pixel-art" />
         <span className="text-xs text-[var(--pixel-text-primary)] font-medium">
           {label}
         </span>
       </div>
-      <div className="w-full h-2 overflow-hidden bg-[var(--pixel-bg-primary)] border border-[var(--pixel-border)]">
+      <div className="w-full overflow-hidden bg-[var(--pixel-bg-primary)] border-2 border-[var(--pixel-border)]" style={{ height: "10px" }}>
         <div
-          className="h-full transition-all"
+          className="h-full transition-all animate-pixel-fill"
           style={{ width: `${pct}%`, backgroundColor: color }}
         />
       </div>

@@ -9,8 +9,8 @@ export default function AppLoading() {
 
       {/* Section 2 — Primary CTA panel */}
       <div
-        className="pixel-panel flex items-center justify-between gap-4 p-5"
-        style={{ backgroundColor: "color-mix(in srgb, var(--pixel-accent) 10%, var(--pixel-bg-surface))" }}
+        className="pixel-panel flex items-center justify-between gap-4"
+        style={{ padding: "var(--pixel-panel-spacious)", backgroundColor: "color-mix(in srgb, var(--pixel-accent) 10%, var(--pixel-bg-surface))" }}
       >
         <div className="flex items-center gap-4 flex-1">
           <LoadingSkeleton height={40} className="w-10 shrink-0" />
@@ -19,24 +19,25 @@ export default function AppLoading() {
         <LoadingSkeleton height={24} className="w-6 shrink-0" />
       </div>
 
-      {/* Section 3 — 4-stat grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="pixel-panel flex items-center gap-3 p-3">
-            <LoadingSkeleton
-              height={i < 2 ? 36 : 28}
-              className={`${i < 2 ? "w-9" : "w-7"} shrink-0`}
-            />
-            <div className="flex-1 min-w-0 space-y-1.5">
-              <LoadingSkeleton height={i < 2 ? 22 : 18} className="w-16" />
-              <LoadingSkeleton height={10} className="w-20" />
-            </div>
+      {/* Section 3 — Cards Due hero tile + ambient stat strip */}
+      <div className="pixel-panel flex items-center gap-3" style={{ padding: "var(--pixel-panel-standard)" }}>
+        <LoadingSkeleton height={40} className="w-10 shrink-0" />
+        <div className="flex-1 min-w-0 space-y-1.5">
+          <LoadingSkeleton height={22} className="w-16" />
+          <LoadingSkeleton height={10} className="w-24" />
+        </div>
+      </div>
+      <div className="flex items-center gap-4 px-1">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="flex items-center gap-1.5">
+            <LoadingSkeleton height={16} className="w-4 shrink-0" />
+            <LoadingSkeleton height={12} className="w-12" />
           </div>
         ))}
       </div>
 
       {/* Section 4 — Today's Quests panel */}
-      <div className="pixel-panel" style={{ padding: "16px" }}>
+      <div className="pixel-panel" style={{ padding: "var(--pixel-panel-standard)" }}>
         {/* Panel title */}
         <LoadingSkeleton height={12} className="w-32 mb-4" />
         <div className="flex flex-col md:flex-row md:items-stretch gap-4">
@@ -45,7 +46,8 @@ export default function AppLoading() {
             {Array.from({ length: 3 }).map((_, i) => (
               <div
                 key={i}
-                className="pixel-panel pixel-panel-inset p-2"
+                className="pixel-panel pixel-panel-inset"
+                style={{ padding: "var(--pixel-panel-compact)" }}
               >
                 {/* Icon + label */}
                 <div className="flex items-center gap-2 mb-2">
@@ -53,7 +55,7 @@ export default function AppLoading() {
                   <LoadingSkeleton height={12} className="flex-1" />
                 </div>
                 {/* Progress bar */}
-                <LoadingSkeleton height={8} />
+                <LoadingSkeleton height={10} />
                 {/* Progress count */}
                 <LoadingSkeleton height={10} className="w-10 ml-auto mt-1" />
               </div>

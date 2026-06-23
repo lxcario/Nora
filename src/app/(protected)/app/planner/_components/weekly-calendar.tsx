@@ -33,7 +33,7 @@ export function WeeklyCalendar({ sessions, weekStart, weekEnd, weekOffset = 0, a
   return (
     <div className="space-y-4">
       {/* Week navigation */}
-      <div className="pixel-panel flex items-center justify-between px-4 py-3">
+      <div className="pixel-panel flex items-center justify-between" style={{ padding: "var(--pixel-panel-compact) var(--pixel-panel-standard)" }}>
         <Link href={`/app/planner?week=${weekOffset - 1}`}>
           <PixelButton variant="secondary" size="small">
             ← Prev

@@ -138,30 +138,27 @@ export function StudySession({ queue }: { queue: StudyItem[] }) {
           </p>
 
           {/* Stats */}
-          <div className="grid grid-cols-3 gap-3 w-full max-w-sm mt-2">
-            <div className="pixel-panel pixel-panel-inset p-3 text-center">
-              <p className="font-pixel text-lg" style={{ color: "var(--pixel-accent)" }}>
+          <div className="w-full max-w-sm mt-2 space-y-3">
+            {/* Hero stat: Cards reviewed (actionable) */}
+            <div className="pixel-panel pixel-panel-inset text-center" style={{ padding: "var(--pixel-panel-standard)" }}>
+              <p className="font-pixel text-2xl" style={{ color: "var(--pixel-accent)" }}>
                 {cardsReviewed}
               </p>
-              <p className="text-[10px]" style={{ color: "var(--pixel-text-secondary)" }}>
-                Cards
+              <p className="text-xs mt-1" style={{ color: "var(--pixel-text-secondary)" }}>
+                Cards reviewed
               </p>
             </div>
-            <div className="pixel-panel pixel-panel-inset p-3 text-center">
-              <p className="font-pixel text-lg" style={{ color: "var(--pixel-success)" }}>
-                {topicsPrompted}
-              </p>
-              <p className="text-[10px]" style={{ color: "var(--pixel-text-secondary)" }}>
-                Topics
-              </p>
-            </div>
-            <div className="pixel-panel pixel-panel-inset p-3 text-center">
-              <p className="font-pixel text-lg" style={{ color: "#8b5cf6" }}>
-                {questionsExplored}
-              </p>
-              <p className="text-[10px]" style={{ color: "var(--pixel-text-secondary)" }}>
-                Questions
-              </p>
+            {/* Ambient: Topics + Questions */}
+            <div className="flex items-center justify-center gap-4">
+              <div className="flex items-center gap-1.5">
+                <span className="font-pixel text-sm" style={{ color: "var(--pixel-success)" }}>{topicsPrompted}</span>
+                <span className="text-[10px]" style={{ color: "var(--pixel-text-muted)" }}>Topics</span>
+              </div>
+              <span className="text-[var(--pixel-border)]">·</span>
+              <div className="flex items-center gap-1.5">
+                <span className="font-pixel text-sm" style={{ color: "#8b5cf6" }}>{questionsExplored}</span>
+                <span className="text-[10px]" style={{ color: "var(--pixel-text-muted)" }}>Questions</span>
+              </div>
             </div>
           </div>
 

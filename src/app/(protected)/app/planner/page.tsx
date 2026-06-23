@@ -36,8 +36,9 @@ export default async function PlannerPage({ searchParams }: PlannerPageProps) {
 
       {academicLoad.message && (
         <div
-          className="rounded-lg border-2 p-3 text-sm"
+          className="rounded-lg border-2 text-sm"
           style={{
+            padding: "var(--pixel-panel-standard)",
             borderColor:
               academicLoad.phase === "mitigation" ? "var(--pixel-error)" : "var(--pixel-warning)",
             backgroundColor: "var(--pixel-bg-surface)",
@@ -54,7 +55,7 @@ export default async function PlannerPage({ searchParams }: PlannerPageProps) {
       )}
 
       {upcomingDeadlines.length > 0 && (
-        <div className="rounded-lg border-2 border-[var(--pixel-border)] bg-[var(--pixel-bg-surface)] p-3">
+        <div className="rounded-lg border-2 border-[var(--pixel-border)] bg-[var(--pixel-bg-surface)]" style={{ padding: "var(--pixel-panel-standard)" }}>
           <h2 className="font-pixel text-[11px] text-[var(--pixel-accent)] mb-2">
             UPCOMING ACADEMIC DEADLINES
           </h2>

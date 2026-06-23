@@ -49,6 +49,11 @@
   --pixel-card-forest: #1e3a28;       /* study mode card: forest */
   --pixel-card-plum: #2e1e3a;         /* study mode card: plum */
 
+  /* Panel padding density tokens (8px base grid) */
+  --pixel-panel-compact: 8px;          /* empty states, badges, single-line info */
+  --pixel-panel-standard: 12px;        /* normal content panels */
+  --pixel-panel-spacious: 20px;        /* primary CTAs, breathing-room panels */
+
   /* Pixel Room scene colors */
   --pixel-room-wall: #3a2a1c;
   --pixel-room-floor: #5a3d24;
