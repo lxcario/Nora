@@ -50,7 +50,6 @@ export { PixelHeatmap } from "./pixel-heatmap";
 export type { PixelHeatmapProps } from "./pixel-heatmap";
 
 // Navigation
-export { PixelSidebar } from "./pixel-sidebar";
 export { BottomNav } from "./bottom-nav";
 
 // Skeleton helpers

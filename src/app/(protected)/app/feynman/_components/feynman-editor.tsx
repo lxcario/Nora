@@ -50,8 +50,10 @@ interface TopicOption {
   subjectColor: string;
 }
 
-export function FeynmanEditor({ topics }: { topics: TopicOption[] }) {
-  const [selectedTopic, setSelectedTopic] = useState(topics[0]?.id ?? "");
+export function FeynmanEditor({ topics, defaultTopicId }: { topics: TopicOption[]; defaultTopicId?: string }) {
+  const [selectedTopic, setSelectedTopic] = useState(
+    (defaultTopicId && topics.some((t) => t.id === defaultTopicId) ? defaultTopicId : topics[0]?.id) ?? ""
+  );
   const [explanation, setExplanation] = useState("");
   const [analysis, setAnalysis] = useState<GapAnalysis | null>(null);
   const [error, setError] = useState<string | null>(null);

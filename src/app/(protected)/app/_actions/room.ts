@@ -76,6 +76,9 @@ export async function getRoomState(): Promise<{
   let canEvolve = false;
   let nextEvolution: string | null = null;
 
+  // Explicit evolution level thresholds (must match UI display in pixel-room.tsx)
+  const EVOLUTION_LEVELS = [5, 15];
+
   const evoChain = await getEvolutionChain(basePokemonId);
   if (evoChain && evoChain.evolutions.length > 1) {
     const evolved = getEvolutionForLevel(evoChain.evolutions, userLevel);
@@ -86,8 +89,8 @@ export async function getRoomState(): Promise<{
     if (currentIdx < evoChain.evolutions.length - 1) {
       const next = evoChain.evolutions[currentIdx + 1];
       nextEvolution = next.name;
-      // Can evolve if within 2 levels
-      canEvolve = userLevel >= (currentIdx + 1) * 5 - 2;
+      const requiredLevel = EVOLUTION_LEVELS[currentIdx] ?? (currentIdx + 1) * 10;
+      canEvolve = userLevel >= requiredLevel;
     }
   }
 

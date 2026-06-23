@@ -1,11 +1,14 @@
 "use client";
 
-import { Target, Heart, Trophy } from "lucide-react";
+import { useState, useTransition } from "react";
+import { Target, Heart, Trophy, HelpCircle } from "lucide-react";
 import type { PartyQuestView } from "../../_actions/party";
+import { checkAndGenerateHelpQuests } from "../../_actions/party-quests";
 
 interface PartyQuestsProps {
   quests: PartyQuestView[];
   helpQuests: PartyQuestView[];
+  partyId: string;
 }
 
 /** Human-readable labels for quest types */
@@ -127,14 +130,50 @@ function QuestProgressBar({
  *
  * Requirements: 9.2, 9.3, 5.4
  */
-export function PartyQuests({ quests, helpQuests }: PartyQuestsProps) {
+export function PartyQuests({ quests, helpQuests, partyId }: PartyQuestsProps) {
+  const [isPending, startTransition] = useTransition();
+  const [helpMsg, setHelpMsg] = useState<string | null>(null);
+
+  function handleAskForHelp() {
+    startTransition(async () => {
+      const result = await checkAndGenerateHelpQuests(partyId);
+      if (result.error) {
+        setHelpMsg(result.error);
+      } else if (result.data?.helpQuestsGenerated === 0) {
+        setHelpMsg("No members need help right now — everyone is studying!");
+      } else {
+        setHelpMsg(`Generated ${result.data?.helpQuestsGenerated ?? 0} help quest(s). Refresh to see them.`);
+      }
+      setTimeout(() => setHelpMsg(null), 4000);
+    });
+  }
+
   if (quests.length === 0 && helpQuests.length === 0) {
     return (
-      <div className="rounded-lg border border-zinc-200 p-6 text-center dark:border-zinc-700">
-        <Target className="mx-auto h-8 w-8 text-zinc-300 dark:text-zinc-600" />
-        <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
-          No active quests. Owner can configure quest templates.
-        </p>
+      <div className="space-y-3">
+        <div className="rounded-lg border border-zinc-200 p-6 text-center dark:border-zinc-700">
+          <Target className="mx-auto h-8 w-8 text-zinc-300 dark:text-zinc-600" />
+          <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+            No active quests. Owner can configure quest templates.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={handleAskForHelp}
+          disabled={isPending}
+          className="inline-flex items-center gap-2 rounded-md px-3 py-2 text-xs font-pixel transition-colors"
+          style={{
+            backgroundColor: "color-mix(in srgb, var(--pixel-warning) 15%, var(--pixel-bg-surface))",
+            color: "var(--pixel-warning)",
+            border: "1px solid var(--pixel-warning)",
+          }}
+        >
+          <HelpCircle className="h-3.5 w-3.5" />
+          {isPending ? "Checking..." : "Ask for Help"}
+        </button>
+        {helpMsg && (
+          <p className="text-xs" style={{ color: "var(--pixel-text-secondary)" }}>{helpMsg}</p>
+        )}
       </div>
     );
   }
@@ -150,6 +189,27 @@ export function PartyQuests({ quests, helpQuests }: PartyQuestsProps) {
       {helpQuests.map((quest) => (
         <QuestProgressBar key={quest.id} quest={quest} isHelp={true} />
       ))}
+
+      {/* Manual help quest trigger */}
+      <div className="pt-2 flex items-center gap-3">
+        <button
+          type="button"
+          onClick={handleAskForHelp}
+          disabled={isPending}
+          className="inline-flex items-center gap-2 rounded-md px-3 py-2 text-xs font-pixel transition-colors"
+          style={{
+            backgroundColor: "color-mix(in srgb, var(--pixel-warning) 15%, var(--pixel-bg-surface))",
+            color: "var(--pixel-warning)",
+            border: "1px solid var(--pixel-warning)",
+          }}
+        >
+          <HelpCircle className="h-3.5 w-3.5" />
+          {isPending ? "Checking..." : "Ask for Help"}
+        </button>
+        {helpMsg && (
+          <p className="text-xs" style={{ color: "var(--pixel-text-secondary)" }}>{helpMsg}</p>
+        )}
+      </div>
     </div>
   );
 }

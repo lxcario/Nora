@@ -602,6 +602,15 @@ async function awardQuestCompletionBonus(
 
 // ─── Help Quest Generation ──────────────────────────────────────────
 
+// NOTE: Help quest auto-generation gap
+// ====================================
+// checkAndGenerateHelpQuests() is fully implemented below but NOT called
+// automatically anywhere (no daily cron, no on-login trigger). The function
+// was designed to be triggered on party page load, but that integration was
+// never connected. Until a proper trigger is added (e.g., on party page load
+// or a scheduled job), the manual "Ask for Help" button in the party UI
+// invokes this directly to allow users to request help quests on demand.
+
 /** Throttle window for help quest checks: 1 hour in milliseconds */
 const HELP_CHECK_THROTTLE_MS = 60 * 60 * 1000;
 

@@ -3,7 +3,12 @@ import { PageHeader } from "../_components/page-header";
 import { FeynmanEditor } from "./_components/feynman-editor";
 import { EmptyState } from "@/components/pixel-ui";
 
-export default async function FeynmanPage() {
+interface FeynmanPageProps {
+  searchParams: Promise<{ topic?: string }>;
+}
+
+export default async function FeynmanPage({ searchParams }: FeynmanPageProps) {
+  const params = await searchParams;
   const supabase = await createClient();
 
   const { data: subjects } = await supabase
@@ -31,12 +36,12 @@ export default async function FeynmanPage() {
       {topicOptions.length === 0 ? (
         <EmptyState
           icon="pen"
-          message="No topics found. Create subjects and topics in Settings to get started."
-          actionLabel="Go to Settings"
+          message="Start by adding subjects and topics — then use Feynman Mode to explain them in your own words and build your flashcard deck."
+          actionLabel="Create your first subject →"
           actionHref="/app/settings"
         />
       ) : (
-        <FeynmanEditor topics={topicOptions} />
+        <FeynmanEditor topics={topicOptions} defaultTopicId={params.topic} />
       )}
     </div>
   );

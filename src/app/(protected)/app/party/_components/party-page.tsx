@@ -90,7 +90,7 @@ export function PartyPage({ state, currentUserId }: PartyPageProps) {
 
       {/* 3. Quests Section */}
       <DialogFrame title="QUESTS">
-        <PartyQuests quests={state.quests} helpQuests={state.helpQuests} />
+        <PartyQuests quests={state.quests} helpQuests={state.helpQuests} partyId={state.party?.id ?? ""} />
       </DialogFrame>
 
       {/* 4. Messages Section */}
