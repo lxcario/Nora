@@ -44,8 +44,9 @@ export interface UniversitySearchResult {
 
 /**
  * Server-side university search for the onboarding autocomplete.
- * Searches by name (ILIKE) and aliases (array overlap via `cs`).
- * Returns at most 8 results. Requires min 2-char query.
+ * Uses a two-pass strategy: starts-with match first (most relevant), then
+ * falls back to contains match if fewer than 3 results. Also checks aliases.
+ * Returns at most 5 results. Requires min 2-char query.
  */
 export async function searchUniversities(
   query: string
@@ -54,26 +55,52 @@ export async function searchUniversities(
   if (q.length < 2) return [];
 
   const supabase = await createClient();
+  const MAX = 5;
 
-  // Supabase ILIKE is case-insensitive. We search both name and aliases.
-  // `.or()` combines name ILIKE with an array contains-text check on aliases.
-  const pattern = `%${q}%`;
-
-  const { data, error } = await supabase
-    .from("universities")
-    .select("id, name, aliases, primary_domain")
-    .or(`name.ilike.${pattern},aliases.cs.{${q}}`)
-    .order("name")
-    .limit(8);
-
-  if (error || !data) return [];
-
-  return data.map(
-    (u: { id: string; name: string; aliases: string[] | null; primary_domain: string }) => ({
+  type Row = { id: string; name: string; aliases: string[] | null; primary_domain: string };
+  function toResult(u: Row): UniversitySearchResult {
+    return {
       id: u.id,
       name: u.name,
       aliases: u.aliases ?? [],
       primaryDomain: u.primary_domain,
-    })
-  );
+    };
+  }
+
+  // Pass 1: starts-with match on name OR exact alias match
+  const startsWithPattern = `${q}%`;
+  const { data: primary } = await supabase
+    .from("universities")
+    .select("id, name, aliases, primary_domain")
+    .or(`name.ilike.${startsWithPattern},aliases.cs.{${q}}`)
+    .order("name")
+    .limit(MAX);
+
+  const results = (primary ?? []).map(toResult);
+
+  // Pass 2: if we have < 3 results, backfill with contains match
+  if (results.length < 3) {
+    const containsPattern = `%${q}%`;
+    const excludeIds = results.map((r) => r.id);
+    const remaining = MAX - results.length;
+
+    let builder = supabase
+      .from("universities")
+      .select("id, name, aliases, primary_domain")
+      .ilike("name", containsPattern)
+      .order("name")
+      .limit(remaining);
+
+    if (excludeIds.length > 0) {
+      // Exclude already-found rows
+      builder = builder.not("id", "in", `(${excludeIds.join(",")})`);
+    }
+
+    const { data: secondary } = await builder;
+    if (secondary) {
+      results.push(...secondary.map(toResult));
+    }
+  }
+
+  return results;
 }

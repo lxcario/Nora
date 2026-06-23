@@ -846,6 +846,13 @@ a:hover > .nav-ico,
 }
 .animate-pixel-fill { animation: pixel-fill 0.6s steps(10) 1 both; }
 
+/* Fade-in — subtle opacity entrance for overlays/dropdowns (150ms) */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.animate-fade-in { animation: fade-in 150ms ease-out both; }
+
 /* Equalizer bars — 3 distinct stepped height patterns for the music player.
    Each bar snaps between heights at steps(1) so there's no interpolation,
    creating a jittery 8-bit VU meter. Different patterns prevent sync. */

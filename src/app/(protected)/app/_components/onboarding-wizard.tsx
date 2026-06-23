@@ -204,39 +204,43 @@ export function OnboardingWizard() {
 
           {step === 0 && (
             <div className="space-y-3">
-              <PixelInput
-                type="search"
-                label="University"
-                placeholder="Type your university (e.g. ODTÜ, METU, Orta Doğu)"
-                value={uniQuery}
-                onChange={(v) => clearUniversitySelection(v as string)}
-                error={fieldErrors.university}
-              />
+              <div className="relative">
+                <PixelInput
+                  type="search"
+                  label="University"
+                  placeholder="Type your university (e.g. ODTÜ, METU, Orta Doğu)"
+                  value={uniQuery}
+                  onChange={(v) => clearUniversitySelection(v as string)}
+                  error={fieldErrors.university}
+                />
 
-              {!usingRegistryUni && searching && (
-                <p className="text-xs text-[var(--pixel-text-secondary)] animate-pulse">
-                  Searching...
-                </p>
-              )}
+                {!usingRegistryUni && searching && (
+                  <p className="text-xs text-[var(--pixel-text-secondary)] animate-pulse mt-1">
+                    Searching...
+                  </p>
+                )}
 
-              {!usingRegistryUni && !searching && suggestions.length > 0 && (
-                <ul className="pixel-panel pixel-panel-inset divide-y divide-[var(--pixel-border)]">
-                  {suggestions.map((u) => (
-                    <li key={u.id}>
-                      <button
-                        type="button"
-                        onClick={() => selectUniversity(u)}
-                        className="w-full text-left px-3 py-2 text-sm text-[var(--pixel-text-primary)] hover:bg-[var(--pixel-bg-primary)] transition-colors"
-                      >
-                        {u.name}
-                        <span className="block text-[10px] text-[var(--pixel-text-secondary)]">
-                          {u.primaryDomain}
-                        </span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
+                {!usingRegistryUni && !searching && suggestions.length > 0 && (
+                  <ul
+                    className="absolute left-0 right-0 top-full mt-1 z-50 pixel-panel pixel-panel-inset divide-y divide-[var(--pixel-border)] max-h-[250px] overflow-y-auto animate-fade-in"
+                  >
+                    {suggestions.map((u) => (
+                      <li key={u.id}>
+                        <button
+                          type="button"
+                          onClick={() => selectUniversity(u)}
+                          className="w-full text-left px-3 py-2 text-sm text-[var(--pixel-text-primary)] hover:bg-[var(--pixel-bg-primary)] transition-colors"
+                        >
+                          {u.name}
+                          <span className="block text-[10px] text-[var(--pixel-text-secondary)]">
+                            {u.primaryDomain}
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
 
               {usingRegistryUni ? (
                 <p className="text-xs text-[var(--pixel-success)]">
