@@ -83,9 +83,12 @@ export function IngestionProgress({ paperId, onComplete }: IngestionProgressProp
 
   if (error) {
     return (
-      <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 dark:border-red-900/50 dark:bg-red-900/20">
-        <AlertTriangle className="h-4 w-4 flex-shrink-0 text-red-500" />
-        <span className="text-sm text-red-600 dark:text-red-400">{error}</span>
+      <div
+        className="flex items-center gap-2 rounded-sm border-l-4 px-3 py-2"
+        style={{ borderLeftColor: "var(--pixel-error)", backgroundColor: "var(--pixel-bg-surface)" }}
+      >
+        <AlertTriangle className="h-4 w-4 flex-shrink-0" style={{ color: "var(--pixel-error)" }} />
+        <span className="text-sm" style={{ color: "var(--pixel-error)" }}>{error}</span>
       </div>
     );
   }
@@ -93,14 +96,17 @@ export function IngestionProgress({ paperId, onComplete }: IngestionProgressProp
   if (!status) {
     return (
       <div className="flex items-center gap-2 px-3 py-2">
-        <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
-        <span className="text-sm text-zinc-500">Loading status...</span>
+        <Loader2 className="h-4 w-4 animate-spin" style={{ color: "var(--pixel-text-muted)" }} />
+        <span className="text-sm" style={{ color: "var(--pixel-text-muted)" }}>Loading status...</span>
       </div>
     );
   }
 
   return (
-    <div className="rounded-lg border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900">
+    <div
+      className="rounded-sm border-2 p-3"
+      style={{ borderColor: "var(--pixel-border)", backgroundColor: "var(--pixel-bg-surface)" }}
+    >
       <StatusDisplay status={status} />
       {(status.parseStatus === "pending" || status.parseStatus === "processing") && (
         <IndeterminateProgressBar />
@@ -114,8 +120,8 @@ function StatusDisplay({ status }: { status: StatusData }) {
     case "pending":
       return (
         <div className="flex items-center gap-2">
-          <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
-          <span className="text-sm text-zinc-500 dark:text-zinc-400">
+          <Loader2 className="h-4 w-4 animate-spin" style={{ color: "var(--pixel-text-muted)" }} />
+          <span className="text-sm" style={{ color: "var(--pixel-text-muted)" }}>
             Queued for processing...
           </span>
         </div>
@@ -124,8 +130,8 @@ function StatusDisplay({ status }: { status: StatusData }) {
     case "processing":
       return (
         <div className="flex items-center gap-2">
-          <Loader2 className="h-4 w-4 animate-spin text-indigo-500" />
-          <span className="text-sm text-indigo-600 dark:text-indigo-400">
+          <Loader2 className="h-4 w-4 animate-spin" style={{ color: "var(--pixel-accent)" }} />
+          <span className="text-sm" style={{ color: "var(--pixel-accent)" }}>
             Processing your paper
             <AnimatedDots />
           </span>
@@ -135,8 +141,8 @@ function StatusDisplay({ status }: { status: StatusData }) {
     case "ready":
       return (
         <div className="flex items-center gap-2">
-          <Check className="h-4 w-4 text-green-500" />
-          <span className="text-sm font-medium text-green-600 dark:text-green-400">
+          <Check className="h-4 w-4" style={{ color: "var(--pixel-success)" }} />
+          <span className="text-sm font-medium" style={{ color: "var(--pixel-success)" }}>
             Paper indexed! {status.chunkCount} chunks created
           </span>
         </div>
@@ -146,13 +152,13 @@ function StatusDisplay({ status }: { status: StatusData }) {
       return (
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4 text-amber-500" />
-            <span className="text-sm font-medium text-amber-600 dark:text-amber-400">
+            <AlertTriangle className="h-4 w-4" style={{ color: "var(--pixel-warning)" }} />
+            <span className="text-sm font-medium" style={{ color: "var(--pixel-warning)" }}>
               Partially indexed: {status.chunkCount} chunks
             </span>
           </div>
           {status.parseError && (
-            <p className="pl-6 text-xs text-amber-500 dark:text-amber-400/80">
+            <p className="pl-6 text-xs" style={{ color: "var(--pixel-warning)", opacity: 0.8 }}>
               {status.parseError.length > 200
                 ? `${status.parseError.slice(0, 200)}…`
                 : status.parseError}
@@ -165,13 +171,13 @@ function StatusDisplay({ status }: { status: StatusData }) {
       return (
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4 text-red-500" />
-            <span className="text-sm font-medium text-red-600 dark:text-red-400">
+            <AlertTriangle className="h-4 w-4" style={{ color: "var(--pixel-error)" }} />
+            <span className="text-sm font-medium" style={{ color: "var(--pixel-error)" }}>
               Processing failed
             </span>
           </div>
           {status.parseError && (
-            <p className="pl-6 text-xs text-red-500 dark:text-red-400/80">
+            <p className="pl-6 text-xs" style={{ color: "var(--pixel-error)", opacity: 0.8 }}>
               {status.parseError.length > 200
                 ? `${status.parseError.slice(0, 200)}…`
                 : status.parseError}
@@ -195,10 +201,14 @@ function AnimatedDots() {
 
 function IndeterminateProgressBar() {
   return (
-    <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-700">
+    <div
+      className="mt-2 h-1.5 w-full overflow-hidden rounded-sm"
+      style={{ backgroundColor: "var(--pixel-bg-primary)" }}
+    >
       <div
-        className="h-full w-1/3 rounded-full bg-indigo-500"
+        className="h-full w-1/3 rounded-sm"
         style={{
+          backgroundColor: "var(--pixel-accent)",
           animation: "indeterminate 1.5s ease-in-out infinite",
         }}
       />
