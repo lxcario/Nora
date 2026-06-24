@@ -1,7 +1,7 @@
 import { PageHeader } from "../_components/page-header";
 import { getDueCards } from "../_actions/review";
 import { ReviewSession } from "./_components/review-session";
-import { DialogFrame, EmptyState } from "@/components/pixel-ui";
+import { DialogFrame, EmptyState, FeatureHint } from "@/components/pixel-ui";
 
 export default async function ReviewPage() {
   const { cards, error } = await getDueCards();
@@ -11,6 +11,13 @@ export default async function ReviewPage() {
       <PageHeader
         title="Review Cards"
         description="FSRS spaced repetition. Grade each card: Again, Hard, Good, or Easy — the algorithm schedules your next review automatically."
+      />
+
+      <FeatureHint
+        id="review-cards"
+        title="Keyboard shortcuts"
+        description="Press 1-4 to grade cards quickly (1=Again, 2=Hard, 3=Good, 4=Easy). Space reveals the answer. The FSRS algorithm ensures you review at the optimal moment."
+        icon="/sprites/travel-book/icons/Book.png"
       />
 
       {/* Stats bar */}

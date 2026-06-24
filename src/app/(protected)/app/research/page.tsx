@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "../_components/page-header";
 import { ResearchDesk } from "./_components/research-desk";
+import { FeatureHint } from "@/components/pixel-ui";
 
 export default async function ResearchPage() {
   const supabase = await createClient();
@@ -25,6 +26,12 @@ export default async function ResearchPage() {
       <PageHeader
         title="AI Research Desk"
         description="Ask a research question. AI searches academic databases and the web, then synthesizes a cited answer."
+      />
+      <FeatureHint
+        id="research-desk"
+        title="Two research modes"
+        description="'From web' queries OpenAlex and Crossref for academic papers. 'From your papers' searches your uploaded PDFs using AI retrieval. Every claim is cited — never fabricated."
+        icon="/sprites/travel-book/icons/MagnifyingGlass.png"
       />
       <ResearchDesk topics={topicOptions} />
     </div>

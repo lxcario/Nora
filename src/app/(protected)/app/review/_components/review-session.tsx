@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { submitReview, deleteCard, type DueCard } from "@/app/(protected)/app/_actions/review";
 import { Rating, type Grade } from "@/lib/fsrs";
@@ -102,6 +102,12 @@ export function ReviewSession({ initialCards }: { initialCards: DueCard[] }) {
   // Transient "card requeued" banner for Again
   const [showRequeued, setShowRequeued] = useState(false);
 
+  // Undo last review state: holds the pending grade before server commit
+  const [undoAvailable, setUndoAvailable] = useState(false);
+  const [undoLabel, setUndoLabel] = useState("");
+  const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingGradeRef = useRef<{ cardId: string; rating: Grade; confidence: number | null } | null>(null);
+
   const currentCard = queue[currentIndex];
   const totalCards = queue.length; // grows when Again re-appends
 
@@ -109,47 +115,111 @@ export function ReviewSession({ initialCards }: { initialCards: DueCard[] }) {
     setRevealed(true);
   }
 
-  function handleGrade(rating: Grade) {
+  function commitGrade(cardId: string, rating: Grade, jolConfidence: number | null) {
     startTransition(async () => {
-      await submitReview(currentCard.id, rating, confidence ?? undefined);
-      setReviewedCount((c) => c + 1);
-      setRevealed(false);
-      setConfidence(null);
-      setConfidenceGiven(false);
+      await submitReview(cardId, rating, jolConfidence ?? undefined);
 
-      // Show XP toast
-      // TODO(option-2-refactor): These XP/coin values are hardcoded to match
-      // rewardAction() server logic. If reward rules change (streak multipliers,
-      // tuned amounts), these will silently drift. Refactor: have submitReview()
-      // return the RewardResult from rewardAction() so the client uses the real
-      // server-granted values instead of duplicating the logic.
+      // XP toast
       const xp = rating !== Rating.Again ? 3 : 1;
       const coins = rating !== Rating.Again ? 1 : 0;
       setXpToastData({ xp, coins, visible: true });
       setTimeout(() => setXpToastData((prev) => ({ ...prev, visible: false })), 3000);
       addReward(xp, coins);
-
-      if (rating === Rating.Again) {
-        // Intra-session relearning: re-append card to the end of the queue
-        // so it reappears before the session ends (spec Req 2.2).
-        setQueue((prev) => [...prev, currentCard]);
-        setRequeuedIds((prev) => new Set(prev).add(currentCard.id));
-        setShowRequeued(true);
-        setTimeout(() => setShowRequeued(false), 1800);
-        setCurrentIndex((i) => i + 1);
-      } else {
-        // Non-lapse: advance; end session if no more cards remain.
-        const nextIndex = currentIndex + 1;
-        if (nextIndex >= totalCards) {
-          setSessionComplete(true);
-          setShowComplete(true);
-          setTimeout(() => setShowComplete(false), 3000);
-          playSessionComplete();
-        } else {
-          setCurrentIndex(nextIndex);
-        }
-      }
     });
+  }
+
+  function handleGrade(rating: Grade) {
+    // Clear any existing undo timer (user graded again before undo expired)
+    if (undoTimerRef.current) {
+      clearTimeout(undoTimerRef.current);
+      // Commit the previously pending grade immediately
+      if (pendingGradeRef.current) {
+        commitGrade(
+          pendingGradeRef.current.cardId,
+          pendingGradeRef.current.rating,
+          pendingGradeRef.current.confidence
+        );
+      }
+    }
+
+    // Store current grade as pending
+    pendingGradeRef.current = {
+      cardId: currentCard.id,
+      rating,
+      confidence,
+    };
+    setUndoLabel(FSRS_GRADES.find((g) => g.rating === rating)?.label ?? "");
+    setUndoAvailable(true);
+
+    // Advance the UI immediately (optimistic)
+    setReviewedCount((c) => c + 1);
+    setRevealed(false);
+    setConfidence(null);
+    setConfidenceGiven(false);
+
+    if (rating === Rating.Again) {
+      setQueue((prev) => [...prev, currentCard]);
+      setRequeuedIds((prev) => new Set(prev).add(currentCard.id));
+      setShowRequeued(true);
+      setTimeout(() => setShowRequeued(false), 1800);
+      setCurrentIndex((i) => i + 1);
+    } else {
+      const nextIndex = currentIndex + 1;
+      if (nextIndex >= totalCards) {
+        setSessionComplete(true);
+        setShowComplete(true);
+        setTimeout(() => setShowComplete(false), 3000);
+        playSessionComplete();
+      } else {
+        setCurrentIndex(nextIndex);
+      }
+    }
+
+    // Start 3s undo timer — after which the grade is committed to the server
+    undoTimerRef.current = setTimeout(() => {
+      if (pendingGradeRef.current) {
+        commitGrade(
+          pendingGradeRef.current.cardId,
+          pendingGradeRef.current.rating,
+          pendingGradeRef.current.confidence
+        );
+        pendingGradeRef.current = null;
+      }
+      setUndoAvailable(false);
+      undoTimerRef.current = null;
+    }, 3000);
+  }
+
+  function handleUndo() {
+    if (!pendingGradeRef.current || !undoTimerRef.current) return;
+
+    // Cancel the pending commit
+    clearTimeout(undoTimerRef.current);
+    undoTimerRef.current = null;
+
+    const pending = pendingGradeRef.current;
+    pendingGradeRef.current = null;
+    setUndoAvailable(false);
+
+    // Revert the optimistic UI advancement
+    setReviewedCount((c) => Math.max(0, c - 1));
+
+    if (pending.rating === Rating.Again) {
+      // Remove the re-appended card from the end of the queue
+      setQueue((prev) => prev.slice(0, -1));
+      setRequeuedIds((prev) => {
+        const next = new Set(prev);
+        next.delete(pending.cardId);
+        return next;
+      });
+    }
+
+    // Go back to the card that was just graded
+    setCurrentIndex((i) => Math.max(0, i - 1));
+    setRevealed(true); // Show the answer again so the user can re-grade
+    setConfidence(pending.confidence);
+    setConfidenceGiven(true);
+    setSessionComplete(false);
   }
 
   function handleDeleteConfirm() {
@@ -166,6 +236,42 @@ export function ReviewSession({ initialCards }: { initialCards: DueCard[] }) {
       }
     });
   }
+
+  // ─── Keyboard shortcuts ─────────────────────────────────────────────────
+  // 1=Again, 2=Hard, 3=Good, 4=Easy (only active when answer is revealed)
+  // Space = Reveal answer (when not yet revealed and confidence given)
+  const handleKeyboard = useCallback(
+    (e: KeyboardEvent) => {
+      // Don't capture when typing in inputs/textareas or during pending state
+      if (isPending || sessionComplete || confirmDelete) return;
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+
+      if (revealed) {
+        // Grade shortcuts: 1-4
+        const gradeMap: Record<string, Grade> = {
+          "1": Rating.Again,
+          "2": Rating.Hard,
+          "3": Rating.Good,
+          "4": Rating.Easy,
+        };
+        if (gradeMap[e.key]) {
+          e.preventDefault();
+          handleGrade(gradeMap[e.key]);
+        }
+      } else if (confidenceGiven && e.key === " ") {
+        // Space to reveal (only after confidence is given)
+        e.preventDefault();
+        handleReveal();
+      }
+    },
+    [revealed, isPending, sessionComplete, confirmDelete, confidenceGiven]
+  );
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyboard);
+    return () => window.removeEventListener("keydown", handleKeyboard);
+  }, [handleKeyboard]);
 
   // ─── Session Complete ───────────────────────────────────────────────────
 
@@ -237,6 +343,32 @@ export function ReviewSession({ initialCards }: { initialCards: DueCard[] }) {
         max={totalCards}
         variant="xp"
       />
+
+      {/* Undo last grade toast */}
+      {undoAvailable && (
+        <div
+          className="flex items-center justify-between px-3 py-2 font-pixel text-[11px] animate-pixel-pop"
+          style={{
+            border: "2px solid var(--pixel-accent)",
+            backgroundColor: "color-mix(in srgb, var(--pixel-accent) 12%, var(--pixel-bg-surface))",
+            color: "var(--pixel-text-primary)",
+          }}
+        >
+          <span>
+            Graded <strong style={{ color: "var(--pixel-accent)" }}>{undoLabel}</strong> — saving in 3s
+          </span>
+          <button
+            onClick={handleUndo}
+            className="px-2 py-0.5 font-pixel text-[10px]"
+            style={{
+              color: "var(--pixel-accent)",
+              border: "1px solid var(--pixel-accent)",
+            }}
+          >
+            Undo
+          </button>
+        </div>
+      )}
 
       {/* Requeued banner */}
       {showRequeued && (
@@ -429,6 +561,12 @@ export function ReviewSession({ initialCards }: { initialCards: DueCard[] }) {
                   </button>
                 ))}
               </div>
+              <p
+                className="mt-2 text-center font-pixel text-[9px]"
+                style={{ color: "var(--pixel-text-muted)" }}
+              >
+                Keyboard: 1 Again · 2 Hard · 3 Good · 4 Easy
+              </p>
             </div>
           </>
         )}

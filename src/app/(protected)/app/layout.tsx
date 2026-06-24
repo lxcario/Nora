@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { GameSidebar } from "./_components/game-sidebar";
 import { GameTopBar } from "./_components/game-top-bar";
-import { BottomNav } from "@/components/pixel-ui";
+import { BottomNav, CommandPalette, OnboardingTour } from "@/components/pixel-ui";
 import { PreferencesProvider } from "@/components/pixel-ui/preferences-provider";
 import { SessionStatsProvider } from "./_components/session-stats-context";
 
@@ -40,60 +40,75 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     .eq("id", user.id)
     .single();
 
-  // Avatar URL is fetched separately so a missing column (pre-migration 003)
-  // can't break the main profile query.
-  let avatarUrl: string | null = null;
-  try {
-    const { data: av } = await supabase
-      .from("profiles")
-      .select("avatar_url")
-      .eq("id", user.id)
-      .single();
-    avatarUrl = (av as { avatar_url?: string | null } | null)?.avatar_url ?? null;
-  } catch {
-    avatarUrl = null;
-  }
+  // Parallelize avatar + pet queries — they're independent and each is
+  // fault-tolerant (a failure never breaks the layout render).
+  const [avatarResult, petResult] = await Promise.all([
+    (async () => {
+      try {
+        const { data } = await supabase
+          .from("profiles")
+          .select("avatar_url")
+          .eq("id", user.id)
+          .single();
+        return (data as { avatar_url?: string | null } | null)?.avatar_url ?? null;
+      } catch {
+        return null;
+      }
+    })(),
+    (async () => {
+      try {
+        const { data } = await supabase
+          .from("pets")
+          .select("pet_type, name, state")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        return data;
+      } catch {
+        return null;
+      }
+    })(),
+  ]);
 
+  const avatarUrl = avatarResult;
   const profileWithAvatar = profile ? { ...profile, avatar_url: avatarUrl } : null;
 
-  // Pet data for sidebar widget — fetched separately so a missing/errored
-  // pets row never breaks the layout render.
+  // Pet data for sidebar widget
   let petSidebarData: {
     pokemonId: number;
     name: string;
     state: "happy" | "neutral" | "sad" | "forest_rescue";
     spriteUrl: string;
   } | null = null;
-  try {
-    const { data: petRow } = await supabase
-      .from("pets")
-      .select("pet_type, name, state")
-      .eq("user_id", user.id)
-      .maybeSingle();
-    if (petRow) {
-      const pokemonId = parseInt(petRow.pet_type ?? "25") || 25;
-      petSidebarData = {
-        pokemonId,
-        name: petRow.name ?? "Buddy",
-        state: (petRow.state ?? "neutral") as "happy" | "neutral" | "sad" | "forest_rescue",
-        spriteUrl: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/${pokemonId}.gif`,
-      };
-    }
-  } catch {
-    petSidebarData = null;
+  if (petResult) {
+    const pokemonId = parseInt(petResult.pet_type ?? "25") || 25;
+    petSidebarData = {
+      pokemonId,
+      name: petResult.name ?? "Buddy",
+      state: (petResult.state ?? "neutral") as "happy" | "neutral" | "sad" | "forest_rescue",
+      spriteUrl: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/${pokemonId}.gif`,
+    };
   }
 
   return (
     <PreferencesProvider>
       <SessionStatsProvider resetKey={`${profile?.xp ?? 0}-${profile?.coins ?? 0}`}>
+        {/* Skip-to-content link for keyboard/screen-reader users (WCAG 2.4.1) */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:font-pixel focus:text-sm focus:bg-[var(--pixel-accent)] focus:text-[#1a1410] focus:outline-none focus:rounded-sm"
+        >
+          Skip to main content
+        </a>
         <div className="flex min-h-screen bg-[var(--pixel-bg-primary)]">
           <GameSidebar profile={profileWithAvatar} pet={petSidebarData} />
           <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
             <GameTopBar profile={profileWithAvatar} />
-            <main className="pixel-grid-bg flex-1 overflow-y-auto p-8 pb-20 md:pb-8">
+            <main id="main-content" className="pixel-grid-bg flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 pb-20 md:pb-8">
               {children}
             </main>
             <BottomNav />
+            <CommandPalette />
+            <OnboardingTour />
           </div>
         </div>
       </SessionStatsProvider>

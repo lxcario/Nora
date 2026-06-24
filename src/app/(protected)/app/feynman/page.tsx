@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "../_components/page-header";
 import { FeynmanEditor } from "./_components/feynman-editor";
-import { EmptyState } from "@/components/pixel-ui";
+import { EmptyState, FeatureHint } from "@/components/pixel-ui";
 
 interface FeynmanPageProps {
   searchParams: Promise<{ topic?: string }>;
@@ -31,6 +31,13 @@ export default async function FeynmanPage({ searchParams }: FeynmanPageProps) {
       <PageHeader
         title="Feynman Mode"
         description="Explain concepts in your own words. An AI 'Inquisitive Student' will probe gaps in your understanding."
+      />
+
+      <FeatureHint
+        id="feynman-mode"
+        title="How it works"
+        description="Write an explanation as if you're teaching someone. The AI will evaluate each segment, ask probing questions, and suggest flashcards. Attach a source for grounded feedback."
+        icon="/sprites/travel-book/icons/Lightbulb.png"
       />
 
       {topicOptions.length === 0 ? (

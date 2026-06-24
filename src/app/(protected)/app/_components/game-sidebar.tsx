@@ -55,6 +55,7 @@ function PetWidget({ pet }: { pet: PetSidebarData | null }) {
     <Link
       href="/app/room"
       onClick={() => playNavigate()}
+      data-tour="pet-widget"
       className="pixel-panel mx-2 mb-1 flex flex-col items-center gap-1 px-2 py-3 pixel-hover-brighten pet-hover-perk"
       style={{ textDecoration: "none" }}
       title={`${pet.name} — ${mood.label}`}
@@ -140,6 +141,7 @@ const STUDY_CHILDREN = [
   { href: "/app/review",     icon: "/sprites/travel-book/icons/Book.png",           label: "Review Cards"  },
   { href: "/app/study",      icon: "/sprites/travel-book/icons/Restart.png",         label: "Study Mix"     },
   { href: "/app/feynman",    icon: "/sprites/travel-book/icons/Lightbulb.png",       label: "Feynman Mode"  },
+  { href: "/app/exam",       icon: "/sprites/travel-book/icons/Document.png",        label: "Practice Exam" },
   { href: "/app/research",   icon: "/sprites/travel-book/icons/MagnifyingGlass.png", label: "Research Desk" },
   { href: "/app/study-room", icon: "/sprites/travel-book/icons/Monitor.png",         label: "Study Room"    },
   { href: "/app/planner",    icon: "/sprites/travel-book/icons/Document.png",        label: "Study Planner" },
@@ -198,6 +200,7 @@ function NavLink({
       href={href}
       onClick={() => playNavigate()}
       data-state={active ? "selected" : undefined}
+      aria-current={active ? "page" : undefined}
       className={
         active
           ? "pixel-panel pixel-panel-selected group flex items-center gap-3 px-2.5 py-2 text-[13px] font-pixel"
@@ -235,10 +238,32 @@ function SubNavLink({
   label: string;
   active: boolean;
 }) {
+  // Track page visits for progressive disclosure (localStorage-based).
+  // A "NEW" badge shows on pages the user hasn't visited yet.
+  const [isNew, setIsNew] = useState(false);
+
+  useEffect(() => {
+    try {
+      const visited = localStorage.getItem("nora_visited_pages");
+      const set = new Set<string>(visited ? JSON.parse(visited) : []);
+      if (!set.has(href)) {
+        setIsNew(true);
+      }
+      if (active && !set.has(href)) {
+        set.add(href);
+        localStorage.setItem("nora_visited_pages", JSON.stringify([...set]));
+        setIsNew(false);
+      }
+    } catch {
+      // localStorage unavailable
+    }
+  }, [href, active]);
+
   return (
     <Link
       href={href}
       onClick={() => playNavigate()}
+      aria-current={active ? "page" : undefined}
       className="group flex items-center gap-2.5 rounded-md py-1.5 pl-8 pr-2 text-[11px] font-pixel transition-colors"
       style={{
         color: active ? "var(--pixel-accent)" : "var(--pixel-text-secondary)",
@@ -264,6 +289,18 @@ function SubNavLink({
     >
       <PixelIcon src={icon} alt={label} size={14} />
       <span className="truncate">{label}</span>
+      {isNew && (
+        <span
+          className="ml-auto font-pixel text-[7px] px-1 py-0.5 shrink-0"
+          style={{
+            color: "var(--pixel-accent)",
+            border: "1px solid var(--pixel-accent)",
+            backgroundColor: "color-mix(in srgb, var(--pixel-accent) 15%, transparent)",
+          }}
+        >
+          NEW
+        </span>
+      )}
     </Link>
   );
 }
@@ -391,10 +428,10 @@ export function GameSidebar({
   const toggleMyRoom = useCallback(() => setOpenGroups((p) => ({ ...p, myRoom: !p.myRoom })), []);
 
   return (
-    <aside className="hidden md:flex flex-col w-[240px] min-h-screen flex-shrink-0 bg-[var(--pixel-sidebar-bg)] border-r-2 border-[var(--pixel-border)]">
+    <aside className="hidden md:flex flex-col w-[240px] h-screen sticky top-0 flex-shrink-0 bg-[var(--pixel-sidebar-bg)] border-r-2 border-[var(--pixel-border)]">
 
       {/* ─── Logo ─── */}
-      <div className="px-4 pt-5 pb-4 flex items-center justify-center">
+      <div className="px-4 pt-5 pb-4 flex items-center justify-center shrink-0">
         <img
           src="/noralogo.png"
           alt="NORA"
@@ -405,11 +442,13 @@ export function GameSidebar({
       </div>
 
       {/* ─── Pet Widget ─── */}
-      <PetWidget pet={pet} />
+      <div className="shrink-0">
+        <PetWidget pet={pet} />
+      </div>
 
-      {/* ─── Navigation ─── */}
+      {/* ─── Navigation (scrollable) ─── */}
       <nav
-        className="flex-1 px-2 space-y-1 overflow-y-auto scrollbar-hide"
+        className="flex-1 px-2 space-y-1 overflow-y-auto scrollbar-hide min-h-0"
         aria-label="Main navigation"
       >
         {/* 1. Home */}
@@ -421,6 +460,7 @@ export function GameSidebar({
         />
 
         {/* 2. Study (accordion) */}
+        <div data-tour="sidebar-study">
         <AccordionGroup
           icon="/sprites/travel-book/icons/Book.png"
           label="Study"
@@ -438,6 +478,7 @@ export function GameSidebar({
             />
           ))}
         </AccordionGroup>
+        </div>
 
         {/* 3. Friends (was "Party") */}
         <NavLink
@@ -478,7 +519,9 @@ export function GameSidebar({
       </nav>
 
       {/* ─── Music Player (stays pinned at bottom) ─── */}
-      <MusicPlayer />
+      <div className="shrink-0">
+        <MusicPlayer />
+      </div>
     </aside>
   );
 }

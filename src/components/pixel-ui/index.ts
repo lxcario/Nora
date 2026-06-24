@@ -65,3 +65,9 @@ export type { PixelToggleProps } from "./pixel-toggle";
 
 // Logo
 export { NoraLogo } from "./nora-logo";
+
+// UX enhancements
+export { FeatureHint } from "./feature-hint";
+export { CommandPalette } from "./command-palette";
+export { OnboardingTour } from "./onboarding-tour";
+export type { TourStep } from "./onboarding-tour";

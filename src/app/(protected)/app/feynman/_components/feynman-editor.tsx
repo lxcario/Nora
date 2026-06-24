@@ -138,6 +138,28 @@ export function FeynmanEditor({ topics, defaultTopicId }: { topics: TopicOption[
     };
   }, [explanation, currentTopic, isPending, fetchSuggestion]);
 
+  // Beforeunload guard: prevent accidental data loss when explanation has unsaved content.
+  // Only active when the user has typed a meaningful explanation (>50 chars) and
+  // hasn't yet received an evaluation (analysis === null).
+  useEffect(() => {
+    const hasUnsavedWork = explanation.length > 50 && analysis === null;
+
+    function handleBeforeUnload(e: BeforeUnloadEvent) {
+      if (hasUnsavedWork) {
+        e.preventDefault();
+        // Modern browsers ignore custom messages but still show a generic prompt.
+        e.returnValue = "";
+      }
+    }
+
+    if (hasUnsavedWork) {
+      window.addEventListener("beforeunload", handleBeforeUnload);
+    }
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [explanation, analysis]);
+
   // Fetch suggestion when topic changes
   useEffect(() => {
     // Reset the per-topic refine/score state when switching topics.
@@ -325,7 +347,9 @@ export function FeynmanEditor({ topics, defaultTopicId }: { topics: TopicOption[
           <div className="flex items-center gap-3">
             <span className="text-xs text-[var(--pixel-text-muted)]">
               {explanation.length} characters
-              {explanation.length < 50 && explanation.length > 0 ? " (need at least 50)" : ""}
+              {explanation.length < 50 && explanation.length > 0 && (
+                <span className="text-[var(--pixel-warning)]"> — {50 - explanation.length} more needed</span>
+              )}
             </span>
             {suggestion && (
               <span className="rounded px-1.5 py-0.5 text-xs bg-[var(--pixel-bg-elevated)] text-[var(--pixel-text-secondary)]">

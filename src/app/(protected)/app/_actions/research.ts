@@ -411,7 +411,7 @@ async function synthesizeResearch(
   query: string,
   sources: ResearchSource[]
 ): Promise<{ answer?: string; suggestedCards?: { front: string; back: string }[]; error?: string }> {
-  if (!hasLLMProvider()) return { error: "No AI key configured" };
+  if (!hasLLMProvider()) return { error: "No AI key configured. Please add a GROQ_API_KEY in your environment settings." };
 
   const sourcesContext = buildSourceContext(sources);
 
@@ -525,7 +525,7 @@ Respond ONLY with valid JSON. Use \\n for newlines inside strings. No markdown c
       openRouterTimeoutMs: 60000,
     });
 
-    if (!content.trim()) return { error: "AI synthesis failed — empty response." };
+    if (!content.trim()) return { error: "The AI provider is temporarily busy. Try again in a few seconds, or simplify your question." };
 
     const parsed = parseSynthesisResponse(content);
     if (parsed.error) return parsed;
@@ -538,8 +538,8 @@ Respond ONLY with valid JSON. Use \\n for newlines inside strings. No markdown c
     return parsed;
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Research failed";
-    if (msg.includes("abort")) return { error: "Research timed out. Try a simpler question." };
-    return { error: msg };
+    if (msg.includes("abort")) return { error: "Research timed out — the question may be too broad. Try narrowing it down." };
+    return { error: `Something went wrong: ${msg}. Please try again.` };
   }
 }
 

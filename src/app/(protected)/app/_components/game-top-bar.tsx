@@ -95,6 +95,20 @@ export function GameTopBar({ profile }: GameTopBarProps) {
 
       {/* Right: Coins + compact XP bar + Profile popover */}
       <div className="flex items-center gap-4">
+        {/* Mobile-only level badge (visible < sm, replaces the hidden XP bar) */}
+        <span
+          className="sm:hidden font-pixel text-[10px] px-1.5 py-0.5"
+          data-tour="topbar-xp-mobile"
+          style={{
+            color: "var(--pixel-accent)",
+            border: "1px solid var(--pixel-accent)",
+            backgroundColor: "color-mix(in srgb, var(--pixel-accent) 10%, transparent)",
+          }}
+          title={`Level ${level} — ${Math.round(xpProgress * 100)}% to next`}
+        >
+          Lv.{level}
+        </span>
+
         {/* Coins */}
         <div
           className="flex items-center gap-1.5"
@@ -110,6 +124,7 @@ export function GameTopBar({ profile }: GameTopBarProps) {
         {/* Compact XP bar + level */}
         <div
           className="hidden sm:flex items-center gap-2"
+          data-tour="topbar-xp"
           title="Earn XP by studying. Level up to unlock new pets, themes, and decorations!"
         >
           <span className="font-pixel text-[10px] text-[var(--pixel-accent)]">

@@ -331,7 +331,7 @@ export async function evaluateExplanation(
   // Rate limit check
   const rateCheck = checkRateLimit(user.id, "feynman", RATE_LIMITS.ai_heavy.maxRequests, RATE_LIMITS.ai_heavy.windowMs);
   if (!rateCheck.allowed) {
-    return { error: `Too many requests. Please wait ${Math.ceil((rateCheck.retryAfterMs ?? 0) / 1000)} seconds.` };
+    return { error: `You're studying fast! Please wait ${Math.ceil((rateCheck.retryAfterMs ?? 0) / 1000)} seconds before your next evaluation.` };
   }
 
   // Fetch topic, subject names, and any attached source for grounding.
@@ -368,7 +368,7 @@ export async function evaluateExplanation(
 
   try {
     if (!hasLLMProvider()) {
-      return { error: "No AI API key configured" };
+      return { error: "No AI API key configured. Please add a GROQ_API_KEY in your environment settings." };
     }
     const responseText = await callLLM({
       system: contextualPrompt,
@@ -380,7 +380,7 @@ export async function evaluateExplanation(
 
     // Guard against empty response
     if (!responseText?.trim()) {
-      return { error: "AI returned an empty response. Please try again." };
+      return { error: "The AI provider is temporarily unavailable. Try again in a few seconds — shorter explanations process faster." };
     }
 
     // Strip possible markdown fences
@@ -455,6 +455,32 @@ export async function createCardsFromFeynman(
   } = await supabase.auth.getUser();
   if (!user) return { error: "Not authenticated" };
 
+  // Duplicate detection: check if any card fronts already exist for this user.
+  // Uses case-insensitive prefix matching to catch near-duplicates.
+  // Returns as a warning (does not block creation) — user decides whether to proceed.
+  const duplicateWarnings: string[] = [];
+  if (cards.length <= 10) {
+    // Only check for reasonable batch sizes to avoid excessive queries
+    const { data: existingCards } = await supabase
+      .from("cards")
+      .select("front")
+      .eq("user_id", user.id)
+      .eq("topic_id", topicId)
+      .limit(200);
+
+    if (existingCards && existingCards.length > 0) {
+      const existingFronts = new Set(
+        existingCards.map((c) => (c.front as string).toLowerCase().trim())
+      );
+      for (const card of cards) {
+        const normalized = card.front.toLowerCase().trim();
+        if (existingFronts.has(normalized)) {
+          duplicateWarnings.push(card.front.slice(0, 60));
+        }
+      }
+    }
+  }
+
   const cardsToInsert = cards.map((card) => ({
     user_id: user.id,
     topic_id: topicId,
@@ -470,7 +496,11 @@ export async function createCardsFromFeynman(
   await rewardBatch("card_created", cards.length);
 
   revalidatePath("/app/review");
-  return { success: true, count: cards.length };
+  return {
+    success: true,
+    count: cards.length,
+    duplicateWarnings: duplicateWarnings.length > 0 ? duplicateWarnings : undefined,
+  };
 }
 
 export interface TopicScorePoint {

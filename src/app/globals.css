@@ -441,6 +441,7 @@ body {
   background-color: var(--pixel-bg-surface);
   background-clip: padding-box;
   image-rendering: pixelated;
+  overflow: hidden;
 }
 
 /* Recessed/inset look (inputs, wells) — darker interior */
@@ -852,6 +853,12 @@ a:hover > .nav-ico,
   to   { opacity: 1; }
 }
 .animate-fade-in { animation: fade-in 150ms ease-out both; }
+
+/* Slide-up — used by mobile "More" drawer */
+@keyframes slide-up {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
 
 /* Equalizer bars — 3 distinct stepped height patterns for the music player.
    Each bar snaps between heights at steps(1) so there's no interpolation,

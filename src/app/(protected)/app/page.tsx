@@ -283,6 +283,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* ═══ Section 4 — Today's Quests ═══ */}
+      <div data-tour="quests">
       <DialogFrame title="TODAY'S QUESTS">
         {allQuestsDone ? (
           <div className="flex flex-col items-center py-4 gap-2">
@@ -346,6 +347,7 @@ export default async function DashboardPage() {
           </div>
         )}
       </DialogFrame>
+      </div>
 
       {/* ═══ Section 5 — Friends Activity ═══ */}
       <FriendsActivity feed={friendsFeed} />
@@ -382,6 +384,7 @@ function PrimaryCTA({ cardsDue }: { cardsDue: number }) {
   return (
     <Link
       href={hasDue ? "/app/review" : "/app/feynman"}
+      data-tour="dashboard-cta"
       className="pixel-panel group flex items-center justify-between gap-4 transition-all hover:brightness-110"
       style={{ padding: "var(--pixel-panel-spacious)", backgroundColor: "color-mix(in srgb, var(--pixel-accent) 18%, var(--pixel-bg-surface))" }}
     >

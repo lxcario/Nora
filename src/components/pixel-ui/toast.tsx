@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, type CSSProperties } from "react";
+import { useEffect, useState, useRef, type CSSProperties } from "react";
 import { useToast, type ToastVariant } from "./toast-provider";
 import { playLevelUp } from "@/lib/sfx";
+import { X } from "lucide-react";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -47,12 +48,43 @@ export function ToastItem({
   duration = 3000,
   onDismiss,
 }: ToastProps) {
+  const [paused, setPaused] = useState(false);
+  const remainingRef = useRef(duration);
+  const startRef = useRef(Date.now());
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   // Level-up variant triggers SFX on mount
   useEffect(() => {
     if (variant === "level-up") {
       playLevelUp();
     }
   }, [variant]);
+
+  // Auto-dismiss timer with pause/resume support
+  useEffect(() => {
+    if (paused) {
+      // On pause, calculate remaining time and clear the timer
+      const elapsed = Date.now() - startRef.current;
+      remainingRef.current = Math.max(0, remainingRef.current - elapsed);
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+      return;
+    }
+
+    // On resume (or initial), start timer with remaining duration
+    startRef.current = Date.now();
+    timerRef.current = setTimeout(() => {
+      onDismiss(id);
+    }, remainingRef.current);
+
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, [paused, id, onDismiss]);
 
   const isLevelUp = variant === "level-up";
 
@@ -67,6 +99,7 @@ export function ToastItem({
     height: "4px",
     backgroundColor: VARIANT_PROGRESS_COLORS[variant],
     animation: `toast-progress ${duration}ms linear forwards`,
+    animationPlayState: paused ? "paused" : "running",
     imageRendering: "pixelated",
   };
 
@@ -77,15 +110,30 @@ export function ToastItem({
       role="status"
       aria-live="polite"
       aria-atomic="true"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onFocus={() => setPaused(true)}
+      onBlur={() => setPaused(false)}
     >
-      {/* Variant accent strip */}
-      <div
-        style={{
-          height: "4px",
-          backgroundColor: VARIANT_BORDER_COLORS[variant],
-          marginBottom: "8px",
-        }}
-      />
+      {/* Header: accent strip + close button */}
+      <div className="flex items-center justify-between mb-2">
+        <div
+          className="flex-1"
+          style={{
+            height: "4px",
+            backgroundColor: VARIANT_BORDER_COLORS[variant],
+          }}
+        />
+        <button
+          onClick={() => onDismiss(id)}
+          aria-label="Dismiss notification"
+          className="ml-2 shrink-0 p-0.5 transition-opacity hover:opacity-100 opacity-60"
+          style={{ color: "var(--pixel-text-muted)" }}
+        >
+          <X className="h-3 w-3" />
+        </button>
+      </div>
+
       {/* Message */}
       <p
         className={isLevelUp ? "animate-pixel-wiggle" : undefined}
