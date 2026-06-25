@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { DialogFrame, PixelButton, PixelInput } from "@/components/pixel-ui";
 import type { AcademicKind } from "@/lib/supabase/database.types";
 import {
@@ -45,6 +46,7 @@ export function AcademicDocumentsPanel({
 }: {
   initialDocuments: AcademicDocument[];
 }) {
+  const router = useRouter();
   const [documents, setDocuments] = useState<AcademicDocument[]>(initialDocuments);
   const [kind, setKind] = useState<AcademicKind>("academic_calendar");
   const [uploading, setUploading] = useState(false);
@@ -126,6 +128,8 @@ export function AcademicDocumentsPanel({
         c.unreleased > 0 ? `, ${c.unreleased} marked unreleased` : ""
       }. Review them below or on your planner.`,
     });
+    // Refresh the page to show extracted events in the review panel
+    router.refresh();
   }
 
   return (

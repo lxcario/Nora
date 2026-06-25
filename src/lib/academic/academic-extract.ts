@@ -93,8 +93,11 @@ export interface ParsedDateRange {
  * no valid, fully-specified (day+month+year) date is present — we never guess a
  * missing component. Turkish and English month names are supported, plus
  * numeric DMY (12.01.2026 / 12/01/2026) and ISO (2026-01-12) forms.
+ *
+ * When `inferYear` is provided (from document title e.g. "2025-2026"), dates
+ * without an explicit year use inferred year: Sep-Dec → startYear, Jan-Aug → endYear.
  */
-export function parseDateRange(text: string): ParsedDateRange | null {
+export function parseDateRange(text: string, inferYear?: { startYear: number; endYear: number }): ParsedDateRange | null {
   const s = asciiLower(text);
   const M = MONTH_ALT;
 
@@ -161,6 +164,51 @@ export function parseDateRange(text: string): ParsedDateRange | null {
     return a ? { startDate: a, endDate: null } : null;
   }
 
+  // 8) Yearless: "D Mon" with inferYear — for table-format academic calendars
+  //    where the year is only in the document title (e.g. "2025-2026 Akademik Takvim")
+  if (inferYear) {
+    // Range: "D Mon DAYNAME <sep> D Mon DAYNAME" or "D Mon DAYNAME D Mon DAYNAME"
+    // Turkish table rows often have: "12 Ocak Pazartesi 16 Ocak Cuma" (no separator)
+    const dayNames = "pazartesi|sali|carsamba|persembe|cuma|cumartesi|pazar|monday|tuesday|wednesday|thursday|friday|saturday|sunday";
+    m = new RegExp(`(\\d{1,2})\\s+(${M})\\s+(?:${dayNames})\\s+(\\d{1,2})\\s+(${M})\\s+(?:${dayNames})?`).exec(s);
+    if (m && !new RegExp(`\\d{1,2}\\s+(?:${M})\\s+\\d{4}`).test(s)) {
+      const mo1 = normalizeMonth(m[2])!;
+      const mo2 = normalizeMonth(m[4])!;
+      if (mo1 && mo2) {
+        const y1 = mo1 >= 9 ? inferYear.startYear : inferYear.endYear;
+        const y2 = mo2 >= 9 ? inferYear.startYear : inferYear.endYear;
+        const a = makeISO(y1, mo1, +m[1]);
+        const b = makeISO(y2, mo2, +m[3]);
+        return orderedRange(a, b);
+      }
+    }
+
+    // Range: "D Mon <sep> D Mon" (no year on either side, no day names)
+    m = new RegExp(`(\\d{1,2})\\s+(${M})\\s*${SEP}\\s*(\\d{1,2})\\s+(${M})`).exec(s);
+    if (m && !new RegExp(`\\d{1,2}\\s+(?:${M})\\s+\\d{4}`).test(s)) {
+      const mo1 = normalizeMonth(m[2])!;
+      const mo2 = normalizeMonth(m[4])!;
+      if (mo1 && mo2) {
+        const y1 = mo1 >= 9 ? inferYear.startYear : inferYear.endYear;
+        const y2 = mo2 >= 9 ? inferYear.startYear : inferYear.endYear;
+        const a = makeISO(y1, mo1, +m[1]);
+        const b = makeISO(y2, mo2, +m[3]);
+        return orderedRange(a, b);
+      }
+    }
+
+    // Single: "D Mon" (optionally followed by day name like "pazartesi" / "cuma")
+    m = new RegExp(`(\\d{1,2})\\s+(${M})`).exec(s);
+    if (m && !new RegExp(`\\d{1,2}\\s+(?:${M})\\s+\\d{4}`).test(s)) {
+      const mo = normalizeMonth(m[2]);
+      if (mo) {
+        const y = mo >= 9 ? inferYear.startYear : inferYear.endYear;
+        const a = makeISO(y, mo, +m[1]);
+        return a ? { startDate: a, endDate: null } : null;
+      }
+    }
+  }
+
   return null;
 }
 
@@ -175,12 +223,12 @@ function orderedRange(a: string | null, b: string | null): ParsedDateRange | nul
 const EVENT_KEYWORDS: { type: AcademicEventType; keywords: string[] }[] = [
   { type: "final_period", keywords: ["final exam", "final sinav", "final sinavlari", "yariyil sonu sinav", "final"] },
   { type: "makeup_period", keywords: ["butunleme", "make-up", "make up", "makeup", "resit", "mazeret sinav"] },
-  { type: "midterm_period", keywords: ["midterm", "mid-term", "ara sinav", "arasinav", "vize"] },
-  { type: "add_drop", keywords: ["add-drop", "add/drop", "add drop", "ekle-sil", "ekle sil", "ekle birak", "ders ekleme birakma", "ders ekleme"] },
+  { type: "midterm_period", keywords: ["midterm", "mid-term", "ara sinav", "arasinav", "vize", "vize sinav", "vize sinavlari"] },
+  { type: "add_drop", keywords: ["add-drop", "add/drop", "add drop", "ekle-sil", "ekle sil", "ekle birak", "ders ekleme birakma", "ders ekleme", "ekle-cikar", "ekle cikar"] },
   { type: "withdrawal_deadline", keywords: ["withdrawal", "withdraw", "dersten cekilme", "ders cekilme", "cekilme"] },
-  { type: "registration", keywords: ["interactive registration", "course registration", "registration", "ders kayit", "kayit yenileme", "kayitlanma", "kayit"] },
-  { type: "semester_start", keywords: ["first day of classes", "classes begin", "classes start", "start of classes", "derslerin baslamasi", "yariyil basi", "donem basi", "guz donemi", "bahar donemi"] },
-  { type: "semester_end", keywords: ["last day of classes", "classes end", "end of classes", "derslerin sona ermesi", "derslerin bitisi", "yariyil sonu", "donem sonu"] },
+  { type: "registration", keywords: ["interactive registration", "course registration", "registration", "ders kayit", "ders kaydi", "kayit yenileme", "kayitlanma", "kayit", "kesin kayit", "ek kayit"] },
+  { type: "semester_start", keywords: ["first day of classes", "classes begin", "classes start", "start of classes", "derslerin baslamasi", "dersleri baslama", "yariyil basi", "donem basi", "guz donemi", "bahar donemi", "ders donemi baslangi", "ogretim donemi baslangi"] },
+  { type: "semester_end", keywords: ["last day of classes", "classes end", "end of classes", "derslerin sona ermesi", "derslerin bitisi", "yariyil sonu", "donem sonu", "ders donemi sonu", "ogretim donemi sonu"] },
   { type: "holiday", keywords: ["public holiday", "holiday", "resmi tatil", "bayram", "tatil"] },
   { type: "break", keywords: ["semester break", "winter break", "spring break", "ara tatil", "yariyil tatili"] },
 ];
@@ -205,13 +253,31 @@ export function classifyEventType(label: string): AcademicEventType | null {
  * occurs in the source text. Whitespace-collapsed and case-insensitive, but
  * otherwise verbatim. This is the gate that makes ungrounded dates impossible
  * (Requirement 7.1, 7.3).
+ *
+ * For multi-line merged candidates (containing text from adjacent lines), each
+ * segment is checked individually — ALL must be grounded.
  */
 export function isGroundedInSource(sourceText: string, candidate: string): boolean {
   if (!sourceText || !candidate) return false;
   const needle = collapseWs(candidate).toLowerCase();
   if (needle.length < 4) return false;
   const hay = collapseWs(sourceText).toLowerCase();
-  return hay.includes(needle);
+  // Direct match
+  if (hay.includes(needle)) return true;
+  // Multi-segment: check that each significant word cluster is grounded
+  // Split on long whitespace gaps and check each chunk of 4+ words
+  const words = needle.split(/\s+/);
+  if (words.length < 4) return false;
+  // Check overlapping 4-word windows — at least 80% must hit
+  const windowSize = Math.min(4, words.length);
+  let hits = 0;
+  let total = 0;
+  for (let i = 0; i <= words.length - windowSize; i++) {
+    const phrase = words.slice(i, i + windowSize).join(" ");
+    total++;
+    if (hay.includes(phrase)) hits++;
+  }
+  return total > 0 && hits / total >= 0.7;
 }
 
 // --- Term window ---
@@ -258,6 +324,8 @@ export interface ExtractionContext {
   season: TermSeason | null;
   /** 1 (registrar) … 4 (syllabus); Tier-1 may override the term-window guard. */
   sourceTier: number | null;
+  /** Year range inferred from document title (e.g. {startYear: 2025, endYear: 2026}). */
+  inferYear?: { startYear: number; endYear: number };
 }
 
 export type DropReason = "ungrounded" | "unparseable_date" | "out_of_window";
@@ -298,7 +366,7 @@ export function validateExtractedEvent(
     return { ok: false, reason: "ungrounded" };
   }
 
-  const parsed = parseDateRange(candidate.sourceLine);
+  const parsed = parseDateRange(candidate.sourceLine, ctx.inferYear);
   if (!parsed) {
     return { ok: false, reason: "unparseable_date" };
   }

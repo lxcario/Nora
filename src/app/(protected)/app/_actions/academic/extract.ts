@@ -85,6 +85,10 @@ export async function extractAcademicEvents(paperId: string): Promise<ExtractEve
     .maybeSingle();
   const season = detectTermSeason(profile?.term ?? null);
 
+  // Academic calendars span the full year — don't restrict by term window.
+  // Only apply the term window guard for syllabi and course-specific docs.
+  const effectiveSeason = paper.academic_kind === "academic_calendar" ? null : season;
+
   // Source text = the document's chunk contents (already grounded text).
   const { data: chunkRows } = await supabase
     .from("paper_chunks")
@@ -101,7 +105,13 @@ export async function extractAcademicEvents(paperId: string): Promise<ExtractEve
   const sourceId = await ensureUploadSource(supabase, user.id, profileId, paper);
 
   // --- Gather candidates ---
-  const candidates: EventCandidate[] = [...lineScanCandidates(sourceText)];
+  // Extract year range from document title (e.g. "2025-2026 Akademik Takvim")
+  const yearMatch = (paper.title ?? "").match(/(\d{4})\s*[-–—]\s*(\d{4})/);
+  const inferYear = yearMatch
+    ? { startYear: +yearMatch[1], endYear: +yearMatch[2] }
+    : undefined;
+
+  const candidates: EventCandidate[] = [...lineScanCandidates(sourceText, inferYear)];
   if (hasLLMProvider()) {
     try {
       const llmCands = await getLlmCandidates(sourceText);
@@ -121,7 +131,7 @@ export async function extractAcademicEvents(paperId: string): Promise<ExtractEve
   const rows: Array<Record<string, unknown>> = [];
 
   for (const cand of candidates) {
-    const outcome = validateExtractedEvent(cand, { sourceText, season, sourceTier: MANUAL_UPLOAD_TIER });
+    const outcome = validateExtractedEvent(cand, { sourceText, season: effectiveSeason, sourceTier: MANUAL_UPLOAD_TIER, inferYear });
     if (!outcome.ok) {
       dropped++;
       continue;
@@ -216,22 +226,155 @@ export async function extractAcademicEvents(paperId: string): Promise<ExtractEve
 // --- Candidate generation ---
 
 /**
- * Grounded line-scan: each returned candidate IS a verbatim source line, so it
- * cannot introduce an ungrounded date. Keeps only lines that classify to a
- * known event type and contain a parseable date.
+ * Grounded line-scan: each returned candidate IS a verbatim source line (or
+ * line pair), so it cannot introduce an ungrounded date. Keeps only lines that
+ * classify to a known event type and contain a parseable date.
+ *
+ * Enhanced strategy:
+ * 1. Split on newlines first
+ * 2. For single-blob PDFs (tables extracted as one long string): split on
+ *    recognized event keywords to produce virtual "lines"
+ * 3. Merge adjacent lines when one has a date but no type, or vice versa
  */
-function lineScanCandidates(sourceText: string): EventCandidate[] {
+function lineScanCandidates(sourceText: string, inferYear?: { startYear: number; endYear: number }): EventCandidate[] {
   const out: EventCandidate[] = [];
-  const lines = sourceText.split(/\r?\n/);
-  for (const raw of lines) {
-    const line = raw.trim();
-    if (line.length < 6) continue;
+
+  // First split on newlines
+  let lines = sourceText.split(/\r?\n/).map((l) => l.trim()).filter((l) => l.length >= 4);
+
+  // If we have very few lines but one is very long (>500 chars), it's a
+  // single-blob PDF table extraction. Split on known keyword boundaries.
+  if (lines.length <= 3 && lines.some((l) => l.length > 500)) {
+    const blob = lines.join(" ");
+    lines = splitOnEventKeywords(blob);
+  }
+
+  // Pass 1: direct single-line matches
+  const usedIndices = new Set<number>();
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
     const type = classifyEventType(line);
     if (!type) continue;
-    if (!parseDateRange(line)) continue;
+    if (!parseDateRange(line, inferYear)) continue;
     out.push({ eventType: type, label: line, sourceLine: line });
+    usedIndices.add(i);
   }
+
+  // Pass 2: merge adjacent lines for table-extracted PDFs
+  for (let i = 0; i < lines.length; i++) {
+    if (usedIndices.has(i)) continue;
+    const line = lines[i];
+    const hasDate = !!parseDateRange(line, inferYear);
+    const hasType = !!classifyEventType(line);
+
+    if (!hasDate && !hasType) continue;
+
+    // Try merging with next line
+    if (i + 1 < lines.length && !usedIndices.has(i + 1)) {
+      const merged = line + " " + lines[i + 1];
+      const mType = classifyEventType(merged);
+      const mDate = parseDateRange(merged, inferYear);
+      if (mType && mDate) {
+        out.push({ eventType: mType, label: merged, sourceLine: merged });
+        usedIndices.add(i);
+        usedIndices.add(i + 1);
+        continue;
+      }
+    }
+
+    // Try merging with previous line
+    if (i - 1 >= 0 && !usedIndices.has(i - 1)) {
+      const merged = lines[i - 1] + " " + line;
+      const mType = classifyEventType(merged);
+      const mDate = parseDateRange(merged, inferYear);
+      if (mType && mDate) {
+        out.push({ eventType: mType, label: merged, sourceLine: merged });
+        usedIndices.add(i);
+        usedIndices.add(i - 1);
+        continue;
+      }
+    }
+
+    // Try merging with both adjacent lines (3-line window)
+    if (i - 1 >= 0 && i + 1 < lines.length && !usedIndices.has(i - 1) && !usedIndices.has(i + 1)) {
+      const merged = lines[i - 1] + " " + line + " " + lines[i + 1];
+      const mType = classifyEventType(merged);
+      const mDate = parseDateRange(merged, inferYear);
+      if (mType && mDate) {
+        out.push({ eventType: mType, label: merged, sourceLine: merged });
+        usedIndices.add(i - 1);
+        usedIndices.add(i);
+        usedIndices.add(i + 1);
+      }
+    }
+  }
+
   return out;
+}
+
+/**
+ * Split a single blob of text on recognized academic event keywords to produce
+ * virtual "lines" for processing. This handles PDF tables where pdf-parse
+ * concatenates all cells into one continuous string without newlines.
+ */
+function splitOnEventKeywords(blob: string): string[] {
+  // All keywords that signal the start of a new event row
+  const splitKeywords = [
+    "lisansustu programlar basvuru",
+    "yuksek lisans programlar",
+    "doktora programlar",
+    "ders kaydi",
+    "dersleri baslama",
+    "ders ekle-cikar",
+    "ekle-cikar",
+    "izinli sayilma",
+    "kayit dondurma",
+    "vize sinav",
+    "sinav notlarinin",
+    "mazeret sinav",
+    "final sinav",
+    "butunleme sinav",
+    "doktora yeterlik",
+    "bahar yariyili",
+    "guz yariyili",
+    "yaz donemi",
+  ];
+
+  // Normalize the blob for keyword matching (but preserve original for output)
+  const lower = blob
+    .replace(/[İIı]/gi, "i")
+    .replace(/[Şş]/g, "s")
+    .replace(/[Ğğ]/g, "g")
+    .replace(/[Çç]/g, "c")
+    .replace(/[Öö]/g, "o")
+    .replace(/[Üü]/g, "u")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
+  // Find all split positions
+  const positions: number[] = [0];
+  for (const kw of splitKeywords) {
+    let idx = 0;
+    while ((idx = lower.indexOf(kw, idx)) !== -1) {
+      if (idx > 0) positions.push(idx);
+      idx += kw.length;
+    }
+  }
+
+  // Sort and deduplicate positions
+  const sorted = [...new Set(positions)].sort((a, b) => a - b);
+
+  // Extract segments
+  const segments: string[] = [];
+  for (let i = 0; i < sorted.length; i++) {
+    const start = sorted[i];
+    const end = i + 1 < sorted.length ? sorted[i + 1] : blob.length;
+    const seg = blob.slice(start, end).trim();
+    if (seg.length >= 10) segments.push(seg);
+  }
+
+  return segments.length > 1 ? segments : [blob];
 }
 
 /** Strict LLM extraction — returns only candidate lines, validated downstream. */

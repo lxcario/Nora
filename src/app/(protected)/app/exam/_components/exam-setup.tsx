@@ -19,8 +19,8 @@ export function ExamSetup() {
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const selected = e.target.files?.[0];
     if (selected) {
-      if (selected.size > 20 * 1024 * 1024) {
-        setError("File too large. Maximum 20 MB.");
+      if (selected.size > 100 * 1024 * 1024) {
+        setError("File too large. Maximum 100 MB.");
         return;
       }
       if (!selected.name.toLowerCase().endsWith(".pdf")) {
@@ -164,7 +164,7 @@ export function ExamSetup() {
               <>
                 <Upload className="h-5 w-5" style={{ color: "var(--pixel-text-secondary)" }} />
                 <span className="text-sm" style={{ color: "var(--pixel-text-secondary)" }}>
-                  Upload PDF (max 20 MB)
+                  Upload PDF (max 100 MB)
                 </span>
               </>
             )}

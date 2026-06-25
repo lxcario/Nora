@@ -139,29 +139,29 @@ export function SubjectsManager({ subjects }: { subjects: Subject[] }) {
               style={{ padding: "12px" }}
             >
               {/* Subject header */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
                   <div
-                    className="h-3 w-3"
+                    className="h-3 w-3 shrink-0"
                     style={{
                       backgroundColor: subject.color,
                       border: "1px solid var(--pixel-border)",
                     }}
                   />
                   <span
-                    className="text-sm font-medium"
+                    className="text-sm font-medium truncate"
                     style={{ color: "var(--pixel-text-primary)" }}
                   >
                     {subject.name}
                   </span>
                   <span
-                    className="font-pixel text-[9px]"
+                    className="font-pixel text-[9px] shrink-0"
                     style={{ color: "var(--pixel-text-muted)" }}
                   >
                     ({subject.topics.length} topics)
                   </span>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 shrink-0">
                   <PixelButton
                     variant="secondary"
                     size="small"
@@ -196,15 +196,15 @@ export function SubjectsManager({ subjects }: { subjects: Subject[] }) {
 
               {/* Topics list */}
               {subject.topics.length > 0 && (
-                <div className="mt-2 space-y-1 pl-5">
+                <div className="mt-2 space-y-1 sm:pl-5">
                   {subject.topics.map((topic) => (
                     <div
                       key={topic.id}
-                      className="flex items-center justify-between py-1.5 px-2"
+                      className="flex flex-wrap items-center gap-x-2 gap-y-1 py-1.5 px-2"
                       style={{ borderBottom: "1px solid var(--pixel-border)" }}
                     >
                       {/* Topic name + exam date */}
-                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                      <div className="flex items-center gap-2 min-w-0 flex-1 basis-full sm:basis-auto">
                         <img
                           src="/sprites/travel-book/icons/Book.png"
                           alt=""
@@ -229,7 +229,7 @@ export function SubjectsManager({ subjects }: { subjects: Subject[] }) {
                       </div>
 
                       {/* Material type selector + delete */}
-                      <div className="flex items-center gap-2 shrink-0 ml-2">
+                      <div className="flex items-center gap-2 shrink-0">
                         <MaterialTypeSelector
                           topicId={topic.id}
                           current={topic.material_type}

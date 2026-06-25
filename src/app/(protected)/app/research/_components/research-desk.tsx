@@ -277,14 +277,14 @@ export function ResearchDesk({ topics }: { topics: TopicOption[] }) {
   }
 
   const topicSelect = (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2">
       <label className="text-xs text-[var(--pixel-text-muted)] whitespace-nowrap">
         Save cards to:
       </label>
       <select
         value={selectedTopic}
         onChange={(e) => setSelectedTopic(e.target.value)}
-        className="text-xs"
+        className="text-xs min-w-0 max-w-[200px] sm:max-w-none"
       >
         <option value="">No topic</option>
         {topics.map((t) => (
@@ -306,7 +306,7 @@ export function ResearchDesk({ topics }: { topics: TopicOption[] }) {
         <div className="space-y-6">
           {/* Research input */}
           <DialogFrame title="Research Question">
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <div className="relative flex-1">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--pixel-text-muted)]" />
                 <input
@@ -323,7 +323,7 @@ export function ResearchDesk({ topics }: { topics: TopicOption[] }) {
               <button
                 onClick={handleResearch}
                 disabled={isPending || query.length < 5}
-                className="inline-flex items-center gap-2 !bg-[var(--pixel-accent)] !text-[var(--pixel-bg-primary)] hover:!brightness-110"
+                className="inline-flex items-center justify-center gap-2 !bg-[var(--pixel-accent)] !text-[var(--pixel-bg-primary)] hover:!brightness-110 shrink-0"
               >
                 {isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />

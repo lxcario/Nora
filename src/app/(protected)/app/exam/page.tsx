@@ -5,7 +5,13 @@ import { ExamHistoryList } from "./_components/exam-history";
 import { DialogFrame } from "@/components/pixel-ui";
 
 export default async function ExamPage() {
-  const { exams } = await getExamHistory();
+  let exams: Awaited<ReturnType<typeof getExamHistory>>["exams"] = [];
+  try {
+    const result = await getExamHistory();
+    exams = result.exams;
+  } catch {
+    // Table may not exist yet on this deployment — show empty state
+  }
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">

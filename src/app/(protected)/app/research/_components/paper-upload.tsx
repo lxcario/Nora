@@ -246,7 +246,7 @@ export function PaperUpload({ onUploadComplete }: PaperUploadProps) {
 
       {/* URL Input Section */}
       <DialogFrame title="Import from URL">
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <input
             value={url}
             onChange={(e) => {
@@ -257,12 +257,12 @@ export function PaperUpload({ onUploadComplete }: PaperUploadProps) {
             onKeyDown={(e) => e.key === "Enter" && handleUrlIngest()}
             type="url"
             placeholder="https://example.com/paper.pdf"
-            className="flex-1"
+            className="flex-1 min-w-0"
           />
           <button
             onClick={handleUrlIngest}
             disabled={isDownloading || !url.trim()}
-            className="inline-flex shrink-0 items-center gap-2 !bg-[var(--pixel-accent)] !text-[var(--pixel-bg-primary)] hover:!brightness-110 text-sm"
+            className="inline-flex shrink-0 items-center justify-center gap-2 !bg-[var(--pixel-accent)] !text-[var(--pixel-bg-primary)] hover:!brightness-110 text-sm"
           >
             {isDownloading ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />

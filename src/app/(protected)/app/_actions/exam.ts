@@ -390,28 +390,32 @@ export interface ExamHistoryItem {
 }
 
 export async function getExamHistory(): Promise<{ exams: ExamHistoryItem[] }> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { exams: [] };
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { exams: [] };
 
-  const { data } = await supabase
-    .from("practice_exams")
-    .select("id, title, mode, score_percent, question_count, created_at, submitted_at")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-    .limit(20);
+    const { data } = await supabase
+      .from("practice_exams")
+      .select("id, title, mode, score_percent, question_count, created_at, submitted_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(20);
 
-  return {
-    exams: (data ?? []).map((e) => ({
-      id: e.id,
-      title: e.title,
-      mode: e.mode,
-      scorePercent: e.score_percent,
-      questionCount: e.question_count,
-      createdAt: e.created_at,
-      submittedAt: e.submitted_at,
-    })),
-  };
+    return {
+      exams: (data ?? []).map((e) => ({
+        id: e.id,
+        title: e.title,
+        mode: e.mode,
+        scorePercent: e.score_percent,
+        questionCount: e.question_count,
+        createdAt: e.created_at,
+        submittedAt: e.submitted_at,
+      })),
+    };
+  } catch {
+    return { exams: [] };
+  }
 }
 
 // ─── getExamById ────────────────────────────────────────────────────────────
