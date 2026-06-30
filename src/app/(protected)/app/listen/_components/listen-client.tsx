@@ -1,8 +1,16 @@
 "use client";
 
-import { useState, useTransition, useRef, useCallback } from "react";
-import { generatePodcastScript, type PodcastScript, type PodcastSegment } from "@/app/(protected)/app/_actions/listen-mode";
+import { useState, useTransition } from "react";
+import { generatePodcastScript, type PodcastScript } from "@/app/(protected)/app/_actions/listen-mode";
 import { DialogFrame, PixelButton } from "@/components/pixel-ui";
+
+// ---------------------------------------------------------------------------
+// Listen Mode — Study Conversation (read-along format)
+// ---------------------------------------------------------------------------
+// Generates a two-voice conversational script from the student's content.
+// Presented as a beautiful readable conversation — no TTS (Web Speech
+// synthesis sounds robotic and doesn't match Nora's warmth).
+// ---------------------------------------------------------------------------
 
 interface TopicOption { id: string; name: string; subjectName: string; }
 
@@ -11,59 +19,15 @@ export function ListenClient({ topics }: { topics: TopicOption[] }) {
   const [script, setScript] = useState<PodcastScript | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isGenerating, startGeneration] = useTransition();
-  const [playingIdx, setPlayingIdx] = useState(-1);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   function handleGenerate() {
-    setError(null); setScript(null); setPlayingIdx(-1);
+    setError(null); setScript(null);
     startGeneration(async () => {
       const res = await generatePodcastScript(selectedTopic);
       if (res.error) setError(res.error);
       else if (res.data) setScript(res.data);
     });
   }
-
-  const speak = useCallback((text: string, speaker: "host" | "student", idx: number) => {
-    if (typeof window === "undefined" || !window.speechSynthesis) return;
-    window.speechSynthesis.cancel();
-    const utt = new SpeechSynthesisUtterance(text);
-    utt.rate = 0.95;
-    utt.pitch = speaker === "host" ? 1.0 : 1.2;
-    // Try to pick different voices
-    const voices = window.speechSynthesis.getVoices();
-    if (voices.length > 1) {
-      utt.voice = speaker === "host" ? voices[0] : voices[Math.min(1, voices.length - 1)];
-    }
-    utt.onstart = () => { setPlayingIdx(idx); setIsPlaying(true); };
-    utt.onend = () => { setIsPlaying(false); setPlayingIdx(-1); };
-    utteranceRef.current = utt;
-    window.speechSynthesis.speak(utt);
-  }, []);
-
-  const playAll = useCallback(() => {
-    if (!script) return;
-    let i = 0;
-    function playNext() {
-      if (!script || i >= script.segments.length) { setIsPlaying(false); setPlayingIdx(-1); return; }
-      const seg = script.segments[i];
-      const utt = new SpeechSynthesisUtterance(seg.text);
-      utt.rate = 0.95;
-      utt.pitch = seg.speaker === "host" ? 1.0 : 1.2;
-      const voices = window.speechSynthesis.getVoices();
-      if (voices.length > 1) utt.voice = seg.speaker === "host" ? voices[0] : voices[Math.min(1, voices.length - 1)];
-      utt.onstart = () => { setPlayingIdx(i); setIsPlaying(true); };
-      utt.onend = () => { i++; playNext(); };
-      window.speechSynthesis.speak(utt);
-    }
-    window.speechSynthesis.cancel();
-    playNext();
-  }, [script]);
-
-  const stop = useCallback(() => {
-    window.speechSynthesis?.cancel();
-    setIsPlaying(false); setPlayingIdx(-1);
-  }, []);
 
   if (topics.length === 0) {
     return (
@@ -79,66 +43,91 @@ export function ListenClient({ topics }: { topics: TopicOption[] }) {
     <div className="space-y-5">
       {/* Topic selector */}
       {!script && (
-        <DialogFrame title="Generate a podcast episode">
+        <DialogFrame title="Create a study conversation">
           <div className="flex flex-col sm:flex-row gap-3">
             <select value={selectedTopic} onChange={(e) => setSelectedTopic(e.target.value)} className="flex-1">
               {topics.map((t) => <option key={t.id} value={t.id}>{t.subjectName} → {t.name}</option>)}
             </select>
             <PixelButton variant="primary" onClick={handleGenerate} loading={isGenerating} disabled={isGenerating}>
-              {isGenerating ? "Writing script..." : "Generate"}
+              {isGenerating ? "Writing..." : "Generate"}
             </PixelButton>
           </div>
           <p className="text-[10px] mt-2" style={{ color: "var(--pixel-text-muted)" }}>
-            Uses your Feynman explanations and flashcards as source material.
+            Creates a two-voice conversation from your Feynman explanations and flashcards. Read it like a study dialogue.
           </p>
         </DialogFrame>
       )}
 
       {error && <p className="text-sm text-center" style={{ color: "var(--pixel-error)" }}>{error}</p>}
 
-      {/* Script player */}
+      {/* Conversation script */}
       {script && (
-        <>
-          <DialogFrame title={script.title}>
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-xs" style={{ color: "var(--pixel-text-secondary)" }}>
-                ~{script.estimatedMinutes} min · {script.segments.length} segments
-              </span>
-              <div className="flex gap-2">
-                {!isPlaying ? (
-                  <PixelButton variant="primary" size="small" onClick={playAll}>▶ Play all</PixelButton>
-                ) : (
-                  <PixelButton variant="secondary" size="small" onClick={stop}>⏹ Stop</PixelButton>
-                )}
-                <PixelButton variant="secondary" size="small" onClick={() => { setScript(null); setPlayingIdx(-1); stop(); }}>
-                  New episode
-                </PixelButton>
-              </div>
-            </div>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="font-pixel text-sm" style={{ color: "var(--pixel-text-primary)" }}>
+              {script.title}
+            </h2>
+            <PixelButton variant="secondary" size="small" onClick={() => setScript(null)}>
+              New conversation
+            </PixelButton>
+          </div>
 
-            {/* Transcript */}
-            <div className="space-y-2 max-h-[400px] overflow-y-auto">
-              {script.segments.map((seg, i) => (
-                <div
-                  key={i}
-                  className="flex gap-3 px-3 py-2 rounded cursor-pointer transition-all"
-                  style={{
-                    backgroundColor: playingIdx === i ? "color-mix(in srgb, var(--pixel-accent) 12%, var(--pixel-bg-surface))" : "var(--pixel-bg-secondary)",
-                    borderLeft: playingIdx === i ? "3px solid var(--pixel-accent)" : "3px solid transparent",
-                  }}
-                  onClick={() => speak(seg.text, seg.speaker, i)}
-                >
-                  <span className="font-pixel text-[9px] shrink-0 mt-0.5" style={{ color: seg.speaker === "host" ? "var(--pixel-accent)" : "var(--pixel-success)" }}>
-                    {seg.speaker === "host" ? "🎙" : "🙋"}
-                  </span>
-                  <p className="text-xs leading-relaxed" style={{ color: "var(--pixel-text-primary)" }}>
-                    {seg.text}
-                  </p>
+          <p className="text-[10px]" style={{ color: "var(--pixel-text-muted)" }}>
+            ~{script.estimatedMinutes} min read · {script.segments.length} exchanges
+          </p>
+
+          {/* The conversation */}
+          <div className="space-y-3">
+            {script.segments.map((seg, i) => (
+              <div
+                key={i}
+                className={`flex gap-3 ${seg.speaker === "host" ? "" : "flex-row-reverse"}`}
+              >
+                {/* Avatar */}
+                <div className="shrink-0 mt-1">
+                  <div
+                    className="w-7 h-7 rounded-full flex items-center justify-center text-xs"
+                    style={{
+                      backgroundColor: seg.speaker === "host"
+                        ? "color-mix(in srgb, var(--pixel-accent) 20%, var(--pixel-bg-surface))"
+                        : "color-mix(in srgb, var(--pixel-success) 20%, var(--pixel-bg-surface))",
+                      border: `2px solid ${seg.speaker === "host" ? "var(--pixel-accent)" : "var(--pixel-success)"}`,
+                    }}
+                  >
+                    {seg.speaker === "host" ? "🎓" : "🙋"}
+                  </div>
                 </div>
-              ))}
-            </div>
-          </DialogFrame>
-        </>
+
+                {/* Bubble */}
+                <div
+                  className="flex-1 min-w-0 px-4 py-3 text-sm leading-relaxed"
+                  style={{
+                    backgroundColor: seg.speaker === "host"
+                      ? "var(--pixel-bg-surface)"
+                      : "color-mix(in srgb, var(--pixel-success) 6%, var(--pixel-bg-surface))",
+                    border: "2px solid var(--pixel-border)",
+                    color: "var(--pixel-text-primary)",
+                    maxWidth: "85%",
+                  }}
+                >
+                  {seg.type === "question" && (
+                    <span className="font-pixel text-[8px] block mb-1" style={{ color: "var(--pixel-accent)" }}>
+                      PAUSE AND THINK
+                    </span>
+                  )}
+                  {seg.text}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Footer */}
+          <div className="text-center pt-4" style={{ borderTop: "1px dashed var(--pixel-border)" }}>
+            <p className="text-[10px] italic" style={{ color: "var(--pixel-text-muted)" }}>
+              Read this like a conversation with a friend. Pause at the questions and try to answer before reading on.
+            </p>
+          </div>
+        </div>
       )}
     </div>
   );

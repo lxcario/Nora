@@ -24,7 +24,7 @@ export default async function ListenPage() {
     <div className="space-y-6 max-w-3xl mx-auto">
       <PageHeader
         title="Listen Mode"
-        description="Turn your notes into a study podcast. Listen while you walk, commute, or rest."
+        description="Your notes become a study conversation. Read through it like a dialogue with a friend."
       />
       <ListenClient topics={topicOptions} />
     </div>
