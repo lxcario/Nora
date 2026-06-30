@@ -1,0 +1,16 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "Review card full flow — confidence, reveal, grade",
+  "description": "Complete a full review cycle: rate confidence, reveal answer, grade the card with one of the FSRS buttons, and see the next card or session complete screen.",
+  "priority": "p0",
+  "planSteps": [
+    { "type": "action", "description": "Navigate to the login page and log in with valid credentials" },
+    { "type": "action", "description": "Navigate to the Review Cards page from the sidebar" },
+    { "type": "action", "description": "Click confidence button number 4 (Pretty sure)" },
+    { "type": "action", "description": "Click the Reveal Answer button that appears" },
+    { "type": "assertion", "description": "Verify the answer text is now visible below the question, and four grade buttons labeled Again, Hard, Good, and Easy are displayed" },
+    { "type": "action", "description": "Click the Good grade button" },
+    { "type": "assertion", "description": "Verify the card advances to the next card showing a new question, or a session complete message appears if all cards are reviewed" }
+  ]
+}

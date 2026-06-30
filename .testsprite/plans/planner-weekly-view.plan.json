@@ -1,0 +1,14 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "Study Planner shows weekly calendar with navigation",
+  "description": "The planner page displays a 7-day weekly calendar grid with day headers and navigation arrows to move between weeks.",
+  "priority": "p1",
+  "planSteps": [
+    { "type": "action", "description": "Navigate to the login page and log in with valid credentials" },
+    { "type": "action", "description": "Click the Study Planner link in the sidebar" },
+    { "type": "assertion", "description": "Verify the page displays a weekly calendar with 7 day columns showing day names (Mon, Tue, Wed, etc.) and navigation buttons for previous and next week" },
+    { "type": "action", "description": "Click the Next week navigation button" },
+    { "type": "assertion", "description": "Verify the displayed date range changes to show the following week's dates" }
+  ]
+}

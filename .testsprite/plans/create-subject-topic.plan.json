@@ -1,0 +1,15 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "User can create a subject and topic in Settings",
+  "description": "In Settings → Subjects tab, user creates a new subject with a name and color, then adds a topic to that subject.",
+  "priority": "p1",
+  "planSteps": [
+    { "type": "action", "description": "Navigate to the login page and log in with valid credentials" },
+    { "type": "action", "description": "Click the Settings link in the sidebar" },
+    { "type": "action", "description": "Click the Subjects tab in the settings page" },
+    { "type": "action", "description": "Click the button to add a new subject and enter a subject name" },
+    { "type": "action", "description": "Submit the new subject form" },
+    { "type": "assertion", "description": "Verify the newly created subject appears in the subjects list with its name visible" }
+  ]
+}

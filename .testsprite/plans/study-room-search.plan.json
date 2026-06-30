@@ -1,0 +1,14 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "Study Room video search returns educational results",
+  "description": "User searches for an educational video in the Study Room, sees search results, and can select one to load the video player.",
+  "priority": "p1",
+  "planSteps": [
+    { "type": "action", "description": "Navigate to the login page and log in with valid credentials" },
+    { "type": "action", "description": "Click the Study Room link in the sidebar" },
+    { "type": "action", "description": "Type a search term like 'linear algebra' in the video search input field" },
+    { "type": "action", "description": "Submit the search or press Enter" },
+    { "type": "assertion", "description": "Verify that search results appear showing video titles related to the search term, with at least one clickable result item" }
+  ]
+}

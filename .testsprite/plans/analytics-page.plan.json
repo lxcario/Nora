@@ -1,0 +1,12 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "Analytics page shows stats and charts",
+  "description": "The Analytics page displays study statistics including sessions per week, cards reviewed, streak count, and visual charts for daily activity.",
+  "priority": "p2",
+  "planSteps": [
+    { "type": "action", "description": "Navigate to the login page and log in with valid credentials" },
+    { "type": "action", "description": "Click the My Room section in the sidebar to expand it, then click the Analytics link" },
+    { "type": "assertion", "description": "Verify the Analytics page displays stat cards showing numeric values for sessions, reviews, cards created, and study minutes, along with a consistency heatmap section" }
+  ]
+}

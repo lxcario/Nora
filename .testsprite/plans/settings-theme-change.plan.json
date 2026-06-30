@@ -1,0 +1,16 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "Settings theme change persists across navigation",
+  "description": "User changes the color theme in Settings, navigates away, returns, and the theme selection persists.",
+  "priority": "p2",
+  "planSteps": [
+    { "type": "action", "description": "Navigate to the login page and log in with valid credentials" },
+    { "type": "action", "description": "Click the Settings link in the sidebar" },
+    { "type": "action", "description": "Click the Customization tab in the settings page" },
+    { "type": "action", "description": "Click on a different color palette option (such as Forest or Ocean)" },
+    { "type": "action", "description": "Click the Home link in the sidebar to navigate to the dashboard" },
+    { "type": "action", "description": "Click the Settings link in the sidebar again to return to settings" },
+    { "type": "assertion", "description": "Verify the previously selected color palette is still shown as active or selected in the Customization tab" }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "Party page allows creating or joining a study group",
+  "description": "The Party/Friends page shows either a party discovery view with create/join options, or the user's current party with members and quests.",
+  "priority": "p2",
+  "planSteps": [
+    { "type": "action", "description": "Navigate to the login page and log in with valid credentials" },
+    { "type": "action", "description": "Click the Friends or Party link in the sidebar" },
+    { "type": "assertion", "description": "Verify the page displays either a Create Party button and Join with Code input, or an existing party view showing party name, members section, and quests section" }
+  ]
+}

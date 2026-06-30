@@ -1,0 +1,14 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "Research Desk returns sources and synthesis from a query",
+  "description": "User enters a research question, the system searches academic databases and web, and displays a synthesized answer with numbered citation sources.",
+  "priority": "p1",
+  "planSteps": [
+    { "type": "action", "description": "Navigate to the login page and log in with valid credentials" },
+    { "type": "action", "description": "Click the Research Desk link in the sidebar" },
+    { "type": "action", "description": "Type a research question of at least 10 characters in the search input field" },
+    { "type": "action", "description": "Click the Research button to submit the query" },
+    { "type": "assertion", "description": "Verify that after loading completes, a Research Analysis section appears with text content and a Sources section listing at least one source with a title and URL" }
+  ]
+}
