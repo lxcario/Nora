@@ -38,6 +38,7 @@ import {
   BookOpen,
   Trash2,
 } from "lucide-react";
+import { VoiceInput } from "./voice-input";
 import { XpToast } from "@/app/(protected)/app/_components/xp-toast";
 import { SuccessCheck } from "@/app/(protected)/app/_components/success-check";
 import { useSessionStats } from "@/app/(protected)/app/_components/session-stats-context";
@@ -363,14 +364,17 @@ export function FeynmanEditor({ topics, defaultTopicId }: { topics: TopicOption[
               </span>
             )}
           </div>
-          <PixelButton
-            variant="primary"
-            onClick={handleEvaluate}
-            disabled={isPending || explanation.length < 50}
-            loading={isPending}
-          >
-            {isPending ? "Evaluating..." : isRefining ? "Re-evaluate" : "Evaluate with AI"}
-          </PixelButton>
+          <div className="flex items-center gap-2">
+            <VoiceInput onTranscript={(text) => setExplanation((prev) => prev + (prev ? " " : "") + text)} />
+            <PixelButton
+              variant="primary"
+              onClick={handleEvaluate}
+              disabled={isPending || explanation.length < 50}
+              loading={isPending}
+            >
+              {isPending ? "Evaluating..." : isRefining ? "Re-evaluate" : "Evaluate with AI"}
+            </PixelButton>
+          </div>
         </div>
       </DialogFrame>
       </div>
