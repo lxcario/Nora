@@ -1625,3 +1625,224 @@ Created `docs/UX-AUDIT.md` — 30-point audit structured around Nielsen's 10 Usa
 4. Global --pixel-error dark-mode contrast fix
 5. Join TestSprite Discord + follow on X (eligibility requirement)
 6. Build week starts June 30 — nothing else needed before then
+
+
+---
+
+# Session — June 30, 2026 (Kiro Session — The Big Build)
+
+## Overview
+
+Single massive session spanning the entire hackathon Day 1. Started with a senior-level audit of Nora vs TestSprite Hackathon S3 requirements, then built 11 new features, performed a full emotional design refactoring, and produced 5 philosophy documents. Nora went from "technically impressive" to "has a soul."
+
+**Final state:** 22 distinct feature routes, 332+ tests passing, 0 TypeScript errors, deployed and live at norastudy.vercel.app. Emotional architecture established with companion dialogue, voice guide, and design principles.
+
+---
+
+## Phase 1 — Hackathon Audit & Strategy
+
+- Deep-analyzed all TestSprite S3 rules (19 rules from Discord)
+- Verified live URL (HTTP 200), checked TestSprite account (key invalid for MCP, CLI works)
+- Mapped entire codebase: 19 migrations, 30-component pixel-UI lib, pure lib modules
+- Identified critical blocker: TestSprite credits exhausted after Day 1 burst
+- Produced priority-ordered action plan (Tier 0 → Tier 4)
+- Key insight: "The thing being judged is the loop, not the app"
+
+## Phase 2 — Sidebar Fix + TestSprite Plans (21 plans total)
+
+- **Root cause found:** GameSidebar accordion groups defaulted COLLAPSED → Analytics/Collection/History/Room unreachable (caused Day 1 test failure)
+- **Fix:** Both groups now default OPEN (localStorage still respects explicit user collapse)
+- **Rewrote 17 of 18 TestSprite plans** with:
+  - Layout/geometry assertions (grids, rows, side-by-side)
+  - Functional "works not present" assertions (queue advances, navigation changes dates)
+  - Empty-state-tolerant OR assertions
+  - One verb per step, navigation only on step 1
+- Added `focus-timer.plan.json` (later removed when feature pivoted)
+
+## Phase 3 — New Features Built (11 total)
+
+### Focus Timer → Study Session Tracker (pivot)
+- v1: Standalone `/app/focus` page with adaptive engine + 8-bit chimes
+- v2: Pixel-art desk scene (rejected by user — "no soul, bad layout")
+- v3: Clean centered timer (better but still wrong approach)
+- **Final pivot:** Removed standalone page entirely. Built a **floating study session tracker** that lives across all pages:
+  - `StudySessionProvider` — global context, detects current activity from route
+  - `StudySessionWidget` — floating bottom-right panel, collapsible to time pill
+  - `StudySessionReceipt` — A4 session summary modal on end (downloadable)
+- Deleted: focus-adaptive.ts, focus-audio.ts, focus page, focus plan
+
+### Memory Garden (`/app/memory-map`)
+- Server action computing per-topic FSRS retrievability (R = e^{-t/S})
+- Health classification: blooming/healthy/wilting/dead/new
+- Pixel plant grid (2-5 col responsive), tap wilting to review
+- Summary strip with health counts
+
+### Confidence Calibration (Analytics page section)
+- JOL confidence (1-5) vs actual recall success rate
+- Calibration curve bar chart, deviation score, classification
+- Per-topic breakdown, insight text
+
+### Voice Feynman (Feynman editor integration)
+- Web Speech API microphone toggle
+- Interim text display, 3s silence auto-stop
+- Graceful degradation (hidden on unsupported browsers)
+
+### Error Spotter (`/app/error-spotter`)
+- AI generates explanation with 1-3 deliberate calibrated mistakes
+- Difficulty adapts from Feynman scores
+- Student selects wrong text, explains why
+- Scoring: correct (+15 XP), partial (+5), false positive (-5)
+- Research basis: Springer 2023 "derring effect"
+
+### Cornell Notes (Study Room component)
+- Three-zone layout (notes 70%, cue questions 30%, summary bottom)
+- AI generates 2-4 cue questions after 5s inactivity
+- One-click flashcard conversion
+
+### Card Market (`/app/card-market`)
+- Browse party members' decks (3+ cards/topic)
+- One-click import with fresh FSRS state
+
+### Eureka Connections (`/app/eureka`)
+- AI discovers cross-subject topic connections
+- Challenge prompts for bonus XP
+- Needs 4+ topics across 2+ subjects
+
+### Listen Mode (`/app/listen`)
+- AI generates two-voice podcast script from student's content
+- Initially had Web Speech TTS (removed — too robotic)
+- Final: beautiful read-along conversation with chat bubbles
+
+### Knowledge Web (`/app/knowledge-web`)
+- AI extracts concepts and maps relationships
+- Interactive mastery-colored grid (no external graph lib)
+- Click to explore connections
+
+## Phase 4 — Bug Fixes
+
+- **Transcript fetch error surfacing:** Background fetch was fire-and-forget; now shows error + retry button
+- **LLM JSON parsing:** All AI actions now strip markdown ` ```json ``` ` fences before JSON.parse
+- **Listen Mode TTS:** Removed robotic Web Speech synthesis, reframed as read-along
+
+## Phase 5 — Emotional Design Refactoring ("The Soul Pass")
+
+### Companion Dialogue Engine (`src/lib/companion-dialogue.ts`)
+- Context-aware one-liners from pet based on recent activity
+- Remembers struggled topics, celebrates mastery, notices breaks
+- Weight-based selection with randomness to avoid repetition
+- Uses "we" language — studying together
+
+### Dashboard → "Welcome Home"
+- "Welcome home." greeting + companion voice
+- "Cards due" → "Memories to revisit"
+- "Today's Quests" → "Today's Journey"
+- "Review 20 cards" → "Revisit 20 memories"
+- "All done today!" → "All done for today. You earned this."
+
+### Review Session Voice Rewrite
+- "Forgot" → "Let's revisit"
+- "Struggled" → "Needed effort"
+- "Recalled" → "Remembered"
+- "Perfect" → "Feels familiar"
+- "Session Complete!" → "Everything you remembered today has found its place again."
+- Transition moments: "Let's wake up a few memories" (first card), "One more memory" (last card)
+
+### Feynman Voice Rewrite
+- "Probing Questions" → "Questions Worth Exploring"
+- "How the AI Understood You" → "How Nora Understood You"
+- "Gap Analysis" → "Where You Stand"
+- "Comprehension Score" → "Understanding"
+
+### `/journal` — "Your Story" (hidden page)
+- Chronological narrative from feynman_explanations + party quests
+- Growth arcs (struggled → mastered over time)
+- Timeline with colored dots (mastery=green, first=gold, helped=pink)
+- Always ends: "You're still here."
+
+## Phase 6 — Documentation
+
+### docs/VOICE.md
+- Nora's personality principles (warm/encouraging/curious/honest/growth)
+- Full vocabulary table (Instead of → Say)
+- Three layers of language (Technical → Human → Emotional)
+- Tone by context (morning/mistake/mastery/break/empty)
+- "Does this feel like Nora?" checklist
+
+### docs/DESIGN_PRINCIPLES.md
+- Six rules: AI teaches not replaces, growth over streaks, evidence before confidence, learning feels safe, small moments matter, every interaction leaves learner calmer
+
+### docs/WHY_NORA.md
+- Why it exists, why companion, why "Today" not "Dashboard", why no guilt streaks, why journal exists, why AI admits uncertainty, why pixel art
+
+### docs/CRAFT.md
+- Timeless philosophy (not a roadmap)
+- Seven principles of craft (memory/places/ritual/atmosphere/silence/slowness/imperfection)
+- "What Nora Will Never Become" (negative principles)
+- Design language: Gentle, Patient, Honest, Quiet, Handmade
+
+### docs/NORA-FULL-AUDIT.md
+- Complete feature inventory (all 22 routes)
+- Every design decision documented
+- Tech stack, data model, gamification logic
+
+### README.md (complete rewrite)
+- Storybook structure, not product page
+- "A day with Nora" flow, "Why Nora?", "Meet your companion"
+- "Places inside Nora" (explore a world, not scan features)
+- Ends: "Knowledge grows slowly. Thank you for growing with Nora."
+
+## Commits (chronological)
+
+| Hash | Message |
+|------|---------|
+| `7424642` | test: Day 1 — 18 tests created, 14 passed |
+| `100d6a7` | feat: focus timer (slice 1), sidebar fix, 19 plans |
+| `ad0c3b2` | feat: Memory Garden + Confidence Calibration |
+| `e2e07ad` | style(focus): redesign timer as cozy desk scene |
+| `e699453` | style(focus): v3 — clean, centered, usable timer |
+| `1e28ade` | feat: floating study session tracker |
+| `801f1de` | refactor: remove standalone Focus Mode |
+| `35acdbc` | feat: Voice Feynman + Error Spotter + Cornell Notes |
+| `50598db` | fix(study-room): transcript error + retry button |
+| `e1dee82` | feat: Card Market + Eureka + Listen Mode + Knowledge Web |
+| `daa7c36` | docs: complete Nora audit |
+| `c22f6e0` | soul: companion dialogue + Welcome Home dashboard |
+| `1a5715e` | soul: voice guide + copy rewrites |
+| `8ad6032` | soul: delight pass — /journal + transition moments |
+| `55bf14c` | soul: design principles + Feynman copy |
+| `f79d6d5` | docs: WHY_NORA.md |
+| `8e6558e` | docs: README rewrite as storybook |
+| `0ffcbc3` | fix: strip markdown fences from LLM responses |
+| `93d8cae` | fix(listen): remove TTS, reframe as conversation |
+| `44b90a7` | docs: 6th principle — calmer after every interaction |
+| `8ba9162` | docs: CRAFT.md — timeless philosophy |
+
+## Metrics
+
+- **Features built:** 11 new + 1 major refactor (focus→session tracker)
+- **Routes added:** 8 new (`/memory-map`, `/error-spotter`, `/card-market`, `/eureka`, `/listen`, `/knowledge-web`, `/journal`, floating widget)
+- **TestSprite plans:** 21 total (19 upgraded + 2 new)
+- **Documents written:** 6 (VOICE, DESIGN_PRINCIPLES, WHY_NORA, CRAFT, NORA-FULL-AUDIT, README rewrite)
+- **Copy rewrites:** ~50 labels across review, feynman, dashboard, sidebar
+- **TypeScript errors:** 0
+- **Tests:** 332 passing (326 + 6 pre-existing pdf-parse env failures)
+- **Build:** Green
+- **Deployed:** Live at norastudy.vercel.app
+
+## The Shift That Happened
+
+This session started as feature engineering and ended as emotional design.
+
+The question changed from "What should we build?" to "How should learning feel?"
+
+Nora stopped being a collection of AI features and became a place with a philosophy:
+- Gentle. Patient. Honest. Quiet. Handmade.
+- Memory, not personalization.
+- Ritual, not engagement.
+- Places, not pages.
+
+The remaining work is proof (TestSprite loop) and polish (accessibility). No more features.
+
+---
+
+*Session ended June 30, 2026. Next: TestSprite loop execution when credits return.*
