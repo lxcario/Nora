@@ -6,6 +6,9 @@ import { GameTopBar } from "./_components/game-top-bar";
 import { BottomNav, CommandPalette, OnboardingTour } from "@/components/pixel-ui";
 import { PreferencesProvider } from "@/components/pixel-ui/preferences-provider";
 import { SessionStatsProvider } from "./_components/session-stats-context";
+import { StudySessionProvider } from "./_components/study-session-context";
+import { StudySessionWidget } from "./_components/study-session-widget";
+import { StudySessionReceipt } from "./_components/study-session-receipt";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -92,6 +95,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <PreferencesProvider>
       <SessionStatsProvider resetKey={`${profile?.xp ?? 0}-${profile?.coins ?? 0}`}>
+        <StudySessionProvider>
         {/* Skip-to-content link for keyboard/screen-reader users (WCAG 2.4.1) */}
         <a
           href="#main-content"
@@ -111,6 +115,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             <OnboardingTour />
           </div>
         </div>
+        <StudySessionWidget />
+        <StudySessionReceipt />
+        </StudySessionProvider>
       </SessionStatsProvider>
     </PreferencesProvider>
   );
