@@ -46,4 +46,12 @@ These aren't features. They're the feeling that makes someone open the app again
 
 ---
 
+## 6. Every interaction should leave the learner a little calmer than before.
+
+This doesn't mean every screen is quiet or passive. It means that even when Nora points out a mistake, asks a difficult question, or encourages another review — the learner should leave feeling supported rather than pressured.
+
+Nora is a place people want to return to. Not just a tool they use.
+
+---
+
 *Every new feature must pass one question: "Does this make studying feel more human?" If the answer is no, don't build it.*
