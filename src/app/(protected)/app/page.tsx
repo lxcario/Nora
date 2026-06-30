@@ -242,11 +242,95 @@ export default async function DashboardPage() {
   const serverHour = new Date().getUTCHours();
   const cardsDueCount = cardsDue ?? 0;
 
+  // ── Companion context: what did the user struggle with / master recently? ──
+  const { data: recentFeynman } = await supabase
+    .from("feynman_explanations")
+    .select("score, topics(name)")
+    .eq("user_id", user!.id)
+    .not("score", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(5);
+
+  let struggledTopic: string | null = null;
+  let masteredTopic: string | null = null;
+  for (const f of recentFeynman ?? []) {
+    const topicName = (f.topics as unknown as { name: string } | null)?.name ?? null;
+    const score = f.score as number;
+    if (score < 50 && !struggledTopic && topicName) struggledTopic = topicName;
+    if (score >= 80 && !masteredTopic && topicName) masteredTopic = topicName;
+  }
+
+  // Check if returning after a break (no activity for 2+ days before today)
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const dayBefore = new Date();
+  dayBefore.setDate(dayBefore.getDate() - 2);
+  const returningAfterBreak = !activityDates.has(yesterday.toISOString().split("T")[0]) && !activityDates.has(dayBefore.toISOString().split("T")[0]);
+
+  // Check if exam within 7 days
+  const sevenDaysFromNow = new Date();
+  sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
+  const { count: upcomingExams } = await supabase
+    .from("topics")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user!.id)
+    .not("exam_date", "is", null)
+    .lte("exam_date", sevenDaysFromNow.toISOString().split("T")[0]);
+
+  // Blooming count (for companion context — topics with high retrievability)
+  // Quick estimate: count cards with stability > 10 as "blooming" (avoids re-running full memory-map)
+  const { count: bloomingCards } = await supabase
+    .from("cards")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user!.id)
+    .gt("stability", 10);
+  const bloomingCount = Math.min(Math.floor((bloomingCards ?? 0) / 5), 20); // rough topic estimate
+
+  // Pet info for companion line
+  const { data: petData } = await supabase
+    .from("pets")
+    .select("name")
+    .eq("user_id", user!.id)
+    .maybeSingle();
+  const petName = (petData?.name as string) ?? "Buddy";
+
+  // Generate companion dialogue
+  const { getCompanionLine, getTimeOfDay } = await import("@/lib/companion-dialogue");
+  const companionLine = getCompanionLine({
+    timeOfDay: getTimeOfDay(serverHour),
+    petName,
+    struggledTopic,
+    masteredTopic,
+    examSoon: (upcomingExams ?? 0) > 0,
+    cardsDue: cardsDueCount,
+    streak,
+    returningAfterBreak,
+    bloomingCount,
+    allQuestsDoneYesterday: false, // TODO: check yesterday's quests
+  });
+
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
 
-      {/* ═══ Section 1 — Daily Briefing ═══ */}
-      <DailyBriefing cardsDue={cardsDueCount} hour={serverHour} />
+      {/* ═══ Section 1 — Welcome Home (the "Today" moment) ═══ */}
+      <div className="space-y-3">
+        <p className="font-pixel text-lg" style={{ color: "var(--pixel-text-primary)" }}>
+          Welcome home.
+        </p>
+
+        {/* Companion voice */}
+        <div className="flex items-start gap-3">
+          <span className="text-lg shrink-0">🐾</span>
+          <div>
+            <p className="text-sm italic" style={{ color: "var(--pixel-text-secondary)" }}>
+              {companionLine}
+            </p>
+            <span className="font-pixel text-[9px]" style={{ color: "var(--pixel-text-muted)" }}>
+              — {petName}
+            </span>
+          </div>
+        </div>
+      </div>
 
       {/* ═══ Section 2 — Primary CTA ═══ */}
       <PrimaryCTA cardsDue={cardsDueCount} />
@@ -256,7 +340,7 @@ export default async function DashboardPage() {
       <StatTile
         icon="/sprites/travel-book/icons/Book.png"
         value={cardsDueCount}
-        label="Cards due today"
+        label="Memories to revisit"
         size="hero"
       />
       {/* Ambient strip: streak / XP / coins */}
@@ -284,11 +368,11 @@ export default async function DashboardPage() {
 
       {/* ═══ Section 4 — Today's Quests ═══ */}
       <div data-tour="quests">
-      <DialogFrame title="TODAY'S QUESTS">
+      <DialogFrame title="TODAY'S JOURNEY">
         {allQuestsDone ? (
           <div className="flex flex-col items-center py-4 gap-2">
             <span className="font-pixel text-base text-[var(--pixel-success)]">
-              All done today!
+              All done for today. You earned this.
             </span>
             <div className="flex items-center gap-3 mt-1">
               <div className="flex items-center gap-1.5">
@@ -311,14 +395,14 @@ export default async function DashboardPage() {
               )}
               <QuestItem
                 icon="/sprites/travel-book/icons/Book.png"
-                label="Review 20 cards"
+                label="Revisit 20 memories"
                 progress={reviewProgress}
                 max={20}
                 color="var(--pixel-success)"
               />
               <QuestItem
                 icon="/sprites/travel-book/icons/Lightbulb.png"
-                label="Explain 3 concepts"
+                label="Explain 3 ideas"
                 progress={feynmanProgress}
                 max={3}
                 color="var(--pixel-accent)"
@@ -360,25 +444,6 @@ export default async function DashboardPage() {
 // Section sub-components
 // ---------------------------------------------------------------------------
 
-function DailyBriefing({ cardsDue, hour }: { cardsDue: number; hour: number }) {
-  let subtitle: string;
-  if (cardsDue === 0) {
-    subtitle = "All caught up! A great day to explore something new.";
-  } else if (hour < 12) {
-    subtitle = `You have ${cardsDue} card${cardsDue === 1 ? "" : "s"} waiting. Let's start strong.`;
-  } else if (hour < 18) {
-    subtitle = `Still time to review those ${cardsDue} card${cardsDue === 1 ? "" : "s"}.`;
-  } else {
-    subtitle = `End the day right — ${cardsDue} card${cardsDue === 1 ? "" : "s"} to go.`;
-  }
-
-  return (
-    <p className="text-sm text-[var(--pixel-text-secondary)] px-1">
-      {subtitle}
-    </p>
-  );
-}
-
 function PrimaryCTA({ cardsDue }: { cardsDue: number }) {
   const hasDue = cardsDue > 0;
   return (
@@ -398,8 +463,8 @@ function PrimaryCTA({ cardsDue }: { cardsDue: number }) {
         />
         <span className="font-pixel text-base text-[var(--pixel-accent)]">
           {hasDue
-            ? `Review Your ${cardsDue} Card${cardsDue === 1 ? "" : "s"}`
-            : "Explore Feynman Mode"}
+            ? `Revisit ${cardsDue} ${cardsDue === 1 ? "memory" : "memories"}`
+            : "Explore something new"}
         </span>
       </div>
       <span className="text-[var(--pixel-accent)] text-2xl group-hover:translate-x-1 transition-transform">
