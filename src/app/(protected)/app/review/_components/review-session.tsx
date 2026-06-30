@@ -30,25 +30,25 @@ const FSRS_GRADES: GradeButton[] = [
   {
     rating: Rating.Again,
     label: "Again",
-    sublabel: "Forgot",
+    sublabel: "Let's revisit",
     color: "var(--pixel-error)",
   },
   {
     rating: Rating.Hard,
     label: "Hard",
-    sublabel: "Struggled",
+    sublabel: "Needed effort",
     color: "var(--pixel-warning)",
   },
   {
     rating: Rating.Good,
     label: "Good",
-    sublabel: "Recalled",
+    sublabel: "Remembered",
     color: "var(--pixel-accent)",
   },
   {
     rating: Rating.Easy,
     label: "Easy",
-    sublabel: "Perfect",
+    sublabel: "Feels familiar",
     color: "var(--pixel-success)",
   },
 ];
@@ -279,7 +279,7 @@ export function ReviewSession({ initialCards }: { initialCards: DueCard[] }) {
     return (
       <DialogFrame>
         <div className="flex flex-col items-center gap-4 py-6 text-center">
-          <SuccessCheck message="Review session complete!" visible={showComplete} />
+          <SuccessCheck message="All remembered." visible={showComplete} />
           <XpToast xp={10} coins={3} visible={showComplete} />
 
           <img
@@ -291,10 +291,10 @@ export function ReviewSession({ initialCards }: { initialCards: DueCard[] }) {
           />
 
           <h2 className="font-pixel text-lg" style={{ color: "var(--pixel-accent)" }}>
-            Session Complete!
+            All remembered for today.
           </h2>
           <p className="text-sm" style={{ color: "var(--pixel-text-secondary)" }}>
-            You reviewed {reviewedCount} card{reviewedCount !== 1 ? "s" : ""}. Nice work.
+            You revisited {reviewedCount} {reviewedCount !== 1 ? "memories" : "memory"}. They&apos;re safe now.
           </p>
 
           <PixelButton variant="primary" onClick={() => router.push("/app/review")}>
@@ -327,15 +327,15 @@ export function ReviewSession({ initialCards }: { initialCards: DueCard[] }) {
       {/* Progress */}
       <div className="flex items-center justify-between">
         <span className="font-pixel text-xs" style={{ color: "var(--pixel-text-secondary)" }}>
-          Card {currentIndex + 1} of {totalCards}
+          Memory {currentIndex + 1} of {totalCards}
           {totalCards > initialCards.length && (
             <span style={{ color: "var(--pixel-warning)" }}>
-              {" "}(+{totalCards - initialCards.length} requeued)
+              {" "}(+{totalCards - initialCards.length} revisiting)
             </span>
           )}
         </span>
         <span className="font-pixel text-xs" style={{ color: "var(--pixel-text-secondary)" }}>
-          {reviewedCount} reviewed
+          {reviewedCount} remembered
         </span>
       </div>
       <PixelProgressBar
@@ -380,7 +380,7 @@ export function ReviewSession({ initialCards }: { initialCards: DueCard[] }) {
             backgroundColor: "color-mix(in srgb, var(--pixel-warning) 12%, transparent)",
           }}
         >
-          Card will reappear later in this session
+          We'll revisit this one again soon.
         </div>
       )}
 

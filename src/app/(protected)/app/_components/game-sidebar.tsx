@@ -138,7 +138,7 @@ function isRouteActive(href: string, pathname: string): boolean {
 // ---------------------------------------------------------------------------
 
 const STUDY_CHILDREN = [
-  { href: "/app/review",     icon: "/sprites/travel-book/icons/Book.png",           label: "Review Cards"  },
+  { href: "/app/review",     icon: "/sprites/travel-book/icons/Book.png",           label: "Today's Memories" },
   { href: "/app/study",      icon: "/sprites/travel-book/icons/Restart.png",         label: "Study Mix"     },
   { href: "/app/feynman",    icon: "/sprites/travel-book/icons/Lightbulb.png",       label: "Feynman Mode"  },
   { href: "/app/error-spotter", icon: "/sprites/travel-book/icons/Eye.png",          label: "Error Spotter" },

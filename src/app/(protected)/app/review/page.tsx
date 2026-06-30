@@ -9,14 +9,14 @@ export default async function ReviewPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Review Cards"
-        description="FSRS spaced repetition. Grade each card: Again, Hard, Good, or Easy — the algorithm schedules your next review automatically."
+        title="Today's Memories"
+        description="Revisit what's beginning to fade. Each memory you recall today grows stronger."
       />
 
       <FeatureHint
         id="review-cards"
         title="Keyboard shortcuts"
-        description="Press 1-4 to grade cards quickly (1=Again, 2=Hard, 3=Good, 4=Easy). Space reveals the answer. The FSRS algorithm ensures you review at the optimal moment."
+        description="Press 1-4 to grade (1=Again, 2=Hard, 3=Good, 4=Easy). Space reveals the answer. Memories appear right before you'd forget them."
         icon="/sprites/travel-book/icons/Book.png"
       />
 

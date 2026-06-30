@@ -30,7 +30,7 @@ export default async function FeynmanPage({ searchParams }: FeynmanPageProps) {
     <div className="space-y-6">
       <PageHeader
         title="Feynman Mode"
-        description="Explain concepts in your own words. An AI 'Inquisitive Student' will probe gaps in your understanding."
+        description="Explain what you know in your own words. Nora will listen, ask questions, and show you where understanding deepens."
       />
 
       <FeatureHint
