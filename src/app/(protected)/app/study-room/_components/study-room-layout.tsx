@@ -68,7 +68,8 @@ export function StudyRoomLayout({
   const [playerController, setPlayerController] = useState<PlayerController | null>(null);
 
   // Transcript
-  const [, setTranscriptReady] = useState(false);
+  const [transcriptReady, setTranscriptReady] = useState(false);
+  const [transcriptError, setTranscriptError] = useState<string | null>(null);
 
   // Player time tracking
   const [currentTime, setCurrentTime] = useState(0);
@@ -142,6 +143,7 @@ export function StudyRoomLayout({
       setVideoId(youtubeId);
       setGeneratedNotes(null);
       setTranscriptReady(false);
+      setTranscriptError(null);
       setCumulativePlaySeconds(0);
       cumulativeRef.current = 0;
       sessionRecordedRef.current = false;
@@ -171,6 +173,7 @@ export function StudyRoomLayout({
       if (result.data) {
         fetchTranscript(result.data.id).then((res) => {
           if (res.data) setTranscriptReady(true);
+          else if (res.error) setTranscriptError(res.error);
         });
       }
     },
@@ -424,6 +427,27 @@ export function StudyRoomLayout({
           {noteError && !isGenerating && (
             <div className="rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-800 dark:bg-red-900/20">
               <p className="text-sm text-red-700 dark:text-red-300">{noteError}</p>
+              {noteError.includes("transcript") && transcriptError && (
+                <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                  Reason: {transcriptError}
+                </p>
+              )}
+              {noteError.includes("transcript") && videoRecord && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNoteError(null);
+                    setTranscriptError(null);
+                    fetchTranscript(videoRecord.id).then((res) => {
+                      if (res.data) setTranscriptReady(true);
+                      else if (res.error) setTranscriptError(res.error);
+                    });
+                  }}
+                  className="pixel-btn pixel-btn-secondary pixel-btn-sm mt-2"
+                >
+                  Retry fetching transcript
+                </button>
+              )}
             </div>
           )}
 
