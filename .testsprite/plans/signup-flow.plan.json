@@ -1,0 +1,14 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "New user signup leads to onboarding wizard",
+  "description": "A new user creates an account with email and password, then is redirected to the onboarding wizard where they set up their academic semester.",
+  "priority": "p0",
+  "planSteps": [
+    { "type": "action", "description": "Navigate to the signup page" },
+    { "type": "action", "description": "Enter a unique email address in the email field" },
+    { "type": "action", "description": "Enter a password of at least 6 characters in the password field" },
+    { "type": "action", "description": "Click the submit button to create the account" },
+    { "type": "assertion", "description": "Verify the page shows the onboarding wizard with a heading containing 'Set up your semester' and step indicators for Institution, Department, Year and Term" }
+  ]
+}

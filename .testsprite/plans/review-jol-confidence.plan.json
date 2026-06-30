@@ -1,0 +1,14 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "Review session shows confidence rating before answer reveal",
+  "description": "When reviewing a card, the user must first rate their confidence (1-5) before the Reveal Answer button appears. This tests the JOL confidence gate.",
+  "priority": "p1",
+  "planSteps": [
+    { "type": "action", "description": "Navigate to the login page and log in with valid credentials" },
+    { "type": "action", "description": "Navigate to the Review Cards page from the sidebar" },
+    { "type": "assertion", "description": "Verify a card question is displayed with text asking 'Before revealing — how confident are you?' and five numbered confidence buttons (1 through 5) are visible" },
+    { "type": "action", "description": "Click confidence button number 3 (Maybe)" },
+    { "type": "assertion", "description": "Verify a confidence badge showing filled dots appears and a 'Reveal Answer' button becomes visible below it" }
+  ]
+}

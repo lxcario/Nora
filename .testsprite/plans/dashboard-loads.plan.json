@@ -1,0 +1,13 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "Dashboard displays stats and daily quests after login",
+  "description": "After logging in, the dashboard shows the user's cards due count, streak, XP, coins, and today's quest progress bars with animated fill.",
+  "priority": "p1",
+  "planSteps": [
+    { "type": "action", "description": "Navigate to the login page" },
+    { "type": "action", "description": "Enter valid credentials and submit the login form" },
+    { "type": "action", "description": "Wait for the dashboard to load completely" },
+    { "type": "assertion", "description": "Verify the dashboard displays a cards-due counter, a streak indicator, and a Today's Quests section with at least one quest item showing a progress bar" }
+  ]
+}

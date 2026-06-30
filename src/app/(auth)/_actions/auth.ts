@@ -66,7 +66,7 @@ export async function signup(
     return { message: error.message };
   }
 
-  redirect("/app");
+  redirect("/app/onboarding");
 }
 
 export async function signout() {

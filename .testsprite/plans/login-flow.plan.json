@@ -1,0 +1,14 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "Login with valid credentials redirects to dashboard",
+  "description": "A returning user enters their email and password on the login page, submits the form, and is redirected to the app dashboard showing their stats.",
+  "priority": "p0",
+  "planSteps": [
+    { "type": "action", "description": "Navigate to the login page" },
+    { "type": "action", "description": "Enter a valid email address in the email field" },
+    { "type": "action", "description": "Enter a valid password in the password field" },
+    { "type": "action", "description": "Click the sign-in button to submit the login form" },
+    { "type": "assertion", "description": "Verify the page redirects to the app dashboard showing a heading or stats panel with cards due count, XP, or level information" }
+  ]
+}
