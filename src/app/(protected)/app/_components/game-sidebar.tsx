@@ -144,17 +144,21 @@ const STUDY_CHILDREN = [
   { href: "/app/error-spotter", icon: "/sprites/travel-book/icons/Eye.png",          label: "Error Spotter" },
   { href: "/app/exam",       icon: "/sprites/travel-book/icons/Document.png",        label: "Practice Exam" },
   { href: "/app/research",   icon: "/sprites/travel-book/icons/MagnifyingGlass.png", label: "Research Desk" },
+  { href: "/app/listen",     icon: "/sprites/travel-book/icons/MusicNotes.png",      label: "Listen Mode"   },
   { href: "/app/study-room", icon: "/sprites/travel-book/icons/Monitor.png",         label: "Study Room"    },
   { href: "/app/planner",    icon: "/sprites/travel-book/icons/Document.png",        label: "Study Planner" },
   { href: "/app/academic",   icon: "/sprites/travel-book/icons/Backpack.png",        label: "My University" },
 ];
 
 const ROOM_CHILDREN = [
-  { href: "/app/room",       icon: "/sprites/travel-book/icons/Gamepad.png",         label: "Pixel Room"    },
-  { href: "/app/memory-map", icon: "/sprites/travel-book/icons/Flower.png",          label: "Memory Garden" },
-  { href: "/app/collection", icon: "/sprites/travel-book/icons/ChestTreasure.png",   label: "Collection"    },
-  { href: "/app/analytics",  icon: "/sprites/travel-book/icons/Trophy.png",          label: "Analytics"     },
-  { href: "/app/history",    icon: "/sprites/travel-book/icons/FloppyDisk.png",      label: "History"       },
+  { href: "/app/room",          icon: "/sprites/travel-book/icons/Gamepad.png",         label: "Pixel Room"      },
+  { href: "/app/memory-map",    icon: "/sprites/travel-book/icons/Flower.png",          label: "Memory Garden"   },
+  { href: "/app/knowledge-web", icon: "/sprites/travel-book/icons/Necklace.png",        label: "Knowledge Web"   },
+  { href: "/app/eureka",        icon: "/sprites/travel-book/icons/Lightbulb.png",       label: "Eureka!"         },
+  { href: "/app/card-market",   icon: "/sprites/travel-book/icons/ChestTreasure.png",   label: "Card Market"     },
+  { href: "/app/collection",    icon: "/sprites/travel-book/icons/Briefcase.png",       label: "Collection"      },
+  { href: "/app/analytics",     icon: "/sprites/travel-book/icons/Trophy.png",          label: "Analytics"       },
+  { href: "/app/history",       icon: "/sprites/travel-book/icons/FloppyDisk.png",      label: "History"         },
 ];
 
 // ---------------------------------------------------------------------------
