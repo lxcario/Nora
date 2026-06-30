@@ -56,8 +56,8 @@ export default async function ReviewPage() {
       {cards.length === 0 ? (
         <EmptyState
           icon="book"
-          message="All caught up! No cards are due for review right now. Create more via Feynman Mode or Research, and they'll appear here when it's time."
-          actionLabel="Explain a topic"
+          message="All memories are safe for now. When something starts to fade, it'll appear here. In the meantime — explore something new."
+          actionLabel="Explore a topic"
           actionHref="/app/feynman"
         />
       ) : (

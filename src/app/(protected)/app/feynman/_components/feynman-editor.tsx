@@ -441,9 +441,9 @@ export function FeynmanEditor({ topics, defaultTopicId }: { topics: TopicOption[
           />
 
           {/* Questions */}
-          <DialogFrame title="Probing Questions">
+          <DialogFrame title="Questions Worth Exploring">
             <p className="mb-2 text-xs text-[var(--pixel-text-muted)]">
-              Address these when you refine your explanation.
+              These might help deepen your understanding.
             </p>
             <ul className="space-y-2">
               {analysis.questions.map((q, i) => (
@@ -456,7 +456,7 @@ export function FeynmanEditor({ topics, defaultTopicId }: { topics: TopicOption[
           </DialogFrame>
 
           {/* Paraphrase */}
-          <DialogFrame title="How the AI Understood You">
+          <DialogFrame title="How Nora Understood You">
             <div className="flex items-start gap-2">
               <Brain className="h-4 w-4 mt-0.5 text-[var(--pixel-accent)] shrink-0" />
               <p className="text-sm italic text-[var(--pixel-text-secondary)]">
@@ -466,7 +466,7 @@ export function FeynmanEditor({ topics, defaultTopicId }: { topics: TopicOption[
           </DialogFrame>
 
           {/* Gap Analysis */}
-          <DialogFrame title="Gap Analysis">
+          <DialogFrame title="Where You Stand">
             <div className="space-y-3">
               {analysis.segments.map((seg, i) => (
                 <div
@@ -932,7 +932,7 @@ function ScoreCard({
       : "var(--pixel-error)";
 
   return (
-    <DialogFrame title="Comprehension Score">
+    <DialogFrame title="Understanding">
       <div className="flex items-center gap-4">
         {/* Numeric score */}
         <div className="flex flex-col items-center justify-center shrink-0">
