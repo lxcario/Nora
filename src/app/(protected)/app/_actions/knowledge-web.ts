@@ -113,7 +113,12 @@ Rules:
   if (!response) return { error: "AI generation failed" };
 
   try {
-    const parsed = JSON.parse(response) as {
+    // Strip markdown fences if the LLM wrapped the response
+    const cleaned = response
+      .replace(/```json\s*/gi, "")
+      .replace(/```\s*/g, "")
+      .trim();
+    const parsed = JSON.parse(cleaned) as {
       concepts: { topicIndex: number; name: string }[];
       edges: { fromConceptIdx: number; toConceptIdx: number; type: string }[];
     };

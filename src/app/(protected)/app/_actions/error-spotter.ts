@@ -139,7 +139,12 @@ Respond ONLY with valid JSON (no markdown, no code fences):
   if (!response) return { error: "AI generation failed" };
 
   try {
-    const parsed = JSON.parse(response) as { text: string; errors: ErrorItem[] };
+    // Strip markdown fences if the LLM wrapped the response
+    const cleaned = response
+      .replace(/```json\s*/gi, "")
+      .replace(/```\s*/g, "")
+      .trim();
+    const parsed = JSON.parse(cleaned) as { text: string; errors: ErrorItem[] };
     if (!parsed.text || !Array.isArray(parsed.errors) || parsed.errors.length === 0) {
       return { error: "AI returned an invalid response — try again" };
     }

@@ -91,7 +91,12 @@ Respond with JSON array (may be shorter than input if some pairs have no connect
   if (!response) return { connections: [], error: "AI generation failed" };
 
   try {
-    const parsed = JSON.parse(response) as { pairIndex: number; connectionPhrase: string; challengePrompt: string }[];
+    // Strip markdown fences if the LLM wrapped the response
+    const cleaned = response
+      .replace(/```json\s*/gi, "")
+      .replace(/```\s*/g, "")
+      .trim();
+    const parsed = JSON.parse(cleaned) as { pairIndex: number; connectionPhrase: string; challengePrompt: string }[];
     const connections: EurekaConnection[] = parsed
       .filter((r) => r.pairIndex >= 1 && r.pairIndex <= pairs.length)
       .slice(0, 3)

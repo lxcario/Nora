@@ -105,7 +105,12 @@ Respond with valid JSON only:
   if (!response) return { error: "AI generation failed" };
 
   try {
-    const parsed = JSON.parse(response) as { title: string; segments: PodcastSegment[] };
+    // Strip markdown fences if the LLM wrapped the response
+    const cleaned = response
+      .replace(/```json\s*/gi, "")
+      .replace(/```\s*/g, "")
+      .trim();
+    const parsed = JSON.parse(cleaned) as { title: string; segments: PodcastSegment[] };
     if (!parsed.segments?.length) return { error: "Invalid response" };
     const wordCount = parsed.segments.reduce((sum, s) => sum + s.text.split(/\s+/).length, 0);
     return {

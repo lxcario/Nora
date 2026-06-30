@@ -45,7 +45,12 @@ Respond ONLY with a JSON array of strings (no markdown, no code fences):
   if (!response) return { error: "AI generation failed" };
 
   try {
-    const parsed = JSON.parse(response);
+    // Strip markdown fences if the LLM wrapped the response
+    const cleaned = response
+      .replace(/```json\s*/gi, "")
+      .replace(/```\s*/g, "")
+      .trim();
+    const parsed = JSON.parse(cleaned);
     if (!Array.isArray(parsed) || parsed.length === 0) {
       return { error: "Invalid AI response" };
     }
