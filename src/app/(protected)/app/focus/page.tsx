@@ -59,7 +59,7 @@ export default async function FocusPage() {
     <div className="space-y-6">
       <PageHeader
         title="Focus Timer"
-        description="Light the candle, settle in, and let the blocks carry you through."
+        description="Set your blocks, start the session, and let the rhythm carry you."
       />
       <FocusTimer
         recommendation={recommendation}
