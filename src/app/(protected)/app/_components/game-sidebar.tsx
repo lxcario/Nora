@@ -140,6 +140,7 @@ function isRouteActive(href: string, pathname: string): boolean {
 const STUDY_CHILDREN = [
   { href: "/app/review",     icon: "/sprites/travel-book/icons/Book.png",           label: "Review Cards"  },
   { href: "/app/study",      icon: "/sprites/travel-book/icons/Restart.png",         label: "Study Mix"     },
+  { href: "/app/focus",      icon: "/sprites/travel-book/icons/PlayPause.png",       label: "Focus Timer"   },
   { href: "/app/feynman",    icon: "/sprites/travel-book/icons/Lightbulb.png",       label: "Feynman Mode"  },
   { href: "/app/exam",       icon: "/sprites/travel-book/icons/Document.png",        label: "Practice Exam" },
   { href: "/app/research",   icon: "/sprites/travel-book/icons/MagnifyingGlass.png", label: "Research Desk" },
@@ -167,16 +168,20 @@ interface SidebarState {
 }
 
 function loadSidebarState(): SidebarState {
+  // First-time default is OPEN for both groups: with only two accordions and a
+  // scrollable nav, hiding destinations (Analytics, Collection, History, Pixel
+  // Room) behind a collapsed group hurts discoverability. An explicit collapse
+  // by the user is still persisted and respected below.
   try {
     const raw = localStorage.getItem(LS_KEY);
-    if (!raw) return { study: false, myRoom: false };
+    if (!raw) return { study: true, myRoom: true };
     const parsed = JSON.parse(raw) as Partial<SidebarState>;
     return {
-      study: Boolean(parsed?.study),
-      myRoom: Boolean(parsed?.myRoom),
+      study: parsed?.study ?? true,
+      myRoom: parsed?.myRoom ?? true,
     };
   } catch {
-    return { study: false, myRoom: false };
+    return { study: true, myRoom: true };
   }
 }
 
@@ -389,11 +394,12 @@ export function GameSidebar({
   const studyActive = STUDY_CHILDREN.some((c) => isRouteActive(c.href, pathname));
   const roomActive  = ROOM_CHILDREN.some((c)  => isRouteActive(c.href, pathname));
 
-  // Start with server-safe defaults (no localStorage access during SSR).
-  // Active-route detection is safe because pathname is known server-side.
+  // Start with both groups OPEN as the server-safe default (deterministic, so
+  // it matches the client's first render — no hydration mismatch). The mount
+  // effect below refines this from the user's persisted preference.
   const [openGroups, setOpenGroups] = useState<SidebarState>({
-    study: studyActive,
-    myRoom: roomActive,
+    study: true,
+    myRoom: true,
   });
 
   // After mount: merge with localStorage-persisted open/close state

@@ -1,14 +1,14 @@
 {
   "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
   "type": "frontend",
-  "name": "Review session shows confidence rating before answer reveal",
-  "description": "When reviewing a card, the user must first rate their confidence (1-5) before the Reveal Answer button appears. This tests the JOL confidence gate.",
+  "name": "Review gates answer reveal behind a JOL confidence rating",
+  "description": "On a review card the Reveal Answer button is not available until the user rates their confidence (1-5). Selecting a confidence value unlocks the reveal step, proving the gate works rather than just being present.",
   "priority": "p1",
   "planSteps": [
-    { "type": "action", "description": "Navigate to the login page and log in with valid credentials" },
-    { "type": "action", "description": "Navigate to the Review Cards page from the sidebar" },
-    { "type": "assertion", "description": "Verify a card question is displayed with text asking 'Before revealing — how confident are you?' and five numbered confidence buttons (1 through 5) are visible" },
-    { "type": "action", "description": "Click confidence button number 3 (Maybe)" },
-    { "type": "assertion", "description": "Verify a confidence badge showing filled dots appears and a 'Reveal Answer' button becomes visible below it" }
+    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to load" },
+    { "type": "action", "description": "Click the Review Cards link in the sidebar" },
+    { "type": "assertion", "description": "Verify a card question is shown above a confidence prompt asking how confident the user is, with five numbered confidence buttons (1 through 5) presented together in a single horizontal row, and no Reveal Answer button enabled yet" },
+    { "type": "action", "description": "Click confidence button number 3" },
+    { "type": "assertion", "description": "Verify selecting confidence updates the UI to show the chosen rating and now reveals an enabled 'Reveal Answer' button — confirming the confidence selection actually unlocked the next step" }
   ]
 }

@@ -1,14 +1,16 @@
 {
   "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
   "type": "frontend",
-  "name": "Study Room video search returns educational results",
-  "description": "User searches for an educational video in the Study Room, sees search results, and can select one to load the video player.",
+  "name": "Study Room video search returns results and a result loads the player",
+  "description": "The user searches for an educational topic in the Study Room, sees a list of video results related to the query, and selecting one loads the video player workspace.",
   "priority": "p1",
   "planSteps": [
-    { "type": "action", "description": "Navigate to the login page and log in with valid credentials" },
+    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to load" },
     { "type": "action", "description": "Click the Study Room link in the sidebar" },
-    { "type": "action", "description": "Type a search term like 'linear algebra' in the video search input field" },
-    { "type": "action", "description": "Submit the search or press Enter" },
-    { "type": "assertion", "description": "Verify that search results appear showing video titles related to the search term, with at least one clickable result item" }
+    { "type": "action", "description": "Type the search term 'linear algebra' into the video search field" },
+    { "type": "action", "description": "Submit the video search" },
+    { "type": "assertion", "description": "Verify a list of video result items appears, each showing a video title and thumbnail, with the titles plausibly related to the search term — or, if the video API key is not configured, a clear message explaining search is unavailable rather than a silent blank area" },
+    { "type": "action", "description": "Click the first video result" },
+    { "type": "assertion", "description": "Verify a video player workspace loads for the selected video (an embedded player region with a notes/transcript area), confirming results are selectable and not static" }
   ]
 }

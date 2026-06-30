@@ -1,15 +1,15 @@
 {
   "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
   "type": "frontend",
-  "name": "Feynman Mode evaluates explanation and shows gap analysis",
-  "description": "User selects a topic, writes an explanation of at least 50 characters, submits for AI evaluation, and receives color-coded gap analysis with probing questions.",
+  "name": "Feynman Mode evaluates an explanation and returns color-coded gap analysis",
+  "description": "The user selects a topic, writes an explanation, submits it, and receives an AI gap analysis with color-coded segments (green/amber/red) plus at least one probing follow-up question — confirming the evaluation pipeline actually ran.",
   "priority": "p1",
   "planSteps": [
-    { "type": "action", "description": "Navigate to the login page and log in with valid credentials" },
+    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to load" },
     { "type": "action", "description": "Click the Feynman Mode link in the sidebar" },
-    { "type": "action", "description": "Select a topic from the topic dropdown selector" },
-    { "type": "action", "description": "Type an explanation of at least 60 characters in the explanation textarea" },
-    { "type": "action", "description": "Click the Evaluate with AI button" },
-    { "type": "assertion", "description": "Verify that after loading completes, the page displays a gap analysis section with colored segments (green, amber, or red indicators) and at least one probing question" }
+    { "type": "action", "description": "Select a topic from the topic selector" },
+    { "type": "action", "description": "Type an explanation of at least 80 characters into the explanation editor" },
+    { "type": "action", "description": "Click the button that submits the explanation for AI evaluation" },
+    { "type": "assertion", "description": "Verify that after loading completes the page shows a gap-analysis result containing visually distinct color-coded segments (green / amber / red classifications) and at least one probing follow-up question — not just an echo of the submitted text and not a perpetual loading state" }
   ]
 }

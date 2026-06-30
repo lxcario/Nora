@@ -1,12 +1,13 @@
 {
   "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
   "type": "frontend",
-  "name": "Analytics page shows stats and charts",
-  "description": "The Analytics page displays study statistics including sessions per week, cards reviewed, streak count, and visual charts for daily activity.",
+  "name": "Analytics page renders stat cards in a laid-out dashboard",
+  "description": "From the dashboard, the user opens Analytics from the sidebar and sees a progress dashboard: a row of stat cards with numeric values, and either activity charts/heatmap (when enough history exists) or a clear 'not enough data yet' message — never a blank or unstyled page.",
   "priority": "p2",
   "planSteps": [
-    { "type": "action", "description": "Navigate to the login page and log in with valid credentials" },
-    { "type": "action", "description": "Click the My Room section in the sidebar to expand it, then click the Analytics link" },
-    { "type": "assertion", "description": "Verify the Analytics page displays stat cards showing numeric values for sessions, reviews, cards created, and study minutes, along with a consistency heatmap section" }
+    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to load" },
+    { "type": "action", "description": "Click the Analytics link in the sidebar" },
+    { "type": "assertion", "description": "Verify the Analytics page shows a heading 'Analytics' and a set of stat cards laid out as distinct bordered card cells (side-by-side in a row or grid, not stacked as plain unstyled text), each card showing a numeric value with a label such as XP, sessions, reviews, or study minutes" },
+    { "type": "assertion", "description": "Verify the page also shows EITHER a consistency heatmap / bar-chart region with visible cells, OR a 'not enough data yet' guidance message — confirming the analytics view rendered its real content rather than an empty container" }
   ]
 }

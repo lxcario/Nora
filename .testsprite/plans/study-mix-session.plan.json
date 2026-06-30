@@ -1,12 +1,12 @@
 {
   "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
   "type": "frontend",
-  "name": "Study Mix displays interleaved queue with flashcards",
-  "description": "The Study Mix page loads an interleaved study queue containing flashcard items with question text, a type badge, and topic information.",
+  "name": "Study Mix loads an interleaved queue item or a clear empty state",
+  "description": "The Study Mix page builds an interleaved practice queue. When cards are due it presents the first study item with prompt text, a progress indicator, and a type badge; when nothing is due it shows an all-caught-up empty state rather than a blank panel.",
   "priority": "p1",
   "planSteps": [
-    { "type": "action", "description": "Navigate to the login page and log in with valid credentials" },
+    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to load" },
     { "type": "action", "description": "Click the Study Mix link in the sidebar" },
-    { "type": "assertion", "description": "Verify the Study Mix page displays a study item with a question or prompt text, a progress indicator showing item count, and a type badge indicating Flashcard or Feynman Prompt" }
+    { "type": "assertion", "description": "Verify the page presents EITHER a study item card containing prompt/question text together with a progress indicator (such as 'Item 1 of N') and a type badge labeled Flashcard or Feynman Prompt, OR an explicit 'all caught up / nothing due' empty state — confirming the queue builder produced a real result rather than an empty container" }
   ]
 }

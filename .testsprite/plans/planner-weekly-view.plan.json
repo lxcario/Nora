@@ -1,14 +1,15 @@
 {
   "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
   "type": "frontend",
-  "name": "Study Planner shows weekly calendar with navigation",
-  "description": "The planner page displays a 7-day weekly calendar grid with day headers and navigation arrows to move between weeks.",
+  "name": "Planner shows a 7-column week grid and week navigation works",
+  "description": "The planner renders a weekly calendar as seven day columns laid out side-by-side in one row, and clicking 'next week' actually shifts the visible date range forward.",
   "priority": "p1",
   "planSteps": [
-    { "type": "action", "description": "Navigate to the login page and log in with valid credentials" },
+    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to load" },
     { "type": "action", "description": "Click the Study Planner link in the sidebar" },
-    { "type": "assertion", "description": "Verify the page displays a weekly calendar with 7 day columns showing day names (Mon, Tue, Wed, etc.) and navigation buttons for previous and next week" },
-    { "type": "action", "description": "Click the Next week navigation button" },
-    { "type": "assertion", "description": "Verify the displayed date range changes to show the following week's dates" }
+    { "type": "assertion", "description": "Verify the calendar shows seven day columns (Mon through Sun) arranged side-by-side in a single horizontal row, each column with a day header, plus visible previous-week and next-week navigation controls" },
+    { "type": "action", "description": "Read and remember the currently displayed week date range" },
+    { "type": "action", "description": "Click the next-week navigation control" },
+    { "type": "assertion", "description": "Verify the displayed week date range changes to a later range than the one remembered, confirming week navigation re-rendered the grid rather than staying static" }
   ]
 }

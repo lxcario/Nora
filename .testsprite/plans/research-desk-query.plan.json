@@ -1,14 +1,15 @@
 {
   "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
   "type": "frontend",
-  "name": "Research Desk returns sources and synthesis from a query",
-  "description": "User enters a research question, the system searches academic databases and web, and displays a synthesized answer with numbered citation sources.",
+  "name": "Research Desk returns a synthesis grounded in listed sources",
+  "description": "The user asks a research question; the system returns a synthesized analysis plus a sources list, where the sources relate to the question topic and the answer is grounded rather than empty.",
   "priority": "p1",
   "planSteps": [
-    { "type": "action", "description": "Navigate to the login page and log in with valid credentials" },
+    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to load" },
     { "type": "action", "description": "Click the Research Desk link in the sidebar" },
-    { "type": "action", "description": "Type a research question of at least 10 characters in the search input field" },
-    { "type": "action", "description": "Click the Research button to submit the query" },
-    { "type": "assertion", "description": "Verify that after loading completes, a Research Analysis section appears with text content and a Sources section listing at least one source with a title and URL" }
+    { "type": "action", "description": "Type the question 'What is spaced repetition in learning?' into the research input field" },
+    { "type": "action", "description": "Submit the research query" },
+    { "type": "assertion", "description": "Verify that after loading completes a research analysis area shows multi-sentence answer text on the topic of memory or spaced repetition, displayed alongside a distinct Sources list" },
+    { "type": "assertion", "description": "Verify the Sources list contains at least one source entry with a title and a link/URL, and the source topic is plausibly related to the question — confirming the answer is grounded in retrieved sources rather than an empty or sourceless response" }
   ]
 }

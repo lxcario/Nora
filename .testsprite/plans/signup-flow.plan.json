@@ -1,14 +1,14 @@
 {
   "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
   "type": "frontend",
-  "name": "New user signup leads to onboarding wizard",
-  "description": "A new user creates an account with email and password, then is redirected to the onboarding wizard where they set up their academic semester.",
+  "name": "New signup lands on the onboarding wizard",
+  "description": "A new user creates an account with a unique email and password and is taken to the academic onboarding wizard, which begins with selecting their university/institution.",
   "priority": "p0",
   "planSteps": [
     { "type": "action", "description": "Navigate to the signup page" },
-    { "type": "action", "description": "Enter a unique email address in the email field" },
-    { "type": "action", "description": "Enter a password of at least 6 characters in the password field" },
-    { "type": "action", "description": "Click the submit button to create the account" },
-    { "type": "assertion", "description": "Verify the page shows the onboarding wizard with a heading containing 'Set up your semester' and step indicators for Institution, Department, Year and Term" }
+    { "type": "action", "description": "Type a unique, randomized email address into the email field" },
+    { "type": "action", "description": "Type a password of at least 8 characters into the password field" },
+    { "type": "action", "description": "Submit the account creation form" },
+    { "type": "assertion", "description": "Verify the user arrives on the onboarding/setup screen (URL path under onboarding) showing a university or institution search/autocomplete field and a step progression indicator for the academic setup — not the marketing landing page and not a blank screen" }
   ]
 }

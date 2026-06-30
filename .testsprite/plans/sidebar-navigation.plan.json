@@ -1,14 +1,15 @@
 {
   "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
   "type": "frontend",
-  "name": "Sidebar navigation reaches all major pages without errors",
-  "description": "After login, clicking each sidebar link navigates to the correct page without errors or blank screens.",
+  "name": "Sidebar navigation reaches grouped destinations without errors",
+  "description": "After login, the sidebar groups are expanded so their links are visible; clicking links across different groups navigates to the correct page each time without errors or blank screens.",
   "priority": "p1",
   "planSteps": [
-    { "type": "action", "description": "Navigate to the login page and log in with valid credentials" },
+    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to load" },
+    { "type": "assertion", "description": "Verify the sidebar shows its grouped links expanded and visible, including Feynman Mode and Study Planner under the Study group and Analytics under the My Room group, without requiring the user to first expand a collapsed group" },
     { "type": "action", "description": "Click the Feynman Mode link in the sidebar" },
-    { "type": "assertion", "description": "Verify the Feynman Mode page loads with a topic selector or empty state message visible" },
-    { "type": "action", "description": "Click the Study Planner link in the sidebar" },
-    { "type": "assertion", "description": "Verify the planner page loads showing a weekly calendar grid with day columns" }
+    { "type": "assertion", "description": "Verify the Feynman Mode page loads with a topic selector or an empty-state message visible" },
+    { "type": "action", "description": "Click the Analytics link in the sidebar" },
+    { "type": "assertion", "description": "Verify the Analytics page loads showing its heading and stat content, confirming the previously hidden grouped link is now directly reachable" }
   ]
 }

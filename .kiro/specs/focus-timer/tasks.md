@@ -1,5 +1,30 @@
 # Adaptive Focus Timer — Implementation Tasks
 
+## Build Status
+
+**Slice 1 — shipped (client-only, demoable, no DB writes):**
+- [x] `src/lib/focus-adaptive.ts` — pure `computeRecommendation()` (injectable clock for testing)
+- [x] `src/lib/focus-audio.ts` — 8-bit focus/break/complete chimes (Web Audio, safe no-op fallback)
+- [x] `src/app/(protected)/app/focus/_components/focus-timer.tsx` — full state machine (idle→focus→break→…→complete), pause/resume/reset, MM:SS + SVG progress ring, mute, localStorage persistence, override inputs. (Combined the spec's display/controls/adaptive-settings/timer files into one cohesive component.)
+- [x] `src/app/(protected)/app/focus/page.tsx` — server page; reads focus sessions (empty until slice 2) → `computeRecommendation` → renders timer
+- [x] Sidebar link added to `STUDY_CHILDREN` in `game-sidebar.tsx` (the intentional shared-component regression surface)
+- [x] TestSprite plan `.testsprite/plans/focus-timer.plan.json`
+- Verified: `tsc --noEmit` clean; existing suite 326/332 (6 failures are pre-existing pdf-parse env issues, unrelated)
+- NOT done (deliberately): unit tests for `focus-adaptive` (add when ready); pixel desk clock; break activities
+
+**Slice 2 — the regression vector (do DURING the loop, when CLI credits return):**
+This is the change most likely to break existing tests, so run it through TestSprite to catch regressions.
+1. Migration `020_focus_session_mode.sql`: extend the `study_sessions.mode` CHECK to include `'focus'` (currently only `feynman|review|research|planner` — so logging `mode='focus'` fails until this lands). Consider adding `'video'` too if not already applied in prod.
+2. `src/app/(protected)/app/_actions/focus.ts`: `logFocusBlock(durationMinutes)` → insert `study_sessions(mode='focus')` + `rewardAction("session_complete")` + pet affinity; `logFocusSessionComplete(totalBlocks)` → bonus XP/coins; `getFocusHistory()` already partially read by the page.
+3. Wire `focus-timer.tsx` block/session completion to call those actions (XP toast on completion).
+4. **Rerun the FULL suite** — this touches `study_sessions` (shared by dashboard streak/quests + analytics), so watch `dashboard-loads`, `analytics-page`, and `sidebar-navigation` for regressions. Pull the failure bundle, fix, rerun → bank.
+
+Loop commands when credits return:
+```
+testsprite test create --plan-from .testsprite/plans/focus-timer.plan.json --run --wait --target-url https://norastudy.vercel.app --timeout 600 --output json
+testsprite test rerun --all --project 4ba5d8f8-310d-41bc-bbf4-b85208bb6d44 --wait --output json
+```
+
 ## Overview
 
 Implements an adaptive Pomodoro timer with pixel room integration, 8-bit audio, and themed breaks. Order: pure adaptive logic → audio synthesis → timer component → server logging → pixel room integration → break activities.

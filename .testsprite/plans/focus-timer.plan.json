@@ -1,0 +1,18 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "Focus Timer starts a countdown and pause halts it",
+  "description": "From the sidebar the user opens the Focus Timer, sees the MM:SS time and a Start control with a suggested focus/break split, starts a session that counts down, and pausing actually stops the countdown.",
+  "priority": "p1",
+  "planSteps": [
+    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to load" },
+    { "type": "action", "description": "Click the Focus Timer link in the sidebar" },
+    { "type": "assertion", "description": "Verify the Focus Timer page shows a circular timer with a time displayed in MM:SS format inside it, a 'Start Focus Session' button, and a suggested focus/break split (for example '25 min focus / 5 min break')" },
+    { "type": "action", "description": "Click the Start Focus Session button" },
+    { "type": "action", "description": "Wait about three seconds for the countdown to progress" },
+    { "type": "assertion", "description": "Verify the timer is now in a running Focus state showing a 'Block 1 / 4' indicator and a Pause control, and the MM:SS time has decreased from its starting value rather than staying frozen" },
+    { "type": "action", "description": "Click the Pause control" },
+    { "type": "action", "description": "Wait about two seconds" },
+    { "type": "assertion", "description": "Verify the timer shows a paused indicator and the MM:SS time stays the same across the wait, confirming pause actually halted the countdown" }
+  ]
+}

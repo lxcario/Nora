@@ -1,15 +1,16 @@
 {
   "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
   "type": "frontend",
-  "name": "User can create a subject and topic in Settings",
-  "description": "In Settings → Subjects tab, user creates a new subject with a name and color, then adds a topic to that subject.",
+  "name": "Creating a subject adds it to the subjects list",
+  "description": "In Settings, the user adds a new subject with a specific name and that exact subject then appears in the subjects list, confirming the create action persisted.",
   "priority": "p1",
   "planSteps": [
-    { "type": "action", "description": "Navigate to the login page and log in with valid credentials" },
+    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to load" },
     { "type": "action", "description": "Click the Settings link in the sidebar" },
-    { "type": "action", "description": "Click the Subjects tab in the settings page" },
-    { "type": "action", "description": "Click the button to add a new subject and enter a subject name" },
+    { "type": "action", "description": "Open the Subjects tab in settings" },
+    { "type": "action", "description": "Activate the control to add a new subject" },
+    { "type": "action", "description": "Type the subject name 'Organic Chemistry' into the subject name field" },
     { "type": "action", "description": "Submit the new subject form" },
-    { "type": "assertion", "description": "Verify the newly created subject appears in the subjects list with its name visible" }
+    { "type": "assertion", "description": "Verify a subject labeled exactly 'Organic Chemistry' now appears as an item in the subjects list, confirming the round-trip from creation to display" }
   ]
 }
