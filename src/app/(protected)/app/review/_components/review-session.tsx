@@ -278,27 +278,27 @@ export function ReviewSession({ initialCards }: { initialCards: DueCard[] }) {
   if (sessionComplete) {
     return (
       <DialogFrame>
-        <div className="flex flex-col items-center gap-4 py-6 text-center">
+        <div className="flex flex-col items-center gap-4 py-8 text-center">
           <SuccessCheck message="All remembered." visible={showComplete} />
           <XpToast xp={10} coins={3} visible={showComplete} />
 
           <img
-            src="/sprites/travel-book/icons/Trophy.png"
+            src="/sprites/travel-book/icons/Flower.png"
             alt=""
-            width={48}
-            height={48}
+            width={40}
+            height={40}
             className="pixel-art"
           />
 
-          <h2 className="font-pixel text-lg" style={{ color: "var(--pixel-accent)" }}>
-            All remembered for today.
-          </h2>
-          <p className="text-sm" style={{ color: "var(--pixel-text-secondary)" }}>
-            You revisited {reviewedCount} {reviewedCount !== 1 ? "memories" : "memory"}. They&apos;re safe now.
+          <p className="text-sm leading-relaxed max-w-xs" style={{ color: "var(--pixel-text-secondary)" }}>
+            Everything you remembered today has found its place again.
+          </p>
+          <p className="font-pixel text-xs" style={{ color: "var(--pixel-text-muted)" }}>
+            {reviewedCount} {reviewedCount !== 1 ? "memories" : "memory"} revisited
           </p>
 
-          <PixelButton variant="primary" onClick={() => router.push("/app/review")}>
-            Done
+          <PixelButton variant="primary" onClick={() => router.push("/app")}>
+            Continue
           </PixelButton>
         </div>
       </DialogFrame>
@@ -382,6 +382,18 @@ export function ReviewSession({ initialCards }: { initialCards: DueCard[] }) {
         >
           We'll revisit this one again soon.
         </div>
+      )}
+
+      {/* Transition moments */}
+      {currentIndex === 0 && reviewedCount === 0 && (
+        <p className="text-xs text-center italic px-4" style={{ color: "var(--pixel-text-muted)" }}>
+          Let&apos;s wake up a few memories.
+        </p>
+      )}
+      {currentIndex === totalCards - 1 && !revealed && reviewedCount > 0 && (
+        <p className="text-xs text-center italic px-4" style={{ color: "var(--pixel-text-muted)" }}>
+          One more memory.
+        </p>
       )}
 
       {/* Card */}
