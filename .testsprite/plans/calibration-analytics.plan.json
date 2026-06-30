@@ -1,0 +1,13 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "Analytics shows confidence calibration section",
+  "description": "The Analytics page includes a Confidence Calibration section that shows either a calibration chart with bars comparing expected vs actual success rates across confidence levels 1-5, or a 'not enough data yet' message when fewer than 20 JOL-rated reviews exist.",
+  "priority": "p2",
+  "planSteps": [
+    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to load" },
+    { "type": "action", "description": "Click the Analytics link in the sidebar" },
+    { "type": "action", "description": "Scroll down to the Confidence Calibration section" },
+    { "type": "assertion", "description": "Verify a section titled 'Confidence Calibration' is present on the Analytics page showing EITHER a bar chart visualization with confidence levels (1 through 5) on the x-axis and paired bars (expected vs actual) per level plus a calibration deviation score, OR a 'not enough data yet' message explaining the minimum review count needed — confirming the metacognition feature rendered rather than being absent" }
+  ]
+}

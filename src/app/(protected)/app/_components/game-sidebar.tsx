@@ -150,10 +150,11 @@ const STUDY_CHILDREN = [
 ];
 
 const ROOM_CHILDREN = [
-  { href: "/app/room",       icon: "/sprites/travel-book/icons/Gamepad.png",         label: "Pixel Room"  },
-  { href: "/app/collection", icon: "/sprites/travel-book/icons/ChestTreasure.png",   label: "Collection"  },
-  { href: "/app/analytics",  icon: "/sprites/travel-book/icons/Trophy.png",          label: "Analytics"   },
-  { href: "/app/history",    icon: "/sprites/travel-book/icons/FloppyDisk.png",      label: "History"     },
+  { href: "/app/room",       icon: "/sprites/travel-book/icons/Gamepad.png",         label: "Pixel Room"    },
+  { href: "/app/memory-map", icon: "/sprites/travel-book/icons/Flower.png",          label: "Memory Garden" },
+  { href: "/app/collection", icon: "/sprites/travel-book/icons/ChestTreasure.png",   label: "Collection"    },
+  { href: "/app/analytics",  icon: "/sprites/travel-book/icons/Trophy.png",          label: "Analytics"     },
+  { href: "/app/history",    icon: "/sprites/travel-book/icons/FloppyDisk.png",      label: "History"       },
 ];
 
 // ---------------------------------------------------------------------------

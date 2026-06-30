@@ -1,11 +1,16 @@
 import { PageHeader } from "../_components/page-header";
 import { getAnalytics } from "../_actions/analytics";
+import { getCalibrationData } from "../_actions/calibration";
 import { AnalyticsDashboard } from "./_components/analytics-dashboard";
+import { CalibrationTab } from "./_components/calibration-tab";
 import { DialogFrame } from "@/components/pixel-ui";
 import { BarChart3 } from "lucide-react";
 
 export default async function AnalyticsPage() {
-  const { data, error } = await getAnalytics();
+  const [{ data, error }, { data: calibration }] = await Promise.all([
+    getAnalytics(),
+    getCalibrationData(),
+  ]);
 
   // Count distinct days with activity
   const activeDays = data
@@ -56,6 +61,13 @@ export default async function AnalyticsPage() {
       ) : data ? (
         <AnalyticsDashboard data={data} />
       ) : null}
+
+      {/* Metacognition — Confidence Calibration */}
+      {calibration && (
+        <DialogFrame title="CONFIDENCE CALIBRATION">
+          <CalibrationTab data={calibration} />
+        </DialogFrame>
+      )}
     </div>
   );
 }
