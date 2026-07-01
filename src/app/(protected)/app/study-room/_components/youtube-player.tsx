@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import { AlertTriangle, Loader2 } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
+import { PixelSpinner } from "@/components/pixel-ui";
+import { LOADING } from "@/lib/copy";
 
 // Declare window.YT as any for the YouTube IFrame API
 declare global {
@@ -225,22 +227,22 @@ export function YouTubePlayer({
 
   if (error) {
     return (
-      <div className="flex aspect-video w-full items-center justify-center rounded-lg border border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20">
+      <div className="flex aspect-video w-full items-center justify-center border-2 border-[var(--pixel-error)] bg-[color-mix(in_srgb,var(--pixel-error)_12%,var(--pixel-bg-surface))]">
         <div className="flex flex-col items-center gap-2 text-center px-4">
-          <AlertTriangle className="h-8 w-8 text-red-500" />
-          <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
+          <AlertTriangle className="h-8 w-8 text-[var(--pixel-error)]" />
+          <p className="text-sm text-[var(--pixel-error)]">{error}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-black">
+    <div className="relative aspect-video w-full overflow-hidden bg-black">
       {loading && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center bg-zinc-900">
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-[var(--pixel-bg-surface)]">
           <div className="flex flex-col items-center gap-2">
-            <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
-            <p className="text-sm text-zinc-400">Loading player...</p>
+            <PixelSpinner size={6} className="text-[var(--pixel-text-muted)]" />
+            <p className="text-sm text-[var(--pixel-text-muted)]">{LOADING.video}</p>
           </div>
         </div>
       )}

@@ -4,7 +4,6 @@ import { useState, useEffect, useRef, useTransition } from "react";
 import {
   Send,
   Brain,
-  Loader2,
   CheckCircle,
   AlertTriangle,
   XCircle,
@@ -13,6 +12,7 @@ import {
   ChevronUp,
   Check,
 } from "lucide-react";
+import { PixelSpinner } from "@/components/pixel-ui";
 import { type GapAnalysis } from "@/app/(protected)/app/_actions/feynman";
 import { VideoCardEditor } from "./video-card-editor";
 
@@ -95,27 +95,27 @@ export function FeynmanVideoPrompt({
   if (!shouldShowPrompt && !analysis && !isExpanded) return null;
 
   return (
-    <div className="rounded-lg border border-violet-200 bg-violet-50/50 dark:border-violet-800 dark:bg-violet-900/10">
+    <div className="border-2 border-[var(--pixel-border)] bg-[var(--pixel-bg-surface)]">
       {/* Header — collapsible */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
         className="flex w-full items-center justify-between px-4 py-3"
       >
         <div className="flex items-center gap-2">
-          <Brain className="h-4 w-4 text-violet-500" />
-          <span className="text-sm font-semibold text-violet-700 dark:text-violet-300">
+          <Brain className="h-4 w-4 text-[var(--pixel-accent)]" />
+          <span className="text-sm font-semibold text-[var(--pixel-text-primary)]">
             Explain What You Just Watched
           </span>
           {analysis && (
-            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
-              Completed
+            <span className="bg-[color-mix(in_srgb,var(--pixel-success)_18%,var(--pixel-bg-surface))] px-2 py-0.5 text-xs text-[var(--pixel-success)]">
+              Done
             </span>
           )}
         </div>
         {isExpanded ? (
-          <ChevronUp className="h-4 w-4 text-violet-400" />
+          <ChevronUp className="h-4 w-4 text-[var(--pixel-text-muted)]" />
         ) : (
-          <ChevronDown className="h-4 w-4 text-violet-400" />
+          <ChevronDown className="h-4 w-4 text-[var(--pixel-text-muted)]" />
         )}
       </button>
 
@@ -124,7 +124,7 @@ export function FeynmanVideoPrompt({
           {/* Explanation textarea */}
           {!analysis && (
             <div>
-              <p className="mb-2 text-xs text-violet-600 dark:text-violet-400">
+              <p className="mb-2 text-xs text-[var(--pixel-text-secondary)]">
                 Use the Feynman technique: explain the concept in your own words
                 as if teaching someone else. Minimum 50 characters.
               </p>
@@ -133,11 +133,11 @@ export function FeynmanVideoPrompt({
                 onChange={(e) => setExplanation(e.target.value)}
                 rows={5}
                 placeholder="Explain what you just learned in your own words..."
-                className="block w-full resize-y rounded-md border border-violet-200 bg-white px-3 py-2 text-sm placeholder:text-zinc-400 dark:border-violet-700 dark:bg-zinc-800"
+                className="block w-full resize-y border-2 border-[var(--pixel-border)] bg-[var(--pixel-bg-primary)] px-3 py-2 text-sm text-[var(--pixel-text-primary)] placeholder:text-[var(--pixel-text-muted)]"
                 disabled={isPending}
               />
               <div className="mt-2 flex items-center justify-between">
-                <p className="text-xs text-zinc-400">
+                <p className="text-xs text-[var(--pixel-text-muted)]">
                   {explanation.length} characters
                   {explanation.length > 0 && explanation.length < 50
                     ? " (need at least 50)"
@@ -149,21 +149,21 @@ export function FeynmanVideoPrompt({
                       setDismissed(true);
                       setIsExpanded(false);
                     }}
-                    className="text-xs text-zinc-400 hover:text-zinc-600"
+                    className="text-xs text-[var(--pixel-text-muted)] hover:text-[var(--pixel-text-secondary)]"
                   >
                     Dismiss
                   </button>
                   <button
                     onClick={handleSubmit}
                     disabled={isPending || explanation.trim().length < 50}
-                    className="inline-flex items-center gap-2 rounded-md bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700 disabled:opacity-50"
+                    className="pixel-btn pixel-btn-primary pixel-btn-sm"
                   >
                     {isPending ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      <PixelSpinner size={4} />
                     ) : (
                       <Send className="h-3.5 w-3.5" />
                     )}
-                    {isPending ? "Evaluating..." : "Submit"}
+                    {isPending ? "Thinking…" : "Submit"}
                   </button>
                 </div>
               </div>
@@ -175,7 +175,7 @@ export function FeynmanVideoPrompt({
 
           {/* Error */}
           {error && (
-            <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
+            <div className="border-2 border-[var(--pixel-error)] bg-[color-mix(in_srgb,var(--pixel-error)_12%,var(--pixel-bg-surface))] p-3 text-sm text-[var(--pixel-error)]">
               {error}
             </div>
           )}
@@ -184,40 +184,40 @@ export function FeynmanVideoPrompt({
           {analysis && (
             <div className="space-y-4">
               {/* Color-coded segments */}
-              <div className="rounded-md border border-zinc-200 bg-white p-3 dark:border-zinc-700 dark:bg-zinc-800">
-                <h4 className="mb-2 text-xs font-semibold uppercase text-zinc-500">
+              <div className="border-2 border-[var(--pixel-border)] bg-[var(--pixel-bg-surface)] p-3">
+                <h4 className="mb-2 text-xs font-semibold uppercase text-[var(--pixel-text-muted)]">
                   Gap Analysis
                 </h4>
                 <div className="space-y-2">
                   {analysis.segments.map((seg, i) => (
                     <div
                       key={i}
-                      className={`rounded-md border-l-4 p-2.5 ${
+                      className={`border-l-4 p-2.5 ${
                         seg.status === "green"
-                          ? "border-l-emerald-500 bg-emerald-50 dark:bg-emerald-900/10"
+                          ? "border-l-[var(--pixel-success)] bg-[color-mix(in_srgb,var(--pixel-success)_10%,transparent)]"
                           : seg.status === "amber"
-                            ? "border-l-amber-500 bg-amber-50 dark:bg-amber-900/10"
-                            : "border-l-red-500 bg-red-50 dark:bg-red-900/10"
+                            ? "border-l-[var(--pixel-warning)] bg-[color-mix(in_srgb,var(--pixel-warning)_10%,transparent)]"
+                            : "border-l-[var(--pixel-error)] bg-[color-mix(in_srgb,var(--pixel-error)_10%,transparent)]"
                       }`}
                     >
                       <div className="mb-1 flex items-center gap-1.5">
                         {seg.status === "green" && (
-                          <CheckCircle className="h-3.5 w-3.5 text-emerald-600" />
+                          <CheckCircle className="h-3.5 w-3.5 text-[var(--pixel-success)]" />
                         )}
                         {seg.status === "amber" && (
-                          <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />
+                          <AlertTriangle className="h-3.5 w-3.5 text-[var(--pixel-warning)]" />
                         )}
                         {seg.status === "red" && (
-                          <XCircle className="h-3.5 w-3.5 text-red-600" />
+                          <XCircle className="h-3.5 w-3.5 text-[var(--pixel-error)]" />
                         )}
-                        <span className="text-xs font-medium uppercase text-zinc-500">
+                        <span className="text-xs font-medium uppercase text-[var(--pixel-text-muted)]">
                           {seg.status}
                         </span>
                       </div>
-                      <p className="text-sm text-zinc-700 dark:text-zinc-300">
+                      <p className="text-sm text-[var(--pixel-text-primary)]">
                         &ldquo;{seg.text}&rdquo;
                       </p>
-                      <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                      <p className="mt-1 text-xs text-[var(--pixel-text-secondary)]">
                         {seg.feedback}
                       </p>
                     </div>
@@ -226,18 +226,18 @@ export function FeynmanVideoPrompt({
               </div>
 
               {/* Probing Questions */}
-              <div className="rounded-md border border-zinc-200 bg-white p-3 dark:border-zinc-700 dark:bg-zinc-800">
-                <h4 className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase text-zinc-500">
-                  <MessageCircleQuestion className="h-3.5 w-3.5 text-indigo-500" />
+              <div className="border-2 border-[var(--pixel-border)] bg-[var(--pixel-bg-surface)] p-3">
+                <h4 className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase text-[var(--pixel-text-muted)]">
+                  <MessageCircleQuestion className="h-3.5 w-3.5 text-[var(--pixel-accent)]" />
                   Probing Questions
                 </h4>
                 <ul className="space-y-1.5">
                   {analysis.questions.map((q, i) => (
                     <li
                       key={i}
-                      className="flex items-start gap-2 text-sm text-zinc-700 dark:text-zinc-300"
+                      className="flex items-start gap-2 text-sm text-[var(--pixel-text-primary)]"
                     >
-                      <span className="mt-0.5 text-indigo-500">•</span>
+                      <span className="mt-0.5 text-[var(--pixel-accent)]">•</span>
                       {q}
                     </li>
                   ))}
@@ -245,12 +245,12 @@ export function FeynmanVideoPrompt({
               </div>
 
               {/* Paraphrase */}
-              <div className="rounded-md border border-zinc-200 bg-white p-3 dark:border-zinc-700 dark:bg-zinc-800">
-                <h4 className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase text-zinc-500">
-                  <Brain className="h-3.5 w-3.5 text-violet-500" />
+              <div className="border-2 border-[var(--pixel-border)] bg-[var(--pixel-bg-surface)] p-3">
+                <h4 className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase text-[var(--pixel-text-muted)]">
+                  <Brain className="h-3.5 w-3.5 text-[var(--pixel-accent)]" />
                   How the AI Understood You
                 </h4>
-                <p className="text-sm italic text-zinc-600 dark:text-zinc-400">
+                <p className="text-sm italic text-[var(--pixel-text-secondary)]">
                   &ldquo;{analysis.paraphrase}&rdquo;
                 </p>
               </div>
@@ -297,10 +297,10 @@ function EvaluationSteps() {
   ];
 
   return (
-    <div className="rounded-md border border-violet-200 bg-violet-50 p-3 dark:border-violet-800 dark:bg-violet-900/20">
+    <div className="border-2 border-[var(--pixel-border)] bg-[color-mix(in_srgb,var(--pixel-accent)_10%,var(--pixel-bg-surface))] p-3">
       <div className="flex items-center gap-2">
-        <Loader2 className="h-4 w-4 animate-spin text-violet-500" />
-        <p className="text-sm font-medium text-violet-700 dark:text-violet-300">
+        <PixelSpinner size={5} className="text-[var(--pixel-accent)]" />
+        <p className="text-sm font-medium text-[var(--pixel-text-primary)]">
           Evaluating with transcript context...
         </p>
       </div>
@@ -313,17 +313,17 @@ function EvaluationSteps() {
             }`}
           >
             {i < step ? (
-              <Check className="h-3 w-3 text-violet-500" />
+              <Check className="h-3 w-3 text-[var(--pixel-accent)]" />
             ) : i === step ? (
-              <Loader2 className="h-3 w-3 animate-spin text-violet-400" />
+              <PixelSpinner size={4} className="text-[var(--pixel-accent)]" />
             ) : (
-              <div className="h-3 w-3 rounded-full border border-violet-300/50" />
+              <div className="h-3 w-3 rounded-full border border-[var(--pixel-border-light)]" />
             )}
             <span
               className={
                 i <= step
-                  ? "text-violet-600 dark:text-violet-300"
-                  : "text-violet-400/60"
+                  ? "text-[var(--pixel-text-secondary)]"
+                  : "text-[var(--pixel-text-muted)]"
               }
             >
               {label}

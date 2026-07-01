@@ -12,6 +12,7 @@ import {
   PixelButton,
   PixelProgressBar,
   PixelConfirmDialog,
+  PixelSpinner,
 } from "@/components/pixel-ui";
 import {
   Clock,
@@ -19,7 +20,6 @@ import {
   ChevronRight,
   Send,
   AlertTriangle,
-  Loader2,
 } from "lucide-react";
 
 // ─── Props ──────────────────────────────────────────────────────────────────
@@ -313,7 +313,7 @@ export function ExamRunner({ examId, questions, timeLimit, title }: ExamRunnerPr
           >
             {isPending ? (
               <span className="flex items-center gap-2">
-                <Loader2 className="h-4 w-4 animate-spin" />
+              <PixelSpinner size={5} />
                 Grading...
               </span>
             ) : (

@@ -18,7 +18,6 @@ import {
 } from "@/app/(protected)/app/_actions/rag";
 import {
   Search,
-  Loader2,
   BookOpen,
   Globe,
   ExternalLink,
@@ -29,7 +28,8 @@ import {
   X,
   FileText,
 } from "lucide-react";
-import { DialogFrame } from "@/components/pixel-ui";
+import { DialogFrame, PixelSpinner } from "@/components/pixel-ui";
+import { LOADING } from "@/lib/copy";
 import { ResearchModeToggle } from "./research-mode-toggle";
 import { PaperUpload } from "./paper-upload";
 import { PaperLibrary } from "./paper-library";
@@ -326,7 +326,7 @@ export function ResearchDesk({ topics }: { topics: TopicOption[] }) {
                 className="inline-flex items-center justify-center gap-2 !bg-[var(--pixel-accent)] !text-[var(--pixel-bg-primary)] hover:!brightness-110 shrink-0"
               >
                 {isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <PixelSpinner size={5} />
                 ) : (
                   <Brain className="h-4 w-4" />
                 )}
@@ -347,7 +347,7 @@ export function ResearchDesk({ topics }: { topics: TopicOption[] }) {
             <DialogFrame state="warning">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <Loader2 className="h-5 w-5 animate-spin text-[var(--pixel-accent)]" />
+                  <PixelSpinner size={5} className="text-[var(--pixel-accent)]" />
                   <div>
                     <p className="text-sm font-medium text-[var(--pixel-text-primary)]">
                       Deep research in progress
@@ -505,9 +505,9 @@ export function ResearchDesk({ topics }: { topics: TopicOption[] }) {
           {ragLoading && (
             <DialogFrame>
               <div className="flex items-center gap-3">
-                <Loader2 className="h-5 w-5 animate-spin text-[var(--pixel-accent)]" />
+                <PixelSpinner size={5} className="text-[var(--pixel-accent)]" />
                 <p className="text-sm font-medium text-[var(--pixel-text-primary)]">
-                  Searching your papers...
+                  {LOADING.papers}
                 </p>
               </div>
               <RagSearchSteps />
@@ -604,7 +604,7 @@ function ResearchProgressSteps({ currentStage }: { currentStage: ResearchStage }
             {isComplete ? (
               <Check className="h-3 w-3 text-[var(--pixel-accent)]" />
             ) : isCurrent ? (
-              <Loader2 className="h-3 w-3 animate-spin text-[var(--pixel-accent)]" />
+              <PixelSpinner size={4} className="text-[var(--pixel-accent)]" />
             ) : (
               <div className="h-3 w-3 rounded-full border border-[var(--pixel-border-light)]" />
             )}
@@ -724,7 +724,7 @@ function RagSearchSteps() {
           {i < step ? (
             <Check className="h-3 w-3 text-[var(--pixel-accent)]" />
           ) : i === step ? (
-            <Loader2 className="h-3 w-3 animate-spin text-[var(--pixel-accent)]" />
+            <PixelSpinner size={4} className="text-[var(--pixel-accent)]" />
           ) : (
             <div className="h-3 w-3 rounded-full border border-[var(--pixel-border-light)]" />
           )}

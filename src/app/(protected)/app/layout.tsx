@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/supabase/auth";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { GameSidebar } from "./_components/game-sidebar";
@@ -11,8 +12,7 @@ import { StudySessionWidget } from "./_components/study-session-widget";
 import { StudySessionReceipt } from "./_components/study-session-receipt";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
   if (!user) redirect("/login");
 
   // Onboarding gate: students without an academic profile are routed to the
@@ -21,59 +21,55 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const pathname = (await headers()).get("x-pathname") ?? "";
   const onOnboarding = pathname.startsWith("/app/onboarding");
 
-  const { data: academicProfile } = await supabase
-    .from("academic_profiles")
-    .select("id")
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  if (!academicProfile && !onOnboarding) {
-    redirect("/app/onboarding");
-  }
-
   // The onboarding wizard renders without the game shell (no sidebar/topbar),
-  // which also breaks the potential redirect loop on /app/onboarding.
+  // which also breaks the potential redirect loop on /app/onboarding. Returning
+  // here first also skips the shell queries below, so onboarding loads faster.
   if (onOnboarding) {
     return <PreferencesProvider>{children}</PreferencesProvider>;
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("xp, coins, level, display_name")
-    .eq("id", user.id)
-    .single();
+  const supabase = await createClient();
 
-  // Parallelize avatar + pet queries — they're independent and each is
-  // fault-tolerant (a failure never breaks the layout render).
-  const [avatarResult, petResult] = await Promise.all([
-    (async () => {
-      try {
-        const { data } = await supabase
-          .from("profiles")
-          .select("avatar_url")
-          .eq("id", user.id)
-          .single();
-        return (data as { avatar_url?: string | null } | null)?.avatar_url ?? null;
-      } catch {
-        return null;
-      }
-    })(),
-    (async () => {
-      try {
-        const { data } = await supabase
-          .from("pets")
-          .select("pet_type, name, state")
-          .eq("user_id", user.id)
-          .maybeSingle();
-        return data;
-      } catch {
-        return null;
-      }
-    })(),
+  // Single parallel wave instead of a sequential chain: the onboarding gate,
+  // the profile (avatar_url is selected in the SAME row — no second query), and
+  // the pet all load at once. Each is fault-tolerant; a miss never breaks render.
+  const [academicProfile, profile, petResult] = await Promise.all([
+    supabase
+      .from("academic_profiles")
+      .select("id")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then((r) => r.data),
+    supabase
+      .from("profiles")
+      .select("xp, coins, level, display_name, avatar_url")
+      .eq("id", user.id)
+      .maybeSingle()
+      .then((r) => r.data),
+    supabase
+      .from("pets")
+      .select("pet_type, name, state")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(
+        (r) => r.data,
+        () => null
+      ),
   ]);
 
-  const avatarUrl = avatarResult;
-  const profileWithAvatar = profile ? { ...profile, avatar_url: avatarUrl } : null;
+  if (!academicProfile) {
+    redirect("/app/onboarding");
+  }
+
+  const profileWithAvatar = profile
+    ? {
+        xp: profile.xp,
+        coins: profile.coins,
+        level: profile.level,
+        display_name: profile.display_name,
+        avatar_url: (profile as { avatar_url?: string | null }).avatar_url ?? null,
+      }
+    : null;
 
   // Pet data for sidebar widget
   let petSidebarData: {

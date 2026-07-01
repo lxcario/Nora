@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Brain, Lightbulb, Layers, Check, Loader2, Save, Edit2, X } from "lucide-react";
+import { Brain, Lightbulb, Layers, Check, Save, Edit2, X } from "lucide-react";
+import { PixelSpinner } from "@/components/pixel-ui";
 
 interface GeneratedNotesProps {
   data: {
@@ -35,21 +36,21 @@ export function GeneratedNotes({ data, isLoading, onSeekTo, onSaveCards }: Gener
   return (
     <div className="space-y-4">
       {/* Summary Section */}
-      <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-        <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-zinc-800 dark:text-zinc-200">
-          <Brain className="h-4 w-4 text-violet-500" />
+      <div className="border-2 border-[var(--pixel-border)] bg-[var(--pixel-bg-surface)] p-4">
+        <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-[var(--pixel-text-primary)]">
+          <Brain className="h-4 w-4 text-[var(--pixel-accent)]" />
           Summary
         </h3>
-        <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+        <p className="text-sm leading-relaxed text-[var(--pixel-text-secondary)]">
           {data.summary}
         </p>
       </div>
 
       {/* Key Concepts Section */}
       {data.keyConcepts.length > 0 && (
-        <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-          <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-zinc-800 dark:text-zinc-200">
-            <Lightbulb className="h-4 w-4 text-amber-500" />
+        <div className="border-2 border-[var(--pixel-border)] bg-[var(--pixel-bg-surface)] p-4">
+          <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-[var(--pixel-text-primary)]">
+            <Lightbulb className="h-4 w-4 text-[var(--pixel-warning)]" />
             Key Concepts
           </h3>
           <ul className="space-y-3">
@@ -57,17 +58,17 @@ export function GeneratedNotes({ data, isLoading, onSeekTo, onSaveCards }: Gener
               <li key={i} className="flex items-start gap-2">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                    <span className="text-sm font-medium text-[var(--pixel-text-primary)]">
                       {concept.concept}
                     </span>
                     <button
                       onClick={() => onSeekTo(concept.offsetSeconds)}
-                      className="inline-flex items-center bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded text-xs font-mono cursor-pointer hover:bg-indigo-200 transition-colors dark:bg-indigo-900/40 dark:text-indigo-300 dark:hover:bg-indigo-900/60"
+                      className="inline-flex items-center bg-[color-mix(in_srgb,var(--pixel-accent)_16%,var(--pixel-bg-surface))] text-[var(--pixel-accent)] px-1.5 py-0.5 text-xs font-mono cursor-pointer transition-[filter] pixel-hover-brighten"
                     >
                       {concept.timestampCitation}
                     </button>
                   </div>
-                  <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                  <p className="mt-1 text-sm text-[var(--pixel-text-secondary)]">
                     {concept.definition}
                   </p>
                 </div>
@@ -111,14 +112,14 @@ function NoteGenerationSteps() {
   ];
 
   return (
-    <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-4 dark:border-indigo-800 dark:bg-indigo-900/20">
+    <div className="border-2 border-[var(--pixel-accent)] bg-[color-mix(in_srgb,var(--pixel-accent)_10%,var(--pixel-bg-surface))] p-4">
       <div className="flex items-center gap-3">
-        <Loader2 className="h-5 w-5 animate-spin text-indigo-500" />
+        <PixelSpinner size={5} className="text-[var(--pixel-accent)]" />
         <div>
-          <p className="text-sm font-medium text-indigo-700 dark:text-indigo-300">
+          <p className="text-sm font-medium text-[var(--pixel-text-primary)]">
             Generating AI notes...
           </p>
-          <p className="text-xs text-indigo-500 dark:text-indigo-400">
+          <p className="text-xs text-[var(--pixel-text-secondary)]">
             Analyzing the selected video segment.
           </p>
         </div>
@@ -132,17 +133,17 @@ function NoteGenerationSteps() {
             }`}
           >
             {i < step ? (
-              <Check className="h-3 w-3 text-indigo-500" />
+              <Check className="h-3 w-3 text-[var(--pixel-accent)]" />
             ) : i === step ? (
-              <Loader2 className="h-3 w-3 animate-spin text-indigo-400" />
+              <PixelSpinner size={4} className="text-[var(--pixel-accent)]" />
             ) : (
-              <div className="h-3 w-3 rounded-full border border-indigo-300/50" />
+              <div className="h-3 w-3 rounded-full border border-[var(--pixel-border-light)]" />
             )}
             <span
               className={
                 i <= step
-                  ? "text-indigo-600 dark:text-indigo-300"
-                  : "text-indigo-400/60"
+                  ? "text-[var(--pixel-text-secondary)]"
+                  : "text-[var(--pixel-text-muted)]"
               }
             >
               {label}
@@ -219,12 +220,12 @@ function FlashcardsSection({
   }
 
   return (
-    <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+    <div className="border-2 border-[var(--pixel-border)] bg-[var(--pixel-bg-surface)] p-4">
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="flex items-center gap-2 text-sm font-semibold text-zinc-800 dark:text-zinc-200">
-          <Layers className="h-4 w-4 text-sky-500" />
+        <h3 className="flex items-center gap-2 text-sm font-semibold text-[var(--pixel-text-primary)]">
+          <Layers className="h-4 w-4 text-[var(--pixel-accent)]" />
           Suggested Flashcards
-          <span className="text-xs font-normal text-zinc-500">
+          <span className="text-xs font-normal text-[var(--pixel-text-secondary)]">
             {selectedCount} of {editableCards.length} selected
           </span>
         </h3>
@@ -232,13 +233,13 @@ function FlashcardsSection({
           <button
             onClick={handleSave}
             disabled={selectedCount === 0}
-            className="inline-flex items-center gap-2 rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+            className="pixel-btn pixel-btn-success pixel-btn-sm"
           >
             <Save className="h-3 w-3" />
             Save Selected ({selectedCount})
           </button>
         ) : saved ? (
-          <span className="inline-flex items-center gap-1 text-sm text-emerald-600">
+          <span className="inline-flex items-center gap-1 text-sm text-[var(--pixel-success)]">
             <Check className="h-4 w-4" />
             Cards saved!
           </span>
@@ -249,41 +250,41 @@ function FlashcardsSection({
         {editableCards.map((card, i) => (
           <div
             key={i}
-            className={`rounded-md border p-3 transition-colors ${
+            className={`border-2 p-3 transition-colors ${
               card.selected
-                ? "border-emerald-200 bg-emerald-50/50 dark:border-emerald-800 dark:bg-emerald-900/10"
-                : "border-zinc-200 bg-zinc-50 opacity-60 dark:border-zinc-700 dark:bg-zinc-800"
+                ? "border-[var(--pixel-success)] bg-[color-mix(in_srgb,var(--pixel-success)_10%,transparent)]"
+                : "border-[var(--pixel-border)] bg-[var(--pixel-bg-primary)] opacity-60"
             }`}
           >
             {card.editing ? (
               <div className="space-y-2">
                 <div>
-                  <label className="text-xs font-medium text-zinc-500">
+                  <label className="text-xs font-medium text-[var(--pixel-text-secondary)]">
                     Front (question) — {card.front.length}/200
                   </label>
                   <input
                     type="text"
                     value={card.front}
                     onChange={(e) => updateCard(i, "front", e.target.value)}
-                    className="mt-0.5 w-full rounded border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-600 dark:bg-zinc-800"
+                    className="mt-0.5 w-full border-2 border-[var(--pixel-border)] bg-[var(--pixel-bg-primary)] px-2 py-1 text-sm text-[var(--pixel-text-primary)]"
                     maxLength={200}
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-zinc-500">
+                  <label className="text-xs font-medium text-[var(--pixel-text-secondary)]">
                     Back (answer) — {card.back.length}/1000
                   </label>
                   <textarea
                     value={card.back}
                     onChange={(e) => updateCard(i, "back", e.target.value)}
                     rows={2}
-                    className="mt-0.5 w-full rounded border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-600 dark:bg-zinc-800"
+                    className="mt-0.5 w-full border-2 border-[var(--pixel-border)] bg-[var(--pixel-bg-primary)] px-2 py-1 text-sm text-[var(--pixel-text-primary)]"
                     maxLength={1000}
                   />
                 </div>
                 <button
                   onClick={() => toggleEdit(i)}
-                  className="text-xs font-medium text-indigo-600 hover:text-indigo-700"
+                  className="text-xs font-medium text-[var(--pixel-accent)]"
                 >
                   Done editing
                 </button>
@@ -292,17 +293,17 @@ function FlashcardsSection({
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                    <p className="text-sm font-medium text-[var(--pixel-text-primary)]">
                       Q: {card.front}
                     </p>
                     <button
                       onClick={() => onSeekTo(card.offsetSeconds)}
-                      className="inline-flex items-center bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded text-xs font-mono cursor-pointer hover:bg-indigo-200 transition-colors dark:bg-indigo-900/40 dark:text-indigo-300 dark:hover:bg-indigo-900/60"
+                      className="inline-flex items-center bg-[color-mix(in_srgb,var(--pixel-accent)_16%,var(--pixel-bg-surface))] text-[var(--pixel-accent)] px-1.5 py-0.5 text-xs font-mono cursor-pointer transition-[filter] pixel-hover-brighten"
                     >
                       {formatTime(card.offsetSeconds)}
                     </button>
                   </div>
-                  <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                  <p className="mt-1 text-sm text-[var(--pixel-text-secondary)]">
                     A: {card.back}
                   </p>
                 </div>
@@ -310,17 +311,17 @@ function FlashcardsSection({
                   <button
                     onClick={() => toggleEdit(i)}
                     title="Edit card"
-                    className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-700"
+                    className="p-1 text-[var(--pixel-text-muted)] hover:bg-[var(--pixel-bg-elevated)] hover:text-[var(--pixel-text-secondary)]"
                   >
                     <Edit2 className="h-3.5 w-3.5" />
                   </button>
                   <button
                     onClick={() => toggleSelect(i)}
                     title={card.selected ? "Reject card" : "Include card"}
-                    className={`rounded p-1 ${
+                    className={`p-1 ${
                       card.selected
-                        ? "text-emerald-500 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20"
-                        : "text-zinc-400 hover:bg-emerald-50 hover:text-emerald-500 dark:hover:bg-emerald-900/20"
+                        ? "text-[var(--pixel-success)] hover:text-[var(--pixel-error)]"
+                        : "text-[var(--pixel-text-muted)] hover:text-[var(--pixel-success)]"
                     }`}
                   >
                     {card.selected ? (

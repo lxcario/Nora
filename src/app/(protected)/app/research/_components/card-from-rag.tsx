@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Layers, Check, Loader2 } from "lucide-react";
+import { Layers, Check } from "lucide-react";
 import { createCardsFromResearch } from "../../_actions/research";
 import { SuccessCheck } from "../../_components/success-check";
-import { DialogFrame } from "@/components/pixel-ui";
+import { DialogFrame, PixelSpinner } from "@/components/pixel-ui";
 
 interface SuggestedCard {
   front: string;
@@ -66,7 +66,7 @@ export function CardFromRag({ suggestedCards, topicId }: CardFromRagProps) {
             className="inline-flex items-center gap-2 !bg-[var(--pixel-success)] !text-white hover:!brightness-110 text-sm"
           >
             {isPending ? (
-              <Loader2 className="h-3 w-3 animate-spin" />
+              <PixelSpinner size={4} />
             ) : (
               <Layers className="h-3 w-3" />
             )}

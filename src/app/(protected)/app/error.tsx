@@ -1,6 +1,7 @@
 "use client";
 
 import { DialogFrame, PixelButton } from "@/components/pixel-ui";
+import { ERRORS } from "@/lib/copy";
 
 export default function AppError({
   error,
@@ -51,11 +52,11 @@ export default function AppError({
               className="text-sm"
               style={{ color: "var(--pixel-text-secondary)", lineHeight: 1.5 }}
             >
-              {error.message || "An unexpected error occurred. This isn't your fault — try refreshing."}
+              {ERRORS.load}
             </p>
 
             <PixelButton variant="danger" onClick={reset}>
-              Try again
+              {ERRORS.retry}
             </PixelButton>
           </div>
         </DialogFrame>

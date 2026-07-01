@@ -166,7 +166,7 @@ export function LandingContent() {
               Sign in
             </Link>
             <Link href="/signup" className="pixel-btn pixel-btn-primary pixel-btn-sm">
-              Get Started
+              Begin
             </Link>
           </div>
         </div>
@@ -227,14 +227,14 @@ export function LandingContent() {
               className="font-pixel text-[10px] mb-6 tracking-[4px]"
               style={{ color: "#8b7355" }}
             >
-              FOR STUDENTS WHO ACTUALLY CARE
+              FOR PEOPLE WHO WANT TO UNDERSTAND
             </p>
 
             <h1 className="font-pixel text-4xl sm:text-5xl lg:text-6xl leading-tight">
-              <span style={{ color: "#f0e6d2" }}>Your study buddy</span>
+              <span style={{ color: "#f0e6d2" }}>A softer way</span>
               <br />
               <span className="inline-flex items-center gap-3" style={{ color: "#d4a526" }}>
-                that gets it
+                to study.
                 <Sprite name="Sun" size={32} className="inline-block animate-pixel-float" />
               </span>
             </h1>
@@ -243,9 +243,9 @@ export function LandingContent() {
               className="mx-auto mt-6 max-w-lg text-base sm:text-lg leading-relaxed"
               style={{ color: "#c4a882" }}
             >
-              Tired of staring at notes and hoping something sticks?
-              Nora makes you explain things, quizzes you at the right time,
-              and never judges when you skip a day.
+              Nora helps you explain ideas in your own words, brings them back
+              right before you'd forget, and never makes you feel behind.
+              Studying — with company.
             </p>
           </div>
 
@@ -255,10 +255,10 @@ export function LandingContent() {
             style={{ opacity: 0, transform: "translateY(20px)" }}
           >
             <Link href="/signup" className="pixel-btn pixel-btn-primary">
-              Start studying free
+              Begin
             </Link>
             <Link href="/login" className="pixel-btn pixel-btn-secondary">
-              I have an account
+              I already have an account
             </Link>
           </div>
 
@@ -308,8 +308,8 @@ export function LandingContent() {
             />
             <FeatureCard
               icon="Book"
-              title="Smart Flashcards"
-              description="Cards show up when you're about to forget them. Not a day before, not a week late. The algorithm does the scheduling so you don't have to."
+              title="Memories that return"
+              description="Cards come back right when you're about to forget them. Not a day before, not a week late. The scheduling happens for you, so you just show up and remember."
               accent="#7da856"
               delay={100}
             />
@@ -323,7 +323,7 @@ export function LandingContent() {
             <FeatureCard
               icon="PetBowl"
               title="Your Companion"
-              description="A little creature that lives in your study room. It's happy when you study, sleepy when you don't. No guilt though — just vibes."
+              description="A companion that lives in your study room. It notices when you study and rests quietly when you don't. No guilt — it's just glad you're here."
               accent="#a98bd4"
               delay={300}
             />
@@ -356,19 +356,19 @@ export function LandingContent() {
           <div className="reveal-on-scroll" style={{ opacity: 0, transform: "translateY(20px)" }}>
             <Sprite name="Flower" size={28} className="mx-auto mb-4 opacity-70" />
             <h2 className="font-pixel text-xl sm:text-2xl mb-4" style={{ color: "#d4a526" }}>
-              Built different on purpose
+              Built slowly, on purpose
             </h2>
             <p className="text-sm sm:text-base leading-relaxed" style={{ color: "#c4a882" }}>
               Most study apps either do nothing or do everything for you.
-              Nora sits in the middle — it makes you think, checks if you actually understood,
-              and never pretends studying should feel like scrolling TikTok.
+              Nora sits in the middle — it asks you to think, checks whether the
+              idea actually landed, and never pretends understanding should feel effortless.
             </p>
           </div>
 
           <div className="mt-10 flex flex-wrap justify-center gap-3">
-            <PrinciplePill icon="PotionRed" text="Skip a day? No streak reset drama" delay={0} />
+            <PrinciplePill icon="PotionRed" text="Miss a day? Nothing resets. Life happens." delay={0} />
             <PrinciplePill icon="Team" text="Friends, not rankings" delay={100} />
-            <PrinciplePill icon="Lightbulb" text="AI asks questions, doesn't give answers" delay={200} />
+            <PrinciplePill icon="Lightbulb" text="The AI asks questions. You do the thinking." delay={200} />
             <PrinciplePill icon="Trophy" text="You see your actual progress" delay={300} />
             <PrinciplePill icon="FlowerPot" text="Warm, not sterile" delay={400} />
             <PrinciplePill icon="Book" text="Methods that actually work" delay={500} />
@@ -402,14 +402,14 @@ export function LandingContent() {
                 className="font-pixel text-[10px] mb-2 tracking-[3px]"
                 style={{ color: "#8b7355" }}
               >
-                TAKES 30 SECONDS
+                WHENEVER YOU'RE READY
               </p>
               <h2 className="font-pixel text-2xl mb-3" style={{ color: "#d4a526" }}>
-                Come on in
+                Come learn with us
               </h2>
               <p className="text-sm mb-6" style={{ color: "#c4a882" }}>
-                Free, no credit card, no catch.
-                Pick a pet, set up your subjects, and start your first session.
+                Free to start. Pick a companion, name your subjects,
+                and explain your first idea today.
               </p>
               <Link href="/signup" className="pixel-btn pixel-btn-primary">
                 Create my account

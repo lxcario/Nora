@@ -586,9 +586,14 @@ async function awardQuestCompletionBonus(
     return;
   }
 
-  // Award bonus to each member via atomic RPC
+  // Award bonus to every member. This is a legitimate CROSS-USER write (one
+  // member's action rewards the whole party), so it must run through the
+  // trusted service_role client: after migration 020, increment_profile_rewards
+  // rejects an authenticated caller that targets anyone other than themselves.
+  // service_role has auth.uid() = NULL and is allowed to write any member.
+  const admin = createAdminClient();
   for (const member of members) {
-    const { error: rpcError } = await supabase.rpc(
+    const { error: rpcError } = await admin.rpc(
       "increment_profile_rewards",
       { p_user_id: member.user_id, p_xp: XP_BONUS, p_coins: COINS_BONUS }
     );

@@ -199,8 +199,10 @@ export function StudySessionReceipt() {
         link.click();
       }
     } catch {
-      // Fallback: just dismiss. html2canvas not available.
-      alert("Download requires the html2canvas library. The receipt is displayed for you to screenshot.");
+      // Image export unavailable (e.g. html2canvas not installed). The receipt
+      // is already on screen, so a screenshot works — fail quietly rather than
+      // breaking immersion with a native browser alert().
+      console.warn("Receipt image export unavailable; use a screenshot instead.");
     }
   };
 

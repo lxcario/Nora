@@ -331,6 +331,17 @@ body {
   to   { clip-path: circle(100% at 50% 50%); }
 }
 
+/* Pixel loading spinner — three stepped dots ("thinking…"). steps() makes the
+   dots snap between opacity levels instead of smoothly fading, matching the
+   retro motion vocabulary. Auto-disabled by the reduced-motion + kill-switch
+   rules below (both zero every animation). */
+@keyframes pixel-dot-blink {
+  0%   { opacity: 1; }
+  33%  { opacity: 0.25; }
+  66%  { opacity: 0.25; }
+  100% { opacity: 1; }
+}
+
 /* Reduce motion for accessibility */
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-old(root),

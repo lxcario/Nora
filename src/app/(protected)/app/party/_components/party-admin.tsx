@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Settings, Trash2, RefreshCw, Copy, AlertTriangle, Globe, Lock, Loader2, Check, UserMinus } from "lucide-react";
+import { Settings, Trash2, RefreshCw, Copy, AlertTriangle, Globe, Lock, Check, UserMinus } from "lucide-react";
+import { PixelSpinner } from "@/components/pixel-ui";
 import {
   updatePartySettings,
   regenerateInviteCode,
@@ -157,10 +158,10 @@ export function PartyAdmin({ partyName, visibility, inviteCode, members }: Party
   // ─── Render ─────────────────────────────────────────────────────────
 
   return (
-    <div className="space-y-6 rounded-lg border border-zinc-200 p-4 dark:border-zinc-700">
+    <div className="space-y-6 pixel-panel p-4">
       {/* ── Edit Settings Section ── */}
       <div className="space-y-3">
-        <h4 className="flex items-center gap-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">
+        <h4 className="flex items-center gap-2 text-sm font-medium text-[var(--pixel-text-secondary)]">
           <Settings className="h-4 w-4" />
           Group Settings
         </h4>
@@ -168,7 +169,7 @@ export function PartyAdmin({ partyName, visibility, inviteCode, members }: Party
         <div>
           <label
             htmlFor="admin-party-name"
-            className="block text-xs font-medium text-zinc-600 dark:text-zinc-400"
+            className="block text-xs font-medium text-[var(--pixel-text-muted)]"
           >
             Group Name
           </label>
@@ -178,23 +179,23 @@ export function PartyAdmin({ partyName, visibility, inviteCode, members }: Party
             value={name}
             onChange={(e) => setName(e.target.value)}
             maxLength={30}
-            className="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800"
+            className="mt-1 w-full border-2 border-[var(--pixel-border)] bg-[var(--pixel-bg-primary)] px-3 py-2 text-sm text-[var(--pixel-text-primary)]"
           />
-          <p className="mt-1 text-xs text-zinc-400">{name.length}/30 characters</p>
+          <p className="mt-1 text-xs text-[var(--pixel-text-muted)]">{name.length}/30 characters</p>
         </div>
 
         <div>
-          <span className="block text-xs font-medium text-zinc-600 dark:text-zinc-400">
+          <span className="block text-xs font-medium text-[var(--pixel-text-muted)]">
             Visibility
           </span>
           <div className="mt-1 flex gap-2">
             <button
               type="button"
               onClick={() => setVis("public")}
-              className={`inline-flex flex-1 items-center justify-center gap-2 rounded-md border px-3 py-2 text-sm font-medium transition-colors ${
+              className={`inline-flex flex-1 items-center justify-center gap-2 border-2 px-3 py-2 text-sm font-medium transition-[filter] ${
                 vis === "public"
-                  ? "border-indigo-500 bg-indigo-50 text-indigo-700 dark:border-indigo-400 dark:bg-indigo-900/20 dark:text-indigo-300"
-                  : "border-zinc-300 text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                  ? "border-[var(--pixel-accent)] bg-[color-mix(in_srgb,var(--pixel-accent)_14%,var(--pixel-bg-surface))] text-[var(--pixel-accent)]"
+                  : "border-[var(--pixel-border)] text-[var(--pixel-text-secondary)] pixel-hover-brighten"
               }`}
             >
               <Globe className="h-4 w-4" />
@@ -203,10 +204,10 @@ export function PartyAdmin({ partyName, visibility, inviteCode, members }: Party
             <button
               type="button"
               onClick={() => setVis("private")}
-              className={`inline-flex flex-1 items-center justify-center gap-2 rounded-md border px-3 py-2 text-sm font-medium transition-colors ${
+              className={`inline-flex flex-1 items-center justify-center gap-2 border-2 px-3 py-2 text-sm font-medium transition-[filter] ${
                 vis === "private"
-                  ? "border-indigo-500 bg-indigo-50 text-indigo-700 dark:border-indigo-400 dark:bg-indigo-900/20 dark:text-indigo-300"
-                  : "border-zinc-300 text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                  ? "border-[var(--pixel-accent)] bg-[color-mix(in_srgb,var(--pixel-accent)_14%,var(--pixel-bg-surface))] text-[var(--pixel-accent)]"
+                  : "border-[var(--pixel-border)] text-[var(--pixel-text-secondary)] pixel-hover-brighten"
               }`}
             >
               <Lock className="h-4 w-4" />
@@ -215,39 +216,39 @@ export function PartyAdmin({ partyName, visibility, inviteCode, members }: Party
           </div>
         </div>
 
-        {settingsError && <p className="text-xs text-red-500">{settingsError}</p>}
-        {settingsSuccess && <p className="text-xs text-green-600 dark:text-green-400">{settingsSuccess}</p>}
+        {settingsError && <p className="text-xs text-[var(--pixel-error)]">{settingsError}</p>}
+        {settingsSuccess && <p className="text-xs text-[var(--pixel-success)]">{settingsSuccess}</p>}
 
         <button
           onClick={handleSaveSettings}
           disabled={savingSettings}
-          className="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className="pixel-btn pixel-btn-primary pixel-btn-sm"
         >
-          {savingSettings && <Loader2 className="h-4 w-4 animate-spin" />}
+          {savingSettings && <PixelSpinner size={5} />}
           {savingSettings ? "Saving…" : "Save"}
         </button>
       </div>
 
       {/* ── Invite Code Section (private parties only) ── */}
       {vis === "private" && (
-        <div className="space-y-3 border-t border-zinc-200 pt-4 dark:border-zinc-700">
-          <h4 className="flex items-center gap-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">
+        <div className="space-y-3 border-t-2 border-[var(--pixel-border)] pt-4">
+          <h4 className="flex items-center gap-2 text-sm font-medium text-[var(--pixel-text-secondary)]">
             <Copy className="h-4 w-4" />
             Invite Code
           </h4>
 
           {currentCode ? (
             <div className="flex items-center gap-2">
-              <code className="flex-1 rounded-md border border-zinc-300 bg-zinc-50 px-3 py-2 font-mono text-sm dark:border-zinc-700 dark:bg-zinc-800">
+              <code className="flex-1 border-2 border-[var(--pixel-border)] bg-[var(--pixel-bg-primary)] px-3 py-2 font-mono text-sm text-[var(--pixel-text-primary)]">
                 {currentCode}
               </code>
               <button
                 onClick={handleCopyCode}
-                className="inline-flex items-center gap-1 rounded-md border border-zinc-300 px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                className="pixel-btn pixel-btn-secondary pixel-btn-sm"
               >
                 {copied ? (
                   <>
-                    <Check className="h-4 w-4 text-green-600" />
+                    <Check className="h-4 w-4 text-[var(--pixel-success)]" />
                     Copied
                   </>
                 ) : (
@@ -259,28 +260,28 @@ export function PartyAdmin({ partyName, visibility, inviteCode, members }: Party
               </button>
             </div>
           ) : (
-            <p className="text-xs text-zinc-500">No invite code generated yet.</p>
+            <p className="text-xs text-[var(--pixel-text-muted)]">No invite code generated yet.</p>
           )}
 
-          {regenError && <p className="text-xs text-red-500">{regenError}</p>}
-          {regenSuccess && <p className="text-xs text-green-600 dark:text-green-400">{regenSuccess}</p>}
+          {regenError && <p className="text-xs text-[var(--pixel-error)]">{regenError}</p>}
+          {regenSuccess && <p className="text-xs text-[var(--pixel-success)]">{regenSuccess}</p>}
 
           {confirmRegen ? (
             <div className="flex items-center gap-2">
-              <span className="text-xs text-amber-600 dark:text-amber-400">
+              <span className="text-xs text-[var(--pixel-warning)]">
                 This will invalidate the current code. Continue?
               </span>
               <button
                 onClick={handleRegenerateCode}
                 disabled={regenerating}
-                className="inline-flex items-center gap-1 rounded-md bg-amber-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-amber-700 disabled:opacity-50"
+                className="pixel-btn pixel-btn-primary pixel-btn-sm"
               >
-                {regenerating && <Loader2 className="h-3 w-3 animate-spin" />}
+                {regenerating && <PixelSpinner size={4} />}
                 Confirm
               </button>
               <button
                 onClick={() => setConfirmRegen(false)}
-                className="rounded-md border border-zinc-300 px-3 py-1.5 text-xs text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                className="pixel-btn pixel-btn-secondary pixel-btn-sm"
               >
                 Cancel
               </button>
@@ -289,7 +290,7 @@ export function PartyAdmin({ partyName, visibility, inviteCode, members }: Party
             <button
               onClick={handleRegenerateCode}
               disabled={regenerating}
-              className="inline-flex items-center gap-2 rounded-md border border-zinc-300 px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800 disabled:opacity-50"
+              className="pixel-btn pixel-btn-secondary pixel-btn-sm"
             >
               <RefreshCw className={`h-4 w-4 ${regenerating ? "animate-spin" : ""}`} />
               {regenerating ? "Regenerating…" : "Regenerate Code"}
@@ -300,41 +301,41 @@ export function PartyAdmin({ partyName, visibility, inviteCode, members }: Party
 
       {/* ── Member Management Section ── */}
       {members.length > 0 && (
-        <div className="space-y-3 border-t border-zinc-200 pt-4 dark:border-zinc-700">
-          <h4 className="flex items-center gap-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">
+        <div className="space-y-3 border-t-2 border-[var(--pixel-border)] pt-4">
+          <h4 className="flex items-center gap-2 text-sm font-medium text-[var(--pixel-text-secondary)]">
             <UserMinus className="h-4 w-4" />
             Manage Members
           </h4>
 
-          {removeError && <p className="text-xs text-red-500">{removeError}</p>}
-          {removeSuccess && <p className="text-xs text-green-600 dark:text-green-400">{removeSuccess}</p>}
+          {removeError && <p className="text-xs text-[var(--pixel-error)]">{removeError}</p>}
+          {removeSuccess && <p className="text-xs text-[var(--pixel-success)]">{removeSuccess}</p>}
 
           <ul className="space-y-2">
             {members.map((member) => (
               <li
                 key={member.userId}
-                className="flex items-center justify-between rounded-md border border-zinc-200 px-3 py-2 dark:border-zinc-700"
+                className="flex items-center justify-between border-2 border-[var(--pixel-border)] px-3 py-2"
               >
-                <span className="text-sm text-zinc-700 dark:text-zinc-300">
+                <span className="text-sm text-[var(--pixel-text-primary)]">
                   {member.displayName}
                 </span>
 
                 {removeConfirmId === member.userId ? (
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-red-500">Remove?</span>
+                    <span className="text-xs text-[var(--pixel-error)]">Remove?</span>
                     <button
                       onClick={() => handleRemoveMember(member.userId)}
                       disabled={removingId === member.userId}
-                      className="inline-flex items-center gap-1 rounded bg-red-600 px-2 py-1 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50"
+                      className="pixel-btn pixel-btn-danger pixel-btn-sm"
                     >
                       {removingId === member.userId && (
-                        <Loader2 className="h-3 w-3 animate-spin" />
+                        <PixelSpinner size={4} />
                       )}
                       Confirm
                     </button>
                     <button
                       onClick={() => setRemoveConfirmId(null)}
-                      className="rounded border border-zinc-300 px-2 py-1 text-xs text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                      className="pixel-btn pixel-btn-secondary pixel-btn-sm"
                     >
                       Cancel
                     </button>
@@ -343,7 +344,7 @@ export function PartyAdmin({ partyName, visibility, inviteCode, members }: Party
                   <button
                     onClick={() => handleRemoveMember(member.userId)}
                     disabled={removingId === member.userId}
-                    className="inline-flex items-center gap-1 rounded-md border border-red-200 px-2 py-1 text-xs text-red-600 transition-colors hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950 disabled:opacity-50"
+                    className="pixel-btn pixel-btn-danger pixel-btn-sm"
                   >
                     <Trash2 className="h-3 w-3" />
                     Remove
@@ -356,18 +357,18 @@ export function PartyAdmin({ partyName, visibility, inviteCode, members }: Party
       )}
 
       {/* ── Disband Section ── */}
-      <div className="space-y-3 border-t border-zinc-200 pt-4 dark:border-zinc-700">
-        <h4 className="flex items-center gap-2 text-sm font-medium text-red-600 dark:text-red-400">
+      <div className="space-y-3 border-t-2 border-[var(--pixel-border)] pt-4">
+        <h4 className="flex items-center gap-2 text-sm font-medium text-[var(--pixel-error)]">
           <AlertTriangle className="h-4 w-4" />
           Danger Zone
         </h4>
 
-        {disbandError && <p className="text-xs text-red-500">{disbandError}</p>}
+        {disbandError && <p className="text-xs text-[var(--pixel-error)]">{disbandError}</p>}
 
         {disbandStep === 0 && (
           <button
             onClick={handleDisband}
-            className="inline-flex items-center gap-2 rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-100 dark:border-red-800 dark:bg-red-950 dark:text-red-300 dark:hover:bg-red-900"
+            className="pixel-btn pixel-btn-danger pixel-btn-sm"
           >
             <Trash2 className="h-4 w-4" />
             Disband Group
@@ -375,20 +376,20 @@ export function PartyAdmin({ partyName, visibility, inviteCode, members }: Party
         )}
 
         {disbandStep === 1 && (
-          <div className="rounded-md border border-red-300 bg-red-50 p-3 dark:border-red-800 dark:bg-red-950">
-            <p className="text-xs text-red-700 dark:text-red-300">
+          <div className="border-2 border-[var(--pixel-error)] bg-[color-mix(in_srgb,var(--pixel-error)_12%,var(--pixel-bg-surface))] p-3">
+            <p className="text-xs text-[var(--pixel-error)]">
               Are you sure? This will remove all members and permanently close the group.
             </p>
             <div className="mt-2 flex gap-2">
               <button
                 onClick={handleDisband}
-                className="rounded-md bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700"
+                className="pixel-btn pixel-btn-danger pixel-btn-sm"
               >
                 Yes, continue
               </button>
               <button
                 onClick={() => setDisbandStep(0)}
-                className="rounded-md border border-zinc-300 px-3 py-1.5 text-xs text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                className="pixel-btn pixel-btn-secondary pixel-btn-sm"
               >
                 Cancel
               </button>
@@ -397,23 +398,23 @@ export function PartyAdmin({ partyName, visibility, inviteCode, members }: Party
         )}
 
         {disbandStep === 2 && (
-          <div className="rounded-md border border-red-500 bg-red-100 p-3 dark:border-red-700 dark:bg-red-900">
-            <p className="text-xs font-medium text-red-800 dark:text-red-200">
+          <div className="border-2 border-[var(--pixel-error)] bg-[color-mix(in_srgb,var(--pixel-error)_20%,var(--pixel-bg-surface))] p-3">
+            <p className="text-xs font-medium text-[var(--pixel-error)]">
               Final confirmation: This action cannot be undone.
             </p>
             <div className="mt-2 flex gap-2">
               <button
                 onClick={handleDisband}
                 disabled={disbanding}
-                className="inline-flex items-center gap-1 rounded-md bg-red-700 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-800 disabled:opacity-50"
+                className="pixel-btn pixel-btn-danger pixel-btn-sm"
               >
-                {disbanding && <Loader2 className="h-3 w-3 animate-spin" />}
+                {disbanding && <PixelSpinner size={4} />}
                 {disbanding ? "Disbanding…" : "Disband permanently"}
               </button>
               <button
                 onClick={() => setDisbandStep(0)}
                 disabled={disbanding}
-                className="rounded-md border border-zinc-300 px-3 py-1.5 text-xs text-zinc-600 hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                className="pixel-btn pixel-btn-secondary pixel-btn-sm"
               >
                 Cancel
               </button>

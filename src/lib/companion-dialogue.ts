@@ -36,6 +36,13 @@ export interface CompanionContext {
   bloomingCount: number;
   /** Whether user completed all quests yesterday */
   allQuestsDoneYesterday: boolean;
+  /**
+   * Stable per-day seed, e.g. `${userId}:${localDate}`. When set, the line is
+   * chosen deterministically so the companion holds one thought for the whole
+   * day instead of re-rolling on every page load (docs/CRAFT.md — "Memory, not
+   * personalization"). The line still changes when the context changes.
+   */
+  seedKey?: string;
 }
 
 type DialogueLine = {
@@ -115,11 +122,11 @@ const DIALOGUE_RULES: DialogueLine[] = [
     line: () => "All caught up. A good day to explore something new.",
   },
 
-  // ── Streak ─────────────────────────────────────────────────────────────
+  // ── Showing up lately (presence, never a losable counter) ───────────────
   {
     condition: (ctx) => ctx.streak >= 7,
     weight: 40,
-    line: (ctx) => `${ctx.streak} days of growing together. Quietly proud.`,
+    line: () => "We've kept a quiet rhythm lately. I'm glad we're doing this together.",
   },
   {
     condition: (ctx) => ctx.streak >= 3 && ctx.streak < 7,
@@ -170,9 +177,24 @@ const DIALOGUE_RULES: DialogueLine[] = [
 ];
 
 /**
+ * Small deterministic string -> uint32 hash (FNV-1a). Used to pick a stable
+ * companion line per user per day, with no randomness.
+ */
+function hashStringToInt(s: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+/**
  * Picks the best companion dialogue line for the current context.
- * Filters eligible rules, picks the highest-weight one (with slight randomness
- * to avoid repetition across sessions).
+ * Filters eligible rules, then chooses among the top-weighted few. The choice
+ * is SEEDED by ctx.seedKey (userId + day) so the companion holds one thought
+ * for the whole day instead of re-rolling on every render — it only changes
+ * when the underlying context changes. Falls back to random if no seed is set.
  */
 export function getCompanionLine(ctx: CompanionContext): string {
   const eligible = DIALOGUE_RULES.filter((r) => r.condition(ctx));
@@ -181,10 +203,14 @@ export function getCompanionLine(ctx: CompanionContext): string {
     return "I'm here. Whenever you're ready.";
   }
 
-  // Sort by weight descending, then pick from top 3 with randomness
+  // Sort by weight descending, then pick deterministically from the top few.
   eligible.sort((a, b) => b.weight - a.weight);
   const topCandidates = eligible.slice(0, Math.min(3, eligible.length));
-  const picked = topCandidates[Math.floor(Math.random() * topCandidates.length)];
+  const index =
+    ctx.seedKey != null
+      ? hashStringToInt(ctx.seedKey) % topCandidates.length
+      : Math.floor(Math.random() * topCandidates.length);
+  const picked = topCandidates[index];
 
   return picked.line(ctx);
 }

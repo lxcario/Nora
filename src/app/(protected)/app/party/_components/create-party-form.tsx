@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Globe, Lock, Loader2, Copy, Check } from "lucide-react";
+import { Globe, Lock, Copy, Check } from "lucide-react";
+import { PixelSpinner } from "@/components/pixel-ui";
 import { createParty } from "../../_actions/party";
 
 interface CreatePartyFormProps {
@@ -92,17 +93,17 @@ export function CreatePartyForm({ onSuccess, onCancel }: CreatePartyFormProps) {
   if (inviteCode) {
     return (
       <div className="space-y-4">
-        <div className="rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-900/20">
-          <p className="text-sm font-medium text-green-800 dark:text-green-200">
+        <div className="border-2 border-[var(--pixel-success)] bg-[color-mix(in_srgb,var(--pixel-success)_12%,var(--pixel-bg-surface))] p-4">
+          <p className="text-sm font-medium text-[var(--pixel-success)]">
             Group created! Share this invite code with friends:
           </p>
           <div className="mt-2 flex items-center gap-2">
-            <code className="flex-1 rounded-md border border-green-300 bg-white px-3 py-2 font-mono text-sm dark:border-green-700 dark:bg-zinc-800">
+            <code className="flex-1 border-2 border-[var(--pixel-border)] bg-[var(--pixel-bg-primary)] px-3 py-2 font-mono text-sm text-[var(--pixel-text-primary)]">
               {inviteCode}
             </code>
             <button
               onClick={handleCopyCode}
-              className="inline-flex items-center gap-1 rounded-md bg-green-600 px-3 py-2 text-sm font-medium text-white hover:bg-green-700"
+              className="pixel-btn pixel-btn-success pixel-btn-sm"
             >
               {copied ? (
                 <>
@@ -120,7 +121,7 @@ export function CreatePartyForm({ onSuccess, onCancel }: CreatePartyFormProps) {
         </div>
         <button
           onClick={() => onSuccess?.()}
-          className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+          className="pixel-btn pixel-btn-primary pixel-btn-sm"
         >
           Done
         </button>
@@ -134,7 +135,7 @@ export function CreatePartyForm({ onSuccess, onCancel }: CreatePartyFormProps) {
       <div>
         <label
           htmlFor="party-name"
-          className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
+          className="block text-sm font-medium text-[var(--pixel-text-secondary)]"
         >
           Group Name
         </label>
@@ -145,25 +146,25 @@ export function CreatePartyForm({ onSuccess, onCancel }: CreatePartyFormProps) {
           onChange={(e) => handleNameChange(e.target.value)}
           placeholder="e.g. Study Squad"
           maxLength={30}
-          className="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800"
+          className="mt-1 w-full border-2 border-[var(--pixel-border)] bg-[var(--pixel-bg-primary)] px-3 py-2 text-sm text-[var(--pixel-text-primary)]"
         />
-        {nameError && <p className="mt-1 text-xs text-red-500">{nameError}</p>}
-        <p className="mt-1 text-xs text-zinc-400">{name.length}/30 characters</p>
+        {nameError && <p className="mt-1 text-xs text-[var(--pixel-error)]">{nameError}</p>}
+        <p className="mt-1 text-xs text-[var(--pixel-text-muted)]">{name.length}/30 characters</p>
       </div>
 
       {/* Visibility toggle */}
       <div>
-        <span className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+        <span className="block text-sm font-medium text-[var(--pixel-text-secondary)]">
           Visibility
         </span>
         <div className="mt-1 flex gap-2">
           <button
             type="button"
             onClick={() => setVisibility("public")}
-            className={`inline-flex flex-1 items-center justify-center gap-2 rounded-md border px-3 py-2 text-sm font-medium transition-colors ${
+            className={`inline-flex flex-1 items-center justify-center gap-2 border-2 px-3 py-2 text-sm font-medium transition-[filter] ${
               visibility === "public"
-                ? "border-indigo-500 bg-indigo-50 text-indigo-700 dark:border-indigo-400 dark:bg-indigo-900/20 dark:text-indigo-300"
-                : "border-zinc-300 text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                ? "border-[var(--pixel-accent)] bg-[color-mix(in_srgb,var(--pixel-accent)_14%,var(--pixel-bg-surface))] text-[var(--pixel-accent)]"
+                : "border-[var(--pixel-border)] text-[var(--pixel-text-secondary)] pixel-hover-brighten"
             }`}
           >
             <Globe className="h-4 w-4" />
@@ -172,17 +173,17 @@ export function CreatePartyForm({ onSuccess, onCancel }: CreatePartyFormProps) {
           <button
             type="button"
             onClick={() => setVisibility("private")}
-            className={`inline-flex flex-1 items-center justify-center gap-2 rounded-md border px-3 py-2 text-sm font-medium transition-colors ${
+            className={`inline-flex flex-1 items-center justify-center gap-2 border-2 px-3 py-2 text-sm font-medium transition-[filter] ${
               visibility === "private"
-                ? "border-indigo-500 bg-indigo-50 text-indigo-700 dark:border-indigo-400 dark:bg-indigo-900/20 dark:text-indigo-300"
-                : "border-zinc-300 text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                ? "border-[var(--pixel-accent)] bg-[color-mix(in_srgb,var(--pixel-accent)_14%,var(--pixel-bg-surface))] text-[var(--pixel-accent)]"
+                : "border-[var(--pixel-border)] text-[var(--pixel-text-secondary)] pixel-hover-brighten"
             }`}
           >
             <Lock className="h-4 w-4" />
             Private
           </button>
         </div>
-        <p className="mt-1 text-xs text-zinc-400">
+        <p className="mt-1 text-xs text-[var(--pixel-text-muted)]">
           {visibility === "public"
             ? "Anyone can find and join your group"
             : "Only people with an invite code can join"}
@@ -190,16 +191,16 @@ export function CreatePartyForm({ onSuccess, onCancel }: CreatePartyFormProps) {
       </div>
 
       {/* Server error */}
-      {serverError && <p className="text-sm text-red-500">{serverError}</p>}
+      {serverError && <p className="text-sm text-[var(--pixel-error)]">{serverError}</p>}
 
       {/* Actions */}
       <div className="flex gap-2">
         <button
           type="submit"
           disabled={isSubmitting}
-          className="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className="pixel-btn pixel-btn-primary pixel-btn-sm"
         >
-          {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
+          {isSubmitting && <PixelSpinner size={5} />}
           {isSubmitting ? "Creating..." : "Create Group"}
         </button>
         {onCancel && (
@@ -207,7 +208,7 @@ export function CreatePartyForm({ onSuccess, onCancel }: CreatePartyFormProps) {
             type="button"
             onClick={onCancel}
             disabled={isSubmitting}
-            className="rounded-md border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800 disabled:opacity-50"
+            className="pixel-btn pixel-btn-secondary pixel-btn-sm"
           >
             Cancel
           </button>

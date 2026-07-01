@@ -20,9 +20,9 @@ const QUEST_TYPE_LABELS: Record<PartyQuestView["questType"], string> = {
 
 /** Color classes for progress bars by quest type */
 const QUEST_TYPE_COLORS: Record<PartyQuestView["questType"], string> = {
-  cards_reviewed: "bg-indigo-500",
-  feynman_sessions: "bg-emerald-500",
-  study_minutes: "bg-sky-500",
+  cards_reviewed: "bg-[var(--pixel-accent)]",
+  feynman_sessions: "bg-[var(--pixel-success)]",
+  study_minutes: "bg-[var(--pixel-warning)]",
 };
 
 function QuestProgressBar({
@@ -37,29 +37,29 @@ function QuestProgressBar({
     quest.target > 0 ? Math.round((quest.progress / quest.target) * 100) : 0
   );
   const isCompleted = quest.status === "completed";
-  const barColor = isHelp ? "bg-amber-500" : QUEST_TYPE_COLORS[quest.questType];
+  const barColor = isHelp ? "bg-[var(--pixel-warning)]" : QUEST_TYPE_COLORS[quest.questType];
 
   return (
     <div
-      className={`rounded-lg border p-4 ${
+      className={`border-2 p-4 ${
         isHelp
-          ? "border-amber-300 bg-amber-50 dark:border-amber-700 dark:bg-amber-950"
-          : "border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900"
+          ? "border-[var(--pixel-warning)] bg-[color-mix(in_srgb,var(--pixel-warning)_12%,var(--pixel-bg-surface))]"
+          : "border-[var(--pixel-border)] bg-[var(--pixel-bg-surface)]"
       }`}
     >
       {/* Quest header */}
       <div className="mb-2 flex items-center justify-between">
         <div className="flex items-center gap-2">
           {isHelp ? (
-            <Heart className="h-4 w-4 text-amber-500" />
+            <Heart className="h-4 w-4 text-[var(--pixel-warning)]" />
           ) : (
-            <Target className="h-4 w-4 text-zinc-500 dark:text-zinc-400" />
+            <Target className="h-4 w-4 text-[var(--pixel-text-secondary)]" />
           )}
           <span
             className={`text-sm font-medium ${
               isHelp
-                ? "text-amber-800 dark:text-amber-200"
-                : "text-zinc-700 dark:text-zinc-300"
+                ? "text-[var(--pixel-warning)]"
+                : "text-[var(--pixel-text-primary)]"
             }`}
           >
             {isHelp && quest.helpedMemberName
@@ -67,13 +67,13 @@ function QuestProgressBar({
               : QUEST_TYPE_LABELS[quest.questType]}
           </span>
           {!isHelp && (
-            <span className="text-xs text-zinc-400 dark:text-zinc-500">
+            <span className="text-xs text-[var(--pixel-text-muted)]">
               {QUEST_TYPE_LABELS[quest.questType]}
             </span>
           )}
         </div>
         {isCompleted && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-900 dark:text-green-300">
+          <span className="inline-flex items-center gap-1 bg-[color-mix(in_srgb,var(--pixel-success)_18%,var(--pixel-bg-surface))] px-2 py-0.5 text-xs font-medium text-[var(--pixel-success)]">
             <Trophy className="h-3 w-3" />
             Completed
           </span>
@@ -84,8 +84,8 @@ function QuestProgressBar({
       <div
         className={`h-3 w-full overflow-hidden rounded-full ${
           isHelp
-            ? "bg-amber-200 dark:bg-amber-900"
-            : "bg-zinc-200 dark:bg-zinc-700"
+            ? "bg-[color-mix(in_srgb,var(--pixel-warning)_25%,var(--pixel-bg-surface))]"
+            : "bg-[var(--pixel-bg-elevated)]"
         }`}
       >
         <div
@@ -101,8 +101,8 @@ function QuestProgressBar({
         <span
           className={`text-sm ${
             isHelp
-              ? "text-amber-700 dark:text-amber-300"
-              : "text-zinc-600 dark:text-zinc-400"
+              ? "text-[var(--pixel-warning)]"
+              : "text-[var(--pixel-text-secondary)]"
           }`}
         >
           {quest.progress} / {quest.target}
@@ -110,8 +110,8 @@ function QuestProgressBar({
         <span
           className={`text-sm font-medium ${
             isHelp
-              ? "text-amber-700 dark:text-amber-300"
-              : "text-zinc-600 dark:text-zinc-400"
+              ? "text-[var(--pixel-warning)]"
+              : "text-[var(--pixel-text-secondary)]"
           }`}
         >
           {percentage}%
@@ -151,9 +151,9 @@ export function PartyQuests({ quests, helpQuests, partyId }: PartyQuestsProps) {
   if (quests.length === 0 && helpQuests.length === 0) {
     return (
       <div className="space-y-3">
-        <div className="rounded-lg border border-zinc-200 p-6 text-center dark:border-zinc-700">
-          <Target className="mx-auto h-8 w-8 text-zinc-300 dark:text-zinc-600" />
-          <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+        <div className="border-2 border-[var(--pixel-border)] p-6 text-center">
+          <Target className="mx-auto h-8 w-8 text-[var(--pixel-text-muted)]" />
+          <p className="mt-2 text-sm text-[var(--pixel-text-secondary)]">
             No active quests. Owner can configure quest templates.
           </p>
         </div>
@@ -161,7 +161,7 @@ export function PartyQuests({ quests, helpQuests, partyId }: PartyQuestsProps) {
           type="button"
           onClick={handleAskForHelp}
           disabled={isPending}
-          className="inline-flex items-center gap-2 rounded-md px-3 py-2 text-xs font-pixel transition-colors"
+          className="inline-flex items-center gap-2 px-3 py-2 text-xs font-pixel transition-colors"
           style={{
             backgroundColor: "color-mix(in srgb, var(--pixel-warning) 15%, var(--pixel-bg-surface))",
             color: "var(--pixel-warning)",
@@ -196,7 +196,7 @@ export function PartyQuests({ quests, helpQuests, partyId }: PartyQuestsProps) {
           type="button"
           onClick={handleAskForHelp}
           disabled={isPending}
-          className="inline-flex items-center gap-2 rounded-md px-3 py-2 text-xs font-pixel transition-colors"
+          className="inline-flex items-center gap-2 px-3 py-2 text-xs font-pixel transition-colors"
           style={{
             backgroundColor: "color-mix(in srgb, var(--pixel-warning) 15%, var(--pixel-bg-surface))",
             color: "var(--pixel-warning)",

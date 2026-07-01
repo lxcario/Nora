@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useRef, useTransition, type DragEvent, type ChangeEvent } from "react";
-import { Upload, Link, FileText, Loader2, Check } from "lucide-react";
+import { Upload, Link, FileText, Check } from "lucide-react";
 import { ingestPdf, ingestFromUrl } from "../../_actions/rag";
-import { DialogFrame } from "@/components/pixel-ui";
+import { DialogFrame, PixelSpinner } from "@/components/pixel-ui";
 
 interface PaperUploadProps {
   onUploadComplete?: (paperId: string) => void;
@@ -223,7 +223,7 @@ export function PaperUpload({ onUploadComplete }: PaperUploadProps) {
               className="inline-flex shrink-0 items-center gap-2 !bg-[var(--pixel-accent)] !text-[var(--pixel-bg-primary)] hover:!brightness-110 text-sm"
             >
               {isUploading ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                <PixelSpinner size={4} />
               ) : (
                 <Upload className="h-3.5 w-3.5" />
               )}
@@ -265,7 +265,7 @@ export function PaperUpload({ onUploadComplete }: PaperUploadProps) {
             className="inline-flex shrink-0 items-center justify-center gap-2 !bg-[var(--pixel-accent)] !text-[var(--pixel-bg-primary)] hover:!brightness-110 text-sm"
           >
             {isDownloading ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              <PixelSpinner size={4} />
             ) : (
               <Link className="h-3.5 w-3.5" />
             )}

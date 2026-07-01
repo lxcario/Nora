@@ -1,36 +1,9 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/supabase/auth";
 import { DialogFrame, PixelCounter } from "@/components/pixel-ui";
-import { formatStreak } from "@/lib/format-streak";
 import { endOfUserLocalDay } from "@/lib/due";
 import { computeStreak } from "@/lib/streak";
-
-// ---------------------------------------------------------------------------
-// PROPOSAL: Streak "at risk" visual cue (Part 3 — not implemented yet)
-// ---------------------------------------------------------------------------
-// When the user hasn't completed any activity today and it's past a configurable
-// hour threshold (e.g. 6 PM local time), the streak counter is "at risk" of
-// breaking. Below are 3 compassionate options (no punishment, no anxiety):
-//
-// Option A — Warm amber glow:
-//   Apply a soft amber background-tint and the .animate-pixel-float class to
-//   the streak AmbientStat icon only. Reads as "hey, your potion is floating
-//   away!" — playful, not scary. No text change needed.
-//
-// Option B — Gentle tooltip nudge:
-//   Wrap the streak stat in a hover/focus tooltip: "Keep it going? A quick
-//   review is all it takes." No color change, no animation — just a friendly
-//   reminder that appears on interaction. Least intrusive.
-//
-// Option C — Soft stepped pulse on the icon:
-//   Apply .animate-pixel-blink (already exists — slow on/off at 0.8s) at
-//   reduced intensity (opacity between 0.7–1.0 instead of 0.25–1.0). Creates
-//   a subtle "breathing" on the potion icon. Pair with the suffix changing
-//   from "3 days" to "3 days — keep going!" in muted text.
-//
-// Recommendation: Option B (tooltip) as default, with Option A available as
-// a user preference ("Streak reminders: gentle / off") in Settings.
-// ---------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------
 // Data fetching helpers
@@ -151,35 +124,45 @@ async function getFriendsFeed(
 
 export default async function DashboardPage() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
 
-  // Profile stats
+  // Profile first — its timezone determines the "due today" cutoff below.
   const { data: profile } = await supabase
     .from("profiles")
     .select("xp, coins, level, display_name, timezone")
     .eq("id", user!.id)
-    .single();
+    .maybeSingle();
 
   const now = new Date();
   const timezone = profile?.timezone ?? "UTC";
   const dueCutoff = endOfUserLocalDay(now, timezone);
-
-  // Cards due (FSRS `due` column, timezone-aware cutoff)
-  const { count: cardsDue } = await supabase
-    .from("cards")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", user!.id)
-    .lte("due", dueCutoff.toISOString());
-
   const today = now.toISOString().split("T")[0];
-
-  // Streak (last 30 days)
-  const thirtyDaysAgo = new Date();
+  const thirtyDaysAgo = new Date(now);
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const sevenDaysFromNow = new Date(now);
+  sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
 
-  const [{ data: sessions }, { data: reviews }] = await Promise.all([
+  // Everything below depends only on the user id (and the cutoffs above), so
+  // fire it all in ONE parallel wave instead of a long sequential chain. This
+  // is the single biggest per-page latency win — ~10 round-trips become 1.
+  const [
+    { count: cardsDue },
+    { data: sessions },
+    { data: reviews },
+    { count: reviewsToday },
+    { count: feynmanToday },
+    { count: sessionsToday },
+    friendsFeed,
+    { data: recentFeynman },
+    { count: upcomingExams },
+    { count: bloomingCards },
+    { data: petData },
+  ] = await Promise.all([
+    supabase
+      .from("cards")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user!.id)
+      .lte("due", dueCutoff.toISOString()),
     supabase
       .from("study_sessions")
       .select("started_at")
@@ -190,27 +173,6 @@ export default async function DashboardPage() {
       .select("reviewed_at")
       .eq("user_id", user!.id)
       .gte("reviewed_at", thirtyDaysAgo.toISOString()),
-  ]);
-
-  const activityDates = new Set<string>();
-  (sessions ?? []).forEach((s) =>
-    activityDates.add((s.started_at as string).split("T")[0])
-  );
-  (reviews ?? []).forEach((r) =>
-    activityDates.add((r.reviewed_at as string).split("T")[0])
-  );
-
-  const streak = computeStreak(activityDates);
-
-  const xpTotal = profile?.xp ?? 0;
-  const coins = profile?.coins ?? 0;
-
-  // Quest progress
-  const [
-    { count: reviewsToday },
-    { count: feynmanToday },
-    { count: sessionsToday },
-  ] = await Promise.all([
     supabase
       .from("card_reviews")
       .select("id", { count: "exact", head: true })
@@ -226,7 +188,44 @@ export default async function DashboardPage() {
       .select("id", { count: "exact", head: true })
       .eq("user_id", user!.id)
       .gte("started_at", `${today}T00:00:00`),
+    getFriendsFeed(supabase, user!.id),
+    supabase
+      .from("feynman_explanations")
+      .select("score, topics(name)")
+      .eq("user_id", user!.id)
+      .not("score", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(5),
+    supabase
+      .from("topics")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user!.id)
+      .not("exam_date", "is", null)
+      .lte("exam_date", sevenDaysFromNow.toISOString().split("T")[0]),
+    supabase
+      .from("cards")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user!.id)
+      .gt("stability", 10),
+    supabase
+      .from("pets")
+      .select("name")
+      .eq("user_id", user!.id)
+      .maybeSingle(),
   ]);
+
+  // ── Derived values (all data is now in hand) ──
+  const activityDates = new Set<string>();
+  (sessions ?? []).forEach((s) =>
+    activityDates.add((s.started_at as string).split("T")[0])
+  );
+  (reviews ?? []).forEach((r) =>
+    activityDates.add((r.reviewed_at as string).split("T")[0])
+  );
+  const streak = computeStreak(activityDates);
+
+  const xpTotal = profile?.xp ?? 0;
+  const coins = profile?.coins ?? 0;
 
   const reviewProgress = Math.min(reviewsToday ?? 0, 20);
   const feynmanProgress = Math.min(feynmanToday ?? 0, 3);
@@ -235,22 +234,11 @@ export default async function DashboardPage() {
     reviewProgress >= 20 && feynmanProgress >= 3 && studyMinutes >= 30;
   const allQuestsZero = reviewProgress === 0 && feynmanProgress === 0 && studyMinutes === 0;
 
-  // Friends feed
-  const friendsFeed = await getFriendsFeed(supabase, user!.id);
-
   // Time-of-day context for briefing (server-side UTC hour is fine for a subtitle)
-  const serverHour = new Date().getUTCHours();
+  const serverHour = now.getUTCHours();
   const cardsDueCount = cardsDue ?? 0;
 
   // ── Companion context: what did the user struggle with / master recently? ──
-  const { data: recentFeynman } = await supabase
-    .from("feynman_explanations")
-    .select("score, topics(name)")
-    .eq("user_id", user!.id)
-    .not("score", "is", null)
-    .order("created_at", { ascending: false })
-    .limit(5);
-
   let struggledTopic: string | null = null;
   let masteredTopic: string | null = null;
   for (const f of recentFeynman ?? []) {
@@ -261,37 +249,18 @@ export default async function DashboardPage() {
   }
 
   // Check if returning after a break (no activity for 2+ days before today)
-  const yesterday = new Date();
+  const yesterday = new Date(now);
   yesterday.setDate(yesterday.getDate() - 1);
-  const dayBefore = new Date();
+  const dayBefore = new Date(now);
   dayBefore.setDate(dayBefore.getDate() - 2);
-  const returningAfterBreak = !activityDates.has(yesterday.toISOString().split("T")[0]) && !activityDates.has(dayBefore.toISOString().split("T")[0]);
+  const returningAfterBreak =
+    !activityDates.has(yesterday.toISOString().split("T")[0]) &&
+    !activityDates.has(dayBefore.toISOString().split("T")[0]);
 
-  // Check if exam within 7 days
-  const sevenDaysFromNow = new Date();
-  sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
-  const { count: upcomingExams } = await supabase
-    .from("topics")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", user!.id)
-    .not("exam_date", "is", null)
-    .lte("exam_date", sevenDaysFromNow.toISOString().split("T")[0]);
+  // Blooming count (rough topic estimate from cards with stability > 10)
+  const bloomingCount = Math.min(Math.floor((bloomingCards ?? 0) / 5), 20);
 
-  // Blooming count (for companion context — topics with high retrievability)
-  // Quick estimate: count cards with stability > 10 as "blooming" (avoids re-running full memory-map)
-  const { count: bloomingCards } = await supabase
-    .from("cards")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", user!.id)
-    .gt("stability", 10);
-  const bloomingCount = Math.min(Math.floor((bloomingCards ?? 0) / 5), 20); // rough topic estimate
-
-  // Pet info for companion line
-  const { data: petData } = await supabase
-    .from("pets")
-    .select("name")
-    .eq("user_id", user!.id)
-    .maybeSingle();
+  // Pet name for companion line
   const petName = (petData?.name as string) ?? "Buddy";
 
   // Generate companion dialogue
@@ -307,6 +276,7 @@ export default async function DashboardPage() {
     returningAfterBreak,
     bloomingCount,
     allQuestsDoneYesterday: false, // TODO: check yesterday's quests
+    seedKey: `${user!.id}:${today}`,
   });
 
   return (
@@ -343,16 +313,8 @@ export default async function DashboardPage() {
         label="Memories to revisit"
         size="hero"
       />
-      {/* Ambient strip: streak / XP / coins */}
+      {/* Ambient strip: XP / coins (no streak — growth over streaks, per WHY_NORA) */}
       <div className="flex items-center gap-4 px-1 flex-wrap">
-        <AmbientStat
-          icon="/sprites/travel-book/icons/PotionRed.png"
-          numericValue={streak > 0 ? streak : undefined}
-          textValue={streak === 0 ? formatStreak(0, "home") : undefined}
-          suffix={streak > 0 ? (streak === 1 ? " day" : " days") : undefined}
-          label="Streak"
-        />
-        <span className="text-[var(--pixel-border)]">·</span>
         <AmbientStat
           icon="/sprites/travel-book/icons/Sun.png"
           numericValue={xpTotal}

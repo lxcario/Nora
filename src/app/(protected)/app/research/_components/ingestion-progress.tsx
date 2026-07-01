@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
-import { Loader2, Check, AlertTriangle } from "lucide-react";
+import { Check, AlertTriangle } from "lucide-react";
 import { getIngestionStatus } from "../../_actions/rag";
+import { PixelSpinner } from "@/components/pixel-ui";
+import { LOADING } from "@/lib/copy";
 
 interface IngestionProgressProps {
   paperId: string;
@@ -84,7 +86,7 @@ export function IngestionProgress({ paperId, onComplete }: IngestionProgressProp
   if (error) {
     return (
       <div
-        className="flex items-center gap-2 rounded-sm border-l-4 px-3 py-2"
+        className="flex items-center gap-2 border-l-4 px-3 py-2"
         style={{ borderLeftColor: "var(--pixel-error)", backgroundColor: "var(--pixel-bg-surface)" }}
       >
         <AlertTriangle className="h-4 w-4 flex-shrink-0" style={{ color: "var(--pixel-error)" }} />
@@ -96,15 +98,15 @@ export function IngestionProgress({ paperId, onComplete }: IngestionProgressProp
   if (!status) {
     return (
       <div className="flex items-center gap-2 px-3 py-2">
-        <Loader2 className="h-4 w-4 animate-spin" style={{ color: "var(--pixel-text-muted)" }} />
-        <span className="text-sm" style={{ color: "var(--pixel-text-muted)" }}>Loading status...</span>
+        <PixelSpinner size={5} className="text-[var(--pixel-text-muted)]" />
+        <span className="text-sm" style={{ color: "var(--pixel-text-muted)" }}>{LOADING.default}</span>
       </div>
     );
   }
 
   return (
     <div
-      className="rounded-sm border-2 p-3"
+      className="border-2 p-3"
       style={{ borderColor: "var(--pixel-border)", backgroundColor: "var(--pixel-bg-surface)" }}
     >
       <StatusDisplay status={status} />
@@ -120,9 +122,9 @@ function StatusDisplay({ status }: { status: StatusData }) {
     case "pending":
       return (
         <div className="flex items-center gap-2">
-          <Loader2 className="h-4 w-4 animate-spin" style={{ color: "var(--pixel-text-muted)" }} />
+          <PixelSpinner size={5} className="text-[var(--pixel-text-muted)]" />
           <span className="text-sm" style={{ color: "var(--pixel-text-muted)" }}>
-            Queued for processing...
+            {LOADING.queued}
           </span>
         </div>
       );
@@ -130,9 +132,9 @@ function StatusDisplay({ status }: { status: StatusData }) {
     case "processing":
       return (
         <div className="flex items-center gap-2">
-          <Loader2 className="h-4 w-4 animate-spin" style={{ color: "var(--pixel-accent)" }} />
+          <PixelSpinner size={5} className="text-[var(--pixel-accent)]" />
           <span className="text-sm" style={{ color: "var(--pixel-accent)" }}>
-            Processing your paper
+            {LOADING.readingPaper}
             <AnimatedDots />
           </span>
         </div>
@@ -202,11 +204,11 @@ function AnimatedDots() {
 function IndeterminateProgressBar() {
   return (
     <div
-      className="mt-2 h-1.5 w-full overflow-hidden rounded-sm"
+      className="mt-2 h-1.5 w-full overflow-hidden"
       style={{ backgroundColor: "var(--pixel-bg-primary)" }}
     >
       <div
-        className="h-full w-1/3 rounded-sm"
+        className="h-full w-1/3"
         style={{
           backgroundColor: "var(--pixel-accent)",
           animation: "indeterminate 1.5s ease-in-out infinite",

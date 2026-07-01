@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, BookOpen, Sparkles, Loader2 } from "lucide-react";
+import { Search, BookOpen, Sparkles } from "lucide-react";
 import { generateSuggestedQuestions } from "../../_actions/rag";
+import { PixelSpinner } from "@/components/pixel-ui";
 
 interface RagQueryPanelProps {
   papers: { id: string; title: string; topicId: string | null }[];
@@ -87,7 +88,7 @@ export function RagQueryPanel({ papers, topics, onQuery, isLoading = false }: Ra
           </p>
           {loadingSuggestions ? (
             <div className="flex items-center gap-2 text-xs text-[var(--pixel-text-muted)]">
-              <Loader2 className="h-3 w-3 animate-spin" />
+              <PixelSpinner size={4} />
               Generating questions from your paper...
             </div>
           ) : (
@@ -185,7 +186,7 @@ export function RagQueryPanel({ papers, topics, onQuery, isLoading = false }: Ra
         disabled={isDisabled}
         className="inline-flex w-full items-center justify-center gap-2 !bg-[var(--pixel-accent)] !text-[var(--pixel-bg-primary)] hover:!brightness-110"
       >
-        {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+        {isLoading ? <PixelSpinner size={5} /> : <Search className="h-4 w-4" />}
         {isLoading ? "Searching…" : "Ask"}
       </button>
     </form>

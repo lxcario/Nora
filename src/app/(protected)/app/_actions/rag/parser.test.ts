@@ -1,20 +1,18 @@
 import { describe, it, expect, vi } from "vitest";
 
-// Mock pdf-parse before importing the module
-vi.mock("pdf-parse", () => {
-  return {
-    default: vi.fn(),
-  };
-});
+// parser.ts imports the INNER path "pdf-parse/lib/pdf-parse.js" (to bypass
+// pdf-parse's index.js self-test that throws on Vercel). The mock must target
+// that exact specifier or it never applies. vi.hoisted lets the mock factory
+// reference the spy even though vi.mock is hoisted above these statements, and
+// avoids a static import of the untyped inner path.
+const { mockPdfParse } = vi.hoisted(() => ({ mockPdfParse: vi.fn() }));
+vi.mock("pdf-parse/lib/pdf-parse.js", () => ({ default: mockPdfParse }));
 
 import { parsePdf, type ParseResult } from "./parser";
-import pdfParse from "pdf-parse";
-
-const mockedPdfParse = vi.mocked(pdfParse);
 
 describe("parsePdf", () => {
   it("should throw when text has fewer than 20 non-whitespace characters", async () => {
-    mockedPdfParse.mockResolvedValue({
+    mockPdfParse.mockResolvedValue({
       text: "short",
       numpages: 1,
       numrender: 1,
@@ -29,7 +27,7 @@ describe("parsePdf", () => {
   });
 
   it("should extract metadata from pdf info object", async () => {
-    mockedPdfParse.mockResolvedValue({
+    mockPdfParse.mockResolvedValue({
       text: "This is a long enough text block to pass the minimum threshold for extraction.",
       numpages: 5,
       numrender: 5,
@@ -45,7 +43,7 @@ describe("parsePdf", () => {
   });
 
   it("should return null metadata when info fields are missing", async () => {
-    mockedPdfParse.mockResolvedValue({
+    mockPdfParse.mockResolvedValue({
       text: "This is a long enough text block to pass the minimum threshold for extraction.",
       numpages: 3,
       numrender: 3,
@@ -62,7 +60,7 @@ describe("parsePdf", () => {
   it("should detect ALL CAPS headings", async () => {
     const text = `INTRODUCTION\n\nThis is the first paragraph under introduction.\n\nMETHODS\n\nWe used various methods to conduct the study and measure outcomes.`;
 
-    mockedPdfParse.mockResolvedValue({
+    mockPdfParse.mockResolvedValue({
       text,
       numpages: 1,
       numrender: 1,
@@ -82,7 +80,7 @@ describe("parsePdf", () => {
   it("should handle text with no clear headings as a single section", async () => {
     const text = `This is a simple document without any clear headings. It just contains regular paragraph text that goes on for a while to exceed the minimum character threshold.`;
 
-    mockedPdfParse.mockResolvedValue({
+    mockPdfParse.mockResolvedValue({
       text,
       numpages: 1,
       numrender: 1,
@@ -99,7 +97,7 @@ describe("parsePdf", () => {
   it("should split paragraphs at double newlines", async () => {
     const text = `ABSTRACT\n\nThis is the first paragraph of the abstract with enough content.\n\nThis is the second paragraph of the abstract with enough content too.`;
 
-    mockedPdfParse.mockResolvedValue({
+    mockPdfParse.mockResolvedValue({
       text,
       numpages: 1,
       numrender: 1,
@@ -117,7 +115,7 @@ describe("parsePdf", () => {
   it("should timeout after 60 seconds", async () => {
     vi.useFakeTimers();
     
-    mockedPdfParse.mockImplementation(
+    mockPdfParse.mockImplementation(
       () => new Promise((resolve) => {
         // Never resolves
         setTimeout(resolve, 120_000);

@@ -30,6 +30,8 @@ export { ErrorState } from "./error-state";
 export type { ErrorStateProps } from "./error-state";
 export { LoadingSkeleton } from "./loading-skeleton";
 export type { LoadingSkeletonProps } from "./loading-skeleton";
+export { PixelSpinner } from "./pixel-spinner";
+export type { PixelSpinnerProps } from "./pixel-spinner";
 export { PixelConfirmDialog } from "./confirm-dialog";
 export type { PixelConfirmDialogProps } from "./confirm-dialog";
 

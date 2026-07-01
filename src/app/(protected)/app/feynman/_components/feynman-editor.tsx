@@ -19,7 +19,6 @@ import { getCompletionSuggestion } from "@/app/(protected)/app/_actions/autocomp
 import {
   Send,
   Brain,
-  Loader2,
   CheckCircle,
   AlertTriangle,
   XCircle,
@@ -42,7 +41,8 @@ import { VoiceInput } from "./voice-input";
 import { XpToast } from "@/app/(protected)/app/_components/xp-toast";
 import { SuccessCheck } from "@/app/(protected)/app/_components/success-check";
 import { useSessionStats } from "@/app/(protected)/app/_components/session-stats-context";
-import { DialogFrame, PixelButton } from "@/components/pixel-ui";
+import { DialogFrame, PixelButton, PixelSpinner } from "@/components/pixel-ui";
+import { LOADING } from "@/lib/copy";
 
 interface TopicOption {
   id: string;
@@ -359,7 +359,7 @@ export function FeynmanEditor({ topics, defaultTopicId }: { topics: TopicOption[
             )}
             {isFetchingSuggestion && (
               <span className="flex items-center gap-1 text-xs text-[var(--pixel-text-muted)]">
-                <Loader2 className="h-3 w-3 animate-spin" />
+                <PixelSpinner size={4} />
                 Thinking...
               </span>
             )}
@@ -383,7 +383,7 @@ export function FeynmanEditor({ topics, defaultTopicId }: { topics: TopicOption[
       {isPending && (
         <DialogFrame>
           <div className="flex items-center gap-3">
-            <Loader2 className="h-5 w-5 animate-spin text-[var(--pixel-accent)]" />
+            <PixelSpinner size={5} className="text-[var(--pixel-accent)]" />
             <div>
               <p className="text-sm font-medium text-[var(--pixel-text-primary)]">
                 Evaluating your explanation...
@@ -588,8 +588,8 @@ function SourceSection({
   if (isLoading) {
     return (
       <div className="flex items-center gap-2 text-xs" style={{ color: "var(--pixel-text-muted)" }}>
-        <Loader2 className="h-3 w-3 animate-spin" />
-        Loading source...
+        <PixelSpinner size={4} />
+        {LOADING.source}
       </div>
     );
   }
@@ -644,7 +644,7 @@ function SourceSection({
               style={{ color: "var(--pixel-text-muted)" }}
             >
               {clearing ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                <PixelSpinner size={4} />
               ) : (
                 <Trash2 className="h-3.5 w-3.5" />
               )}
@@ -728,8 +728,8 @@ function SourceSection({
             <div className="space-y-2">
               {loadingPapers ? (
                 <div className="flex items-center gap-2 text-xs" style={{ color: "var(--pixel-text-muted)" }}>
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                  Loading papers…
+                  <PixelSpinner size={4} />
+                  {LOADING.papers}
                 </div>
               ) : papers.length === 0 ? (
                 <p className="text-xs" style={{ color: "var(--pixel-text-muted)" }}>
@@ -1224,7 +1224,7 @@ function EvaluationSteps() {
           {i < step ? (
             <Check className="h-3 w-3 text-[var(--pixel-accent)]" />
           ) : i === step ? (
-            <Loader2 className="h-3 w-3 animate-spin text-[var(--pixel-accent)]" />
+            <PixelSpinner size={4} className="text-[var(--pixel-accent)]" />
           ) : (
             <div className="h-3 w-3 rounded-full border border-[var(--pixel-border-light)]" />
           )}

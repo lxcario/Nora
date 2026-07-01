@@ -14,11 +14,12 @@ import {
   Code2,
   Check,
   AlertTriangle,
-  Loader2,
 } from "lucide-react";
 import { TimestampMark } from "./timestamp-mark";
 import { saveNote } from "@/app/(protected)/app/_actions/study-room";
 import { getNoteCompletion } from "@/app/(protected)/app/_actions/study-room/note-completion";
+import { PixelSpinner } from "@/components/pixel-ui";
+import { LOADING } from "@/lib/copy";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -73,7 +74,7 @@ export function NoteEditor({
     editorProps: {
       attributes: {
         class:
-          "prose prose-sm dark:prose-invert max-w-none min-h-[200px] p-3 focus:outline-none break-words overflow-wrap-anywhere",
+          "prose prose-sm max-w-none min-h-[200px] p-3 focus:outline-none break-words overflow-wrap-anywhere",
       },
       handleClick: (_view, _pos, event) => {
         // Handle timestamp mark clicks
@@ -250,15 +251,15 @@ export function NoteEditor({
 
   if (!editor) {
     return (
-      <div className="flex h-48 items-center justify-center text-sm text-zinc-400">
-        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-        Loading editor...
+      <div className="flex h-48 items-center justify-center text-sm text-[var(--pixel-text-muted)]">
+        <PixelSpinner size={5} className="mr-2" />
+        {LOADING.default}
       </div>
     );
   }
 
   return (
-    <div className="flex h-full flex-col rounded-lg border border-zinc-200 bg-white overflow-hidden dark:border-zinc-800 dark:bg-zinc-900">
+    <div className="flex h-full flex-col border-2 border-[var(--pixel-border)] bg-[var(--pixel-bg-surface)] overflow-hidden">
       {/* Toolbar */}
       <Toolbar editor={editor} saveStatus={saveStatus} />
 
@@ -268,12 +269,12 @@ export function NoteEditor({
 
         {/* Ghost text overlay for AI suggestions */}
         {ghostText && (
-          <div className="pointer-events-none absolute bottom-0 left-0 right-0 border-t border-dashed border-zinc-200 bg-zinc-50/80 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-800/80">
-            <p className="text-sm italic text-zinc-400 dark:text-zinc-500">
+          <div className="pointer-events-none absolute bottom-0 left-0 right-0 border-t-2 border-dashed border-[var(--pixel-border)] bg-[var(--pixel-bg-surface)] px-3 py-2">
+            <p className="text-sm italic text-[var(--pixel-text-muted)]">
               {ghostText}
             </p>
-            <p className="mt-1 text-xs text-zinc-300 dark:text-zinc-600">
-              Press <kbd className="rounded bg-zinc-200 px-1 py-0.5 font-mono text-xs dark:bg-zinc-700">Tab</kbd> to accept
+            <p className="mt-1 text-xs text-[var(--pixel-text-muted)]">
+              Press <kbd className="border-2 border-[var(--pixel-border)] bg-[var(--pixel-bg-elevated)] px-1 py-0.5 font-mono text-xs text-[var(--pixel-text-secondary)]">Tab</kbd> to accept
             </p>
           </div>
         )}
@@ -292,7 +293,7 @@ interface ToolbarProps {
 
 function Toolbar({ editor, saveStatus }: ToolbarProps) {
   return (
-    <div className="flex items-center justify-between border-b border-zinc-200 px-2 py-1.5 dark:border-zinc-700">
+    <div className="flex items-center justify-between border-b-2 border-[var(--pixel-border)] px-2 py-1.5">
       {/* Formatting Buttons */}
       <div className="flex items-center gap-0.5">
         <ToolbarButton
@@ -323,7 +324,7 @@ function Toolbar({ editor, saveStatus }: ToolbarProps) {
           <Heading3 className="h-4 w-4" />
         </ToolbarButton>
 
-        <div className="mx-1 h-4 w-px bg-zinc-200 dark:bg-zinc-700" />
+        <div className="mx-1 h-4 w-px bg-[var(--pixel-border)]" />
 
         <ToolbarButton
           active={editor.isActive("bold")}
@@ -340,7 +341,7 @@ function Toolbar({ editor, saveStatus }: ToolbarProps) {
           <Italic className="h-4 w-4" />
         </ToolbarButton>
 
-        <div className="mx-1 h-4 w-px bg-zinc-200 dark:bg-zinc-700" />
+        <div className="mx-1 h-4 w-px bg-[var(--pixel-border)]" />
 
         <ToolbarButton
           active={editor.isActive("bulletList")}
@@ -389,10 +390,10 @@ function ToolbarButton({
       type="button"
       onClick={onClick}
       title={title}
-      className={`rounded p-1.5 transition-colors ${
+      className={`p-1.5 transition-[filter] ${
         active
-          ? "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300"
-          : "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
+          ? "bg-[color-mix(in_srgb,var(--pixel-accent)_14%,var(--pixel-bg-surface))] text-[var(--pixel-accent)]"
+          : "text-[var(--pixel-text-secondary)] hover:bg-[var(--pixel-bg-elevated)] hover:text-[var(--pixel-text-primary)]"
       }`}
     >
       {children}
@@ -406,21 +407,21 @@ function SaveIndicator({ status }: { status: SaveStatus }) {
   switch (status) {
     case "saving":
       return (
-        <span className="flex items-center gap-1 text-xs text-zinc-400">
-          <Loader2 className="h-3 w-3 animate-spin" />
+        <span className="flex items-center gap-1 text-xs text-[var(--pixel-text-muted)]">
+          <PixelSpinner size={4} />
           Saving...
         </span>
       );
     case "saved":
       return (
-        <span className="flex items-center gap-1 text-xs text-emerald-500">
+        <span className="flex items-center gap-1 text-xs text-[var(--pixel-success)]">
           <Check className="h-3 w-3" />
           Saved
         </span>
       );
     case "error":
       return (
-        <span className="flex items-center gap-1 text-xs text-amber-500" title="Save failed. Retrying in 10s...">
+        <span className="flex items-center gap-1 text-xs text-[var(--pixel-warning)]" title="Save failed. Retrying in 10s...">
           <AlertTriangle className="h-3 w-3" />
           Save failed
         </span>

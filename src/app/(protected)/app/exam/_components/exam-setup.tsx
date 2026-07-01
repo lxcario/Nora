@@ -3,8 +3,8 @@
 import { useState, useRef, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { generateExam } from "@/app/(protected)/app/_actions/exam";
-import { DialogFrame, PixelButton, PixelInput } from "@/components/pixel-ui";
-import { Upload, FileText, Loader2, BookOpen, Zap, Clock } from "lucide-react";
+import { DialogFrame, PixelButton, PixelInput, PixelSpinner } from "@/components/pixel-ui";
+import { Upload, FileText, BookOpen, Zap, Clock } from "lucide-react";
 
 export function ExamSetup() {
   const router = useRouter();
@@ -238,7 +238,7 @@ export function ExamSetup() {
       >
         {isPending ? (
           <span className="flex items-center gap-2">
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <PixelSpinner size={5} />
             Generating exam from your material...
           </span>
         ) : (
