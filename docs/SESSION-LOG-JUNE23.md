@@ -141,3 +141,70 @@
 **Total session duration:** ~10 hours
 **Lines of code changed across all sessions today:** ~5,000+
 **Tests passing:** 332 (Nora) + 68 (CLI PR agent-targets)
+
+---
+
+## Late Session Additions (same day)
+
+### 14. CLI PRs #11 and #12 Opened
+- PR #11: `feat(cli): add runtime Node.js version check with clear error message`
+- PR #12: `feat(cli): respect NO_COLOR environment variable per no-color.org`
+- Both pass lint, format, typecheck, and relevant tests
+- Total PRs open against TestSprite/testsprite-cli: 3 (#10, #11, #12)
+- Potential payout if all merge: $300-400
+
+### 15. First Real TestSprite Test Executed
+- Created plan file: `.testsprite/plans/landing-page.plan.json`
+- Ran against deployed app: `https://norastudy.vercel.app`
+- Test ID: `f2c43b46-dafd-47a8-b27a-fa0510c6d95a`
+- Result: **PASSED** — landing page loaded, hero verified, signup CTA clicked, signup page confirmed
+- Video recorded on TestSprite cloud
+- First test banked in durable suite
+
+### 16. Deployment URL Updated
+- Old: `nora-mu-six.vercel.app`
+- New: `norastudy.vercel.app`
+- Updated in: HACKATHON-PLAN.md, PRE-BUILD-PLAN.md, SESSION-LOG.md, .testsprite/config.json
+- TestSprite project URL updated via `project update` command
+
+### 17. TestSprite API Key Rotated
+- Old key revoked (exposed in .kiro/settings/mcp.json GitGuardian alert)
+- New key configured via `testsprite setup --from-env --yes`
+- Confirmed working: all scopes granted
+
+### 18. CLI Source Analysis (for PR viability)
+- Verified: JSON error output already handles structured envelopes (no gap)
+- Verified: Exit codes already differentiated by category (no gap)
+- Verified: HTTP retry/backoff already implemented (no gap)
+- Only real gap: agent install doesn't search for repo root (minor, arguably intentional)
+- Conclusion: 3 PRs submitted are the right stopping point
+
+### 19. Confirmed `kiro` Not Recognized on Live CLI
+- Ran `testsprite agent install --target=kiro` → error: "unknown target"
+- Confirms PR #10 fills a real gap (not redundant with published version)
+
+---
+
+## Updated Commit List (full day)
+
+1. `ecc08ff` — Research pipeline upgrade, citation grounding, hackathon prep
+2. `7d0103a` — Audit tasks 01-07
+3. `2fa4716` — Audit tasks 08-14
+4. `973d38a` — Audit tasks 15-20
+5. `7d4b67c` — PDF parser fix + JOL spec
+6. `ed4c943` — JOL confidence rating implementation
+7. `e0e01cd` — Layout polish Parts 1-3
+8. `369af4e` — Onboarding loading skeleton
+9. `69dea0d` — LOOP.md, pre-build plan, exam spec
+10. `baffc2a` — Azerbaijan universities
+11. `4690d5c` — Lazy university search
+12. `e33ceb8` — Autocomplete fix (overlay, starts-with, limit 5)
+13. `136232e` — Research desk: always both academic+web
+14. `1a82036` — Security: remove exposed key, gitignore
+15. `17c84da` — Update deployment URL to norastudy.vercel.app
+16. `3c782c7` — First TestSprite plan file (landing page, passed)
+
+**TestSprite CLI repo (d:\testsprite-cli) — 3 PRs:**
+- PR #10: feat/add-kiro-target (1 commit)
+- PR #11: feat/node-version-guard (1 commit)
+- PR #12: feat/no-color-support (1 commit)

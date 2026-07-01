@@ -1,6 +1,6 @@
 # Nora — Pixel Study OS: Complete Product Description
 
-> **Upload this document to explain your desired product's features, purpose, and how it should work.**
+> The full, feature-by-feature specification of what Nora is and how each part is meant to work. For the shorter overview, start with the [README](../README.md); for the philosophy behind these choices, see [WHY_NORA.md](WHY_NORA.md).
 
 ---
 
