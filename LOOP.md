@@ -84,3 +84,5 @@
 2026-07-02T13:02:43Z | fix-meta | e08cda2b | — | History test routing_404: test navigated to /history (bare path) instead of /app/history. Same plan-URL bug as the analytics test. Updated plan to navigate via /app/history route.
 2026-07-02T13:02:50Z | rerun | f10b71eb | running | Triggered rerun c37f1e15 of dashboard test with corrected plan.
 2026-07-02T13:02:51Z | rerun | e08cda2b | running | Triggered rerun 8bbf6ff9 of history test with corrected /app/history route.
+2026-07-02T13:10:00Z | rerun-all | — | partial | Batch rerun completed: 14 passed, 5 blocked. Blocked tests (review full flow, study mix, settings theme, JOL confidence, sidebar nav) have failureKind=null — execution budget exhausted from running 19 tests concurrently on free tier, NOT a product regression (all passed when run individually earlier today).
+2026-07-02T13:10:30Z | rerun | 452f36a7,c51d9326,5fe264c6,97d3a05f,ddf1e18e | running | Re-triggered the 5 execution-timeout blocked tests individually to give each full execution budget. Runs: ebfa229e, 0d65e24d, bc752db3, 66b0932b, cff0ad85.
