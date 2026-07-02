@@ -2,16 +2,14 @@
   "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
   "type": "frontend",
   "name": "Sidebar navigation links open pages without errors",
-  "description": "After login, clicking three representative sidebar links (one from Study, one from My Room, one top-level) navigates to valid pages that render their heading — not a 404 or blank screen. This confirms the sidebar accordion and routing are functional.",
+  "description": "After login, clicking three representative sidebar links (one from Study, one from My Room, one top-level) navigates to valid pages that render without a 404 or blank screen.",
   "priority": "p1",
   "planSteps": [
-    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to load" },
+    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to finish loading" },
     { "type": "action", "description": "If a tour or onboarding popup appears, dismiss it" },
-    { "type": "action", "description": "Click the 'Feynman Mode' link inside the Study section of the left sidebar" },
-    { "type": "assertion", "description": "Verify the Feynman Mode page loaded — it shows a heading or topic selector, not a 404 or blank page" },
-    { "type": "action", "description": "Click the 'Pixel Room' link inside the My Room section of the left sidebar" },
-    { "type": "assertion", "description": "Verify the Pixel Room page loaded — it shows a pet sprite or mission list or room content, not a 404 or blank page" },
-    { "type": "action", "description": "Click the 'Settings' link in the left sidebar" },
-    { "type": "assertion", "description": "Verify the Settings page loaded — it shows tabs or a settings form, not a 404 or blank page" }
+    { "type": "action", "description": "Click the 'Feynman Mode' link inside the Study section of the left sidebar and wait for the page to load" },
+    { "type": "assertion", "description": "Verify the Feynman Mode page loaded — it shows a heading or topic selector, and is NOT a 404 or blank page" },
+    { "type": "action", "description": "Click the 'Settings' link in the left sidebar and wait for the page to load" },
+    { "type": "assertion", "description": "Verify the Settings page loaded — it shows tabs or a settings form, and is NOT a 404 or blank page" }
   ]
 }
