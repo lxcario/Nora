@@ -3,8 +3,20 @@
 import { useState, useTransition } from "react";
 import type { PartyMemberView } from "../../_actions/party";
 import { sendCheer } from "../../_actions/party-social";
+import { PixelButton } from "@/components/pixel-ui";
 
-// ─── Types ────────────────────────────────────────────────────────────
+// ─── Constants ────────────────────────────────────────────────────────
+
+const CHEER_EMOJIS = [
+  { key: "fire",     emoji: "🔥", label: "Fire"     },
+  { key: "star",     emoji: "⭐", label: "Star"     },
+  { key: "clap",     emoji: "👏", label: "Clap"     },
+  { key: "heart",    emoji: "💜", label: "Heart"    },
+  { key: "rocket",   emoji: "🚀", label: "Rocket"   },
+  { key: "sparkles", emoji: "✨", label: "Sparkles" },
+];
+
+// ─── Component ────────────────────────────────────────────────────────
 
 interface PartyCheersProps {
   members: PartyMemberView[];
@@ -12,35 +24,6 @@ interface PartyCheersProps {
   currentUserId: string;
 }
 
-// ─── Constants ────────────────────────────────────────────────────────
-
-import { Flame, Star, Heart, Rocket, Sparkles, ThumbsUp } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
-
-const CHEER_EMOJIS: { key: string; label: string; icon: LucideIcon; color: string }[] = [
-  { key: "fire", label: "Fire", icon: Flame, color: "text-orange-500" },
-  { key: "star", label: "Star", icon: Star, color: "text-yellow-400" },
-  { key: "clap", label: "Clap", icon: ThumbsUp, color: "text-blue-400" },
-  { key: "heart", label: "Heart", icon: Heart, color: "text-red-500" },
-  { key: "rocket", label: "Rocket", icon: Rocket, color: "text-purple-400" },
-  { key: "sparkles", label: "Sparkles", icon: Sparkles, color: "text-emerald-400" },
-];
-
-// ─── Component ────────────────────────────────────────────────────────
-
-/**
- * PartyCheers — Send emoji cheers to party members and view weekly totals.
- *
- * Features:
- * - 6 cheer emoji buttons
- * - Target selector (dropdown) excluding current user
- * - "Send Cheer" action calls sendCheer server action
- * - Weekly cheer totals per member
- * - Rate limit error display
- * - Self-cheer prevention (current user not selectable)
- *
- * Requirements: 7.1, 7.2, 7.5, 7.6
- */
 export function PartyCheers({ members, cheerTotals, currentUserId }: PartyCheersProps) {
   const [selectedEmoji, setSelectedEmoji] = useState<string>("fire");
   const [selectedTarget, setSelectedTarget] = useState<string>("");
@@ -48,7 +31,6 @@ export function PartyCheers({ members, cheerTotals, currentUserId }: PartyCheers
   const [success, setSuccess] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  // Exclude current user from target list
   const cheerableMembers = members.filter((m) => m.userId !== currentUserId);
 
   const handleSendCheer = () => {
@@ -56,32 +38,28 @@ export function PartyCheers({ members, cheerTotals, currentUserId }: PartyCheers
       setError("Please select a member to cheer");
       return;
     }
-
     setError(null);
     setSuccess(null);
-
     startTransition(async () => {
       const result = await sendCheer(selectedTarget, selectedEmoji);
-
       if (result.error) {
         setError(result.error);
       } else {
         const targetMember = cheerableMembers.find((m) => m.userId === selectedTarget);
         const emojiData = CHEER_EMOJIS.find((e) => e.key === selectedEmoji);
         setSuccess(
-          `Cheer (${emojiData?.label ?? selectedEmoji}) sent to ${targetMember?.displayName ?? "member"}!`
+          `${emojiData?.emoji ?? "✨"} Sent to ${targetMember?.displayName ?? "member"}!`
         );
-        // Clear success message after 3 seconds
         setTimeout(() => setSuccess(null), 3000);
       }
     });
   };
 
   return (
-    <div className="space-y-4 rounded-lg border border-zinc-200 p-4 dark:border-zinc-700">
+    <div className="space-y-4">
       {/* Send Cheer Section */}
       <div className="space-y-3">
-        <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+        <p className="font-pixel text-[11px] uppercase" style={{ color: "var(--pixel-text-secondary)" }}>
           Send a Cheer
         </p>
 
@@ -93,13 +71,18 @@ export function PartyCheers({ members, cheerTotals, currentUserId }: PartyCheers
               type="button"
               onClick={() => setSelectedEmoji(item.key)}
               title={item.label}
-              className={`rounded-md px-3 py-2 text-lg transition-colors ${
-                selectedEmoji === item.key
-                  ? "bg-indigo-100 ring-2 ring-indigo-400 dark:bg-indigo-900 dark:ring-indigo-500"
-                  : "bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700"
-              }`}
+              className="pixel-panel px-3 py-2 text-lg transition-all"
+              style={{
+                backgroundColor:
+                  selectedEmoji === item.key
+                    ? "color-mix(in srgb, var(--pixel-accent) 20%, var(--pixel-bg-surface))"
+                    : "var(--pixel-bg-primary)",
+                borderColor:
+                  selectedEmoji === item.key ? "var(--pixel-accent)" : "var(--pixel-border)",
+                transform: selectedEmoji === item.key ? "translateY(-1px)" : undefined,
+              }}
             >
-              <item.icon className={`h-5 w-5 ${item.color}`} />
+              {item.emoji}
             </button>
           ))}
         </div>
@@ -109,7 +92,13 @@ export function PartyCheers({ members, cheerTotals, currentUserId }: PartyCheers
           <select
             value={selectedTarget}
             onChange={(e) => setSelectedTarget(e.target.value)}
-            className="flex-1 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+            className="pixel-input flex-1 text-sm"
+            style={{
+              backgroundColor: "var(--pixel-bg-primary)",
+              color: "var(--pixel-text-primary)",
+              border: "2px solid var(--pixel-border)",
+              padding: "8px 12px",
+            }}
           >
             <option value="">Select a member…</option>
             {cheerableMembers.map((member) => (
@@ -119,49 +108,55 @@ export function PartyCheers({ members, cheerTotals, currentUserId }: PartyCheers
             ))}
           </select>
 
-          <button
-            type="button"
+          <PixelButton
+            variant="primary"
             onClick={handleSendCheer}
             disabled={isPending || !selectedTarget}
-            className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-700 disabled:opacity-50 dark:bg-indigo-500 dark:hover:bg-indigo-600"
+            loading={isPending}
           >
-            {isPending ? "Sending…" : "Send Cheer"}
-          </button>
+            Send ✨
+          </PixelButton>
         </div>
 
-        {/* Feedback Messages */}
+        {/* Feedback */}
         {error && (
-          <p className="text-sm text-red-500 dark:text-red-400">{error}</p>
+          <p className="font-pixel text-[10px]" style={{ color: "var(--pixel-error)" }}>
+            {error}
+          </p>
         )}
         {success && (
-          <p className="text-sm text-green-600 dark:text-green-400">{success}</p>
+          <p className="font-pixel text-[10px]" style={{ color: "var(--pixel-success)" }}>
+            {success}
+          </p>
         )}
       </div>
 
       {/* Weekly Cheer Totals */}
-      <div className="border-t border-zinc-200 pt-3 dark:border-zinc-700">
-        <p className="mb-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">
+      <div style={{ borderTop: "2px solid var(--pixel-border)", paddingTop: "12px" }}>
+        <p className="font-pixel text-[11px] uppercase mb-2" style={{ color: "var(--pixel-text-secondary)" }}>
           Weekly Cheers
         </p>
 
         {members.length === 0 ? (
-          <p className="text-sm text-zinc-400">No members yet.</p>
+          <p className="text-sm" style={{ color: "var(--pixel-text-muted)" }}>No members yet.</p>
         ) : (
           <ul className="space-y-1">
             {members.map((member) => (
               <li
                 key={member.userId}
-                className="flex items-center justify-between rounded-md px-2 py-1 text-sm"
+                className="flex items-center justify-between px-2 py-1"
+                style={{ borderBottom: "1px solid var(--pixel-border)" }}
               >
-                <span className="text-zinc-700 dark:text-zinc-300">
+                <span className="text-sm" style={{ color: "var(--pixel-text-primary)" }}>
                   {member.displayName}
                   {member.userId === currentUserId && (
-                    <span className="ml-1 text-xs text-zinc-400">(you)</span>
+                    <span className="ml-1 font-pixel text-[9px]" style={{ color: "var(--pixel-text-muted)" }}>
+                      (you)
+                    </span>
                   )}
                 </span>
-                <span className="flex items-center gap-1 font-medium text-zinc-900 dark:text-zinc-100">
-                  {cheerTotals[member.userId] ?? 0}
-                  <Sparkles className="h-3.5 w-3.5 text-emerald-400" />
+                <span className="font-pixel text-sm flex items-center gap-1" style={{ color: "var(--pixel-accent)" }}>
+                  {cheerTotals[member.userId] ?? 0} ✨
                 </span>
               </li>
             ))}

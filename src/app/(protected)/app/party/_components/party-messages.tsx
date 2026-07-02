@@ -1,62 +1,35 @@
 "use client";
 
 import { useState } from "react";
-import { MessageSquare, Send } from "lucide-react";
 import type { PartyMessageView } from "../../_actions/party";
 import { sendMessage } from "../../_actions/party-social";
-
-// ─── Types ──────────────────────────────────────────────────────────
-
-interface PartyMessagesProps {
-  messages: PartyMessageView[];
-}
+import { PixelButton } from "@/components/pixel-ui";
 
 // ─── Utilities ──────────────────────────────────────────────────────
 
-/**
- * formatRelativeTime — converts an ISO timestamp string to a human-friendly
- * relative time label (e.g., "2m ago", "3h ago", "yesterday").
- */
 function formatRelativeTime(isoString: string): string {
-  const now = Date.now();
-  const then = new Date(isoString).getTime();
-  const diffMs = now - then;
-
+  const diffMs = Date.now() - new Date(isoString).getTime();
   if (diffMs < 0) return "just now";
-
-  const seconds = Math.floor(diffMs / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
-  const days = Math.floor(hours / 24);
-
-  if (seconds < 60) return "just now";
-  if (minutes < 60) return `${minutes}m ago`;
-  if (hours < 24) return `${hours}h ago`;
-  if (days === 1) return "yesterday";
-  if (days < 7) return `${days}d ago`;
-
-  // Fallback for older messages
+  const s = Math.floor(diffMs / 1000);
+  const m = Math.floor(s / 60);
+  const h = Math.floor(m / 60);
+  const d = Math.floor(h / 24);
+  if (s < 60) return "just now";
+  if (m < 60) return `${m}m ago`;
+  if (h < 24) return `${h}h ago`;
+  if (d === 1) return "yesterday";
+  if (d < 7) return `${d}d ago`;
   return new Date(isoString).toLocaleDateString();
 }
-
-// ─── Constants ──────────────────────────────────────────────────────
 
 const MAX_MESSAGE_LENGTH = 200;
 
 // ─── Component ──────────────────────────────────────────────────────
 
-/**
- * PartyMessages — displays recent party messages and provides a send form.
- *
- * Features:
- * - Displays 20 most recent messages (passed in sorted from server, newest first)
- * - Each message shows sender display name (bold), content, and relative timestamp
- * - Message input form with character counter (X/200) and Send button
- * - Error display for rate limit and blocked content
- * - Empty state when no messages exist
- *
- * Requirements: 8.1, 8.3, 8.4
- */
+interface PartyMessagesProps {
+  messages: PartyMessageView[];
+}
+
 export function PartyMessages({ messages }: PartyMessagesProps) {
   const [content, setContent] = useState("");
   const [sending, setSending] = useState(false);
@@ -69,44 +42,46 @@ export function PartyMessages({ messages }: PartyMessagesProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isEmpty || isOverLimit || sending) return;
-
     setSending(true);
     setError(null);
-
     const result = await sendMessage(content);
-
     if (result.error) {
       setError(result.error);
-      setSending(false);
     } else {
       setContent("");
-      setSending(false);
     }
+    setSending(false);
   };
 
   return (
-    <div className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-700">
+    <div className="space-y-4">
       {/* Message Feed */}
       {messages.length === 0 ? (
         <div className="flex flex-col items-center gap-2 py-6 text-center">
-          <MessageSquare className="h-8 w-8 text-zinc-300 dark:text-zinc-600" />
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
+          <img
+            src="/sprites/travel-book/icons/Team.png"
+            alt=""
+            width={32}
+            height={32}
+            className="pixel-art opacity-50"
+          />
+          <p className="text-sm" style={{ color: "var(--pixel-text-muted)" }}>
             No messages yet. Start a conversation!
           </p>
         </div>
       ) : (
-        <div className="mb-4 max-h-80 space-y-3 overflow-y-auto">
+        <div className="max-h-80 space-y-3 overflow-y-auto pr-1">
           {messages.map((msg) => (
-            <div key={msg.id} className="flex flex-col gap-0.5">
-              <div className="flex items-baseline gap-2">
-                <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+            <div key={msg.id} className="pixel-panel pixel-panel-inset" style={{ padding: "var(--pixel-panel-compact)" }}>
+              <div className="flex items-baseline gap-2 mb-1">
+                <span className="font-pixel text-[11px]" style={{ color: "var(--pixel-accent)" }}>
                   {msg.senderName}
                 </span>
-                <span className="text-xs text-zinc-400 dark:text-zinc-500">
+                <span className="font-pixel text-[9px]" style={{ color: "var(--pixel-text-muted)" }}>
                   {formatRelativeTime(msg.createdAt)}
                 </span>
               </div>
-              <p className="text-sm text-zinc-700 dark:text-zinc-300">
+              <p className="text-sm" style={{ color: "var(--pixel-text-primary)", lineHeight: 1.5 }}>
                 {msg.content}
               </p>
             </div>
@@ -115,12 +90,19 @@ export function PartyMessages({ messages }: PartyMessagesProps) {
       )}
 
       {/* Message Input Form */}
-      <form onSubmit={handleSubmit} className="mt-3 border-t border-zinc-100 pt-3 dark:border-zinc-800">
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-2"
+        style={{ borderTop: "2px solid var(--pixel-border)", paddingTop: "12px" }}
+      >
         {error && (
-          <p className="mb-2 text-xs text-red-500">{error}</p>
+          <p className="font-pixel text-[10px]" style={{ color: "var(--pixel-error)" }}>
+            {error}
+          </p>
         )}
+
         <div className="flex items-end gap-2">
-          <div className="flex-1">
+          <div className="flex-1 space-y-1">
             <input
               type="text"
               value={content}
@@ -128,30 +110,38 @@ export function PartyMessages({ messages }: PartyMessagesProps) {
               placeholder="Type a message…"
               maxLength={250}
               disabled={sending}
-              className="w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm placeholder:text-zinc-400 focus:border-zinc-400 focus:outline-none disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:focus:border-zinc-500"
+              className="pixel-input w-full text-sm"
+              style={{
+                backgroundColor: "var(--pixel-bg-primary)",
+                color: "var(--pixel-text-primary)",
+                border: "2px solid var(--pixel-border)",
+                padding: "8px 12px",
+              }}
             />
-            <div className="mt-1 flex justify-end">
+            <div className="flex justify-end">
               <span
-                className={`text-xs ${
-                  isOverLimit
-                    ? "text-red-500"
+                className="font-pixel text-[9px]"
+                style={{
+                  color: isOverLimit
+                    ? "var(--pixel-error)"
                     : charCount > MAX_MESSAGE_LENGTH * 0.8
-                    ? "text-amber-500"
-                    : "text-zinc-400 dark:text-zinc-500"
-                }`}
+                    ? "var(--pixel-warning)"
+                    : "var(--pixel-text-muted)",
+                }}
               >
                 {charCount}/{MAX_MESSAGE_LENGTH}
               </span>
             </div>
           </div>
-          <button
+
+          <PixelButton
             type="submit"
+            variant="primary"
             disabled={isEmpty || isOverLimit || sending}
-            className="flex items-center gap-1.5 rounded-md bg-zinc-900 px-3 py-2 text-sm text-white transition-colors hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+            loading={sending}
           >
-            <Send className="h-4 w-4" />
-            {sending ? "Sending…" : "Send"}
-          </button>
+            Send →
+          </PixelButton>
         </div>
       </form>
     </div>

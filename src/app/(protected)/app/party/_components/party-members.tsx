@@ -1,6 +1,5 @@
 "use client";
 
-import { Circle } from "lucide-react";
 import type { PartyMemberView } from "../../_actions/party";
 
 interface PartyMembersProps {
@@ -8,96 +7,95 @@ interface PartyMembersProps {
 }
 
 /**
- * Displays party members in horizontal cards with avatars, presence indicators,
+ * Displays party members in pixel-themed cards with presence indicators,
  * join dates, and contribution counts.
- *
- * Requirements: 9.1, 10.2
  */
 export function PartyMembers({ members }: PartyMembersProps) {
+  if (members.length === 0) {
+    return (
+      <p className="text-sm text-center py-4" style={{ color: "var(--pixel-text-muted)" }}>
+        No members yet.
+      </p>
+    );
+  }
+
   return (
     <div className="space-y-2">
       {members.map((member) => (
         <div
           key={member.userId}
-          className="flex items-center gap-3 rounded-lg border border-zinc-200 px-3 py-2 dark:border-zinc-700"
+          className="pixel-panel flex items-center gap-3"
+          style={{ padding: "var(--pixel-panel-compact)" }}
         >
-          {/* Avatar: 32×32 colored circle with initials if no avatar */}
+          {/* Avatar: colored pixel initials square */}
           <div className="relative flex-shrink-0">
             {member.avatarThumbnail ? (
               <img
                 src={member.avatarThumbnail}
                 alt={member.displayName}
-                className="h-8 w-8 rounded-full object-cover"
+                className="h-8 w-8 pixel-art"
+                style={{ imageRendering: "pixelated" }}
               />
             ) : (
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-violet-200 text-xs font-semibold text-violet-700 dark:bg-violet-800 dark:text-violet-200">
+              <div
+                className="flex h-8 w-8 items-center justify-center font-pixel text-[10px]"
+                style={{
+                  backgroundColor: "color-mix(in srgb, var(--pixel-accent) 20%, var(--pixel-bg-surface))",
+                  color: "var(--pixel-accent)",
+                  border: "2px solid var(--pixel-accent)",
+                }}
+              >
                 {getInitials(member.displayName)}
               </div>
             )}
 
-            {/* Presence dot */}
+            {/* Presence indicator */}
             {member.isStudying && (
-              <Circle
-                className="absolute -bottom-0.5 -right-0.5 h-3 w-3 fill-green-500 text-green-500"
+              <div
+                className="absolute -bottom-0.5 -right-0.5 h-3 w-3"
+                style={{
+                  backgroundColor: "var(--pixel-success)",
+                  border: "2px solid var(--pixel-bg-surface)",
+                }}
                 aria-label="Currently studying"
               />
             )}
           </div>
 
           {/* Display name */}
-          <span className="min-w-0 flex-1 truncate text-sm font-medium text-zinc-800 dark:text-zinc-200">
+          <span className="min-w-0 flex-1 truncate text-sm font-medium" style={{ color: "var(--pixel-text-primary)" }}>
             {member.displayName}
           </span>
 
-          {/* Join date (relative) */}
-          <span className="flex-shrink-0 text-xs text-zinc-500 dark:text-zinc-400">
+          {/* Join date */}
+          <span className="flex-shrink-0 font-pixel text-[9px]" style={{ color: "var(--pixel-text-muted)" }}>
             {formatRelativeJoinDate(member.joinedAt)}
           </span>
 
-          {/* Contribution count badge */}
-          <span className="flex-shrink-0 rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
-            {member.contributionCount} contribution{member.contributionCount !== 1 ? "s" : ""}
+          {/* Contribution badge */}
+          <span
+            className="flex-shrink-0 pixel-panel pixel-panel-inset font-pixel text-[9px] px-2 py-0.5"
+            style={{ color: "var(--pixel-text-secondary)" }}
+          >
+            {member.contributionCount}
           </span>
         </div>
       ))}
-
-      {members.length === 0 && (
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">No members yet.</p>
-      )}
     </div>
   );
 }
 
-/** Extract initials from a display name (max 2 chars). */
 function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/);
-  if (parts.length >= 2) {
-    return (parts[0][0] + parts[1][0]).toUpperCase();
-  }
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
   return (name.slice(0, 2) || "?").toUpperCase();
 }
 
-/** Format a join date as a relative string, e.g. "joined 3 days ago". */
 function formatRelativeJoinDate(isoDate: string): string {
-  const joined = new Date(isoDate);
-  const now = new Date();
-  const diffMs = now.getTime() - joined.getTime();
-  const diffSeconds = Math.floor(diffMs / 1000);
-  const diffMinutes = Math.floor(diffSeconds / 60);
-  const diffHours = Math.floor(diffMinutes / 60);
-  const diffDays = Math.floor(diffHours / 24);
-
-  if (diffDays < 1) {
-    return "joined today";
-  } else if (diffDays === 1) {
-    return "joined yesterday";
-  } else if (diffDays < 30) {
-    return `joined ${diffDays} days ago`;
-  } else if (diffDays < 365) {
-    const months = Math.floor(diffDays / 30);
-    return `joined ${months} month${months !== 1 ? "s" : ""} ago`;
-  } else {
-    const years = Math.floor(diffDays / 365);
-    return `joined ${years} year${years !== 1 ? "s" : ""} ago`;
-  }
+  const diffDays = Math.floor((Date.now() - new Date(isoDate).getTime()) / 86400000);
+  if (diffDays < 1) return "joined today";
+  if (diffDays === 1) return "joined yesterday";
+  if (diffDays < 30) return `joined ${diffDays}d ago`;
+  if (diffDays < 365) return `joined ${Math.floor(diffDays / 30)}mo ago`;
+  return `joined ${Math.floor(diffDays / 365)}y ago`;
 }
