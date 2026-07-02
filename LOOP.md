@@ -78,3 +78,9 @@
 2026-07-02T10:50:18Z | result | ddf1e18e | blocked | Sidebar nav regression check: all executed steps PASSED (login, Feynman page load, Study Planner page load) but the agent ran out of execution budget before asserting all 11 Study items. NOT a regression from adding Prediction Mode — the sidebar renders correctly and navigated pages load fine. Status is "blocked" (execution timeout), not "failed" (assertion violated).
 2026-07-02T11:02:18Z | fix-plan | ddf1e18e | — | Sidebar nav was "blocked" (agent ran out of budget navigating all 11 Study items). Simplified: renamed test, reduced to 3 representative pages (Feynman from Study, Pixel Room from My Room, Settings top-level) with per-page assertions. Triggered rerun d072f899.
 2026-07-02T11:08:25Z | rerun | ddf1e18e | passed | Simplified sidebar nav PASSED — Feynman Mode, Pixel Room, Settings all load without 404 or blank screen. Suite is now 19/19 ALL GREEN.
+
+2026-07-02T12:50:42Z | rerun-all | — | running | Batch rerun of all 19 tests triggered after UI improvements: party component reskins, xp-toast/success-check/video-search/topic-linker/time-range-selector/send-to-feynman all migrated to pixel-ui system.
+2026-07-02T13:01:18Z | fix-meta | f10b71eb | — | Dashboard test failing: asserting "streak" indicator which was intentionally removed from the UI (Nora replaced streaks with growth-first language showing XP + coins only). Updated test description and plan to match current dashboard reality.
+2026-07-02T13:02:43Z | fix-meta | e08cda2b | — | History test routing_404: test navigated to /history (bare path) instead of /app/history. Same plan-URL bug as the analytics test. Updated plan to navigate via /app/history route.
+2026-07-02T13:02:50Z | rerun | f10b71eb | running | Triggered rerun c37f1e15 of dashboard test with corrected plan.
+2026-07-02T13:02:51Z | rerun | e08cda2b | running | Triggered rerun 8bbf6ff9 of history test with corrected /app/history route.

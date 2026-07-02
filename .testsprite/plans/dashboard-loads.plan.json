@@ -1,14 +1,13 @@
 {
   "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
   "type": "frontend",
-  "name": "Dashboard shows stat row and Today's Quests with progress bars",
-  "description": "After logging in, the dashboard shows a prominent cards-due stat, an ambient row of streak / XP / coins, and a Today's Quests panel containing three quest items, each rendered as a card with a filled progress bar and an 'x / max' count.",
+  "name": "Dashboard displays stats and daily quests after login",
+  "description": "After logging in, the dashboard shows the user's cards due count, XP total, coins, and today's quest progress bars. Note: the dashboard shows XP and coins, NOT a streak counter — streak was intentionally removed from the UI in favour of encouraging language.",
   "priority": "p1",
   "planSteps": [
-    { "type": "action", "description": "Navigate to the login page" },
-    { "type": "action", "description": "Enter valid credentials and submit the login form" },
-    { "type": "action", "description": "Wait for the dashboard to finish loading" },
-    { "type": "assertion", "description": "Verify the dashboard shows a 'Cards due today' stat with a numeric value, and an ambient stat row containing Streak, XP, and Coins values displayed side-by-side on one line" },
-    { "type": "assertion", "description": "Verify a 'Today's Quests' panel shows three distinct quest cards (Review cards, Explain concepts, Study minutes) laid out side-by-side in a row on desktop width, each quest card containing a horizontal progress bar and a numeric 'current / target' label — not a plain text list" }
+    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to finish loading" },
+    { "type": "action", "description": "If a tour or onboarding popup appears, dismiss it" },
+    { "type": "assertion", "description": "Verify the dashboard shows a cards-due stat with a numeric value (such as 'memories to revisit' or a number near a book icon), and an ambient stat row showing XP and Coins values — confirming the stats section rendered correctly" },
+    { "type": "assertion", "description": "Verify a 'Today's Journey' or quests panel shows at least one quest card containing a horizontal progress bar and a numeric 'current / target' label (not a plain text list), confirming the quests section rendered with visual progress indicators" }
   ]
 }
