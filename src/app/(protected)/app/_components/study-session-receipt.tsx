@@ -189,22 +189,12 @@ export function StudySessionReceipt() {
     const el = receiptRef.current;
     if (!el) return;
     try {
-      // Dynamic import via Function constructor so TypeScript does not attempt
-      // to resolve the module at build time. html2canvas is an optional peer —
-      // if it's not installed the catch() below silently falls back.
-      // eslint-disable-next-line no-new-func
-      // Build the module name at runtime so Turbopack cannot statically
-      // resolve it (it would warn about a missing optional peer dep).
-      const mod = ["html", "2canvas"].join("");
-      const loader = new Function("m", "return import(m)") as (m: string) => Promise<{ default: unknown }>;
-      const { default: html2canvas } = await loader(mod).catch(() => ({ default: null }));
-      if (html2canvas) {
-        const canvas = await (html2canvas as (el: HTMLElement, opts: Record<string, unknown>) => Promise<HTMLCanvasElement>)(el, { scale: 2, backgroundColor: null });
-        const link = document.createElement("a");
-        link.download = `nora-session-${new Date().toISOString().slice(0, 10)}.png`;
-        link.href = canvas.toDataURL("image/png");
-        link.click();
-      }
+      const { default: html2canvas } = await import("html2canvas");
+      const canvas = await html2canvas(el, { scale: 2, backgroundColor: null });
+      const link = document.createElement("a");
+      link.download = `nora-session-${new Date().toISOString().slice(0, 10)}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
     } catch {
       // Image export unavailable (e.g. html2canvas not installed). The receipt
       // is already on screen, so a screenshot works — fail quietly rather than

@@ -425,10 +425,10 @@ export function StudyRoomLayout({
 
           {/* Note Generation Error */}
           {noteError && !isGenerating && (
-            <div className="rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-800 dark:bg-red-900/20">
-              <p className="text-sm text-red-700 dark:text-red-300">{noteError}</p>
+            <div className="rounded-lg border border-[var(--pixel-error)]/30 bg-[color-mix(in_srgb,var(--pixel-error)_8%,var(--pixel-bg-surface))] p-3">
+              <p className="text-sm text-[var(--pixel-error)]">{noteError}</p>
               {noteError.includes("transcript") && transcriptError && (
-                <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                <p className="text-xs text-[var(--pixel-error)]/80 mt-1">
                   Reason: {transcriptError}
                 </p>
               )}

@@ -270,10 +270,10 @@ export function PixelRoom({
                 <Heart
                   className={`h-3 w-3 ${
                     state.pet.affinity > 70
-                      ? "text-red-400"
+                      ? "text-[var(--pixel-error)]"
                       : state.pet.affinity > 40
-                        ? "text-amber-400"
-                        : "text-zinc-400"
+                        ? "text-[var(--pixel-warning)]"
+                        : "text-[var(--pixel-text-muted)]"
                   }`}
                 />
                 <span className="font-pixel">{state.pet.affinity}%</span>
