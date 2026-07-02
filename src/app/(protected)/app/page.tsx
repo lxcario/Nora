@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/lib/supabase/auth";
 import { DialogFrame, PixelCounter } from "@/components/pixel-ui";
 import { endOfUserLocalDay } from "@/lib/due";
 import { computeStreak } from "@/lib/streak";
+import { getNextStudyAction } from "@/lib/study-router";
 
 // ---------------------------------------------------------------------------
 // Data fetching helpers
@@ -263,6 +264,19 @@ export default async function DashboardPage() {
   // Pet name for companion line
   const petName = (petData?.name as string) ?? "Buddy";
 
+  // ── Companion Router: pick the single best next action ──
+  const studyAction = getNextStudyAction({
+    cardsDue: cardsDueCount,
+    examSoon: (upcomingExams ?? 0) > 0,
+    struggledTopic,
+    masteredTopic,
+    feynmanProgressToday: feynmanProgress,
+    reviewProgressToday: reviewProgress,
+    returningAfterBreak,
+    allQuestsDone,
+    streak,
+  });
+
   // Generate companion dialogue
   const { getCompanionLine, getTimeOfDay } = await import("@/lib/companion-dialogue");
   const companionLine = getCompanionLine({
@@ -302,8 +316,34 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* ═══ Section 2 — Primary CTA ═══ */}
-      <PrimaryCTA cardsDue={cardsDueCount} />
+      {/* ═══ Section 2 — Companion Router (context-aware next action) ═══ */}
+      <Link
+        href={studyAction.href}
+        data-tour="dashboard-cta"
+        className="pixel-panel group flex items-center justify-between gap-4 transition-all hover:brightness-110"
+        style={{ padding: "var(--pixel-panel-spacious)", backgroundColor: "color-mix(in srgb, var(--pixel-accent) 18%, var(--pixel-bg-surface))" }}
+      >
+        <div className="flex items-center gap-4">
+          <img
+            src={studyAction.icon}
+            alt=""
+            width={40}
+            height={40}
+            className="pixel-art"
+          />
+          <div className="flex flex-col gap-0.5">
+            <span className="font-pixel text-base text-[var(--pixel-accent)]">
+              {studyAction.label}
+            </span>
+            <span className="text-xs text-[var(--pixel-text-secondary)]">
+              {studyAction.reason}
+            </span>
+          </div>
+        </div>
+        <span className="text-[var(--pixel-accent)] text-2xl group-hover:translate-x-1 transition-transform">
+          →
+        </span>
+      </Link>
 
       {/* ═══ Section 3 — Stat Row ═══ */}
       {/* Prominent: Cards Due */}
@@ -405,36 +445,6 @@ export default async function DashboardPage() {
 // ---------------------------------------------------------------------------
 // Section sub-components
 // ---------------------------------------------------------------------------
-
-function PrimaryCTA({ cardsDue }: { cardsDue: number }) {
-  const hasDue = cardsDue > 0;
-  return (
-    <Link
-      href={hasDue ? "/app/review" : "/app/feynman"}
-      data-tour="dashboard-cta"
-      className="pixel-panel group flex items-center justify-between gap-4 transition-all hover:brightness-110"
-      style={{ padding: "var(--pixel-panel-spacious)", backgroundColor: "color-mix(in srgb, var(--pixel-accent) 18%, var(--pixel-bg-surface))" }}
-    >
-      <div className="flex items-center gap-4">
-        <img
-          src={hasDue ? "/sprites/travel-book/icons/Book.png" : "/sprites/travel-book/icons/Lightbulb.png"}
-          alt=""
-          width={40}
-          height={40}
-          className="pixel-art"
-        />
-        <span className="font-pixel text-base text-[var(--pixel-accent)]">
-          {hasDue
-            ? `Revisit ${cardsDue} ${cardsDue === 1 ? "memory" : "memories"}`
-            : "Explore something new"}
-        </span>
-      </div>
-      <span className="text-[var(--pixel-accent)] text-2xl group-hover:translate-x-1 transition-transform">
-        →
-      </span>
-    </Link>
-  );
-}
 
 function FriendsActivity({ feed }: { feed: FriendsFeed }) {
   const ACTIVITY_ICONS: Record<FriendActivity["activityType"], string> = {

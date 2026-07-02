@@ -1,0 +1,14 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "Dashboard companion router renders context-aware CTA and navigates on click",
+  "description": "After login, the dashboard shows a companion-voiced CTA panel with a study action label, a reason subtitle, and a pixel-art icon. Clicking the CTA navigates to a valid study page (e.g. /app/review or /app/feynman) without error.",
+  "priority": "p1",
+  "planSteps": [
+    { "type": "action", "description": "Navigate to the app login page and log in with the test credentials" },
+    { "type": "action", "description": "Wait for the dashboard page to load after login (the page that shows 'Welcome home')" },
+    { "type": "assertion", "description": "Verify the dashboard contains a prominent CTA panel (marked with data-tour='dashboard-cta') that displays a pixel-art icon, a text label in the accent color, and a smaller reason/subtitle text below it" },
+    { "type": "action", "description": "Click the companion router CTA panel (the large clickable panel with the arrow)" },
+    { "type": "assertion", "description": "Verify navigation succeeded: the browser is now on a study page (URL contains /app/review, /app/feynman, or /app/research) and the page renders content without a 404 or blank screen" }
+  ]
+}
