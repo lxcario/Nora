@@ -4,11 +4,12 @@
 
 | Metric | Value |
 |---|---|
-| **Tests banked** | 19 (18 passed + 1 new feature) |
-| **Loop iterations** | 20+ across June 30 – July 2 |
-| **Real bugs caught** | 2 (signup redirect, analytics routing) |
+| **Tests banked** | 19 (17 passed, 2 running reruns) |
+| **Loop iterations** | 35+ across June 30, July 2 (3 active days) |
+| **Real bugs caught** | 4 (signup redirect, analytics routing, dashboard streak assertion, history route) |
 | **New feature shipped under the loop** | Prediction Mode (pretesting effect + calibration) |
-| **Root causes diagnosed** | 5 distinct (wrong URL, nav thrash, data-dependent assertion, stale test name, platform viewport limitation) |
+| **Root causes diagnosed** | 9 distinct |
+| **UI improvements shipped** | 8 components migrated to pixel-ui system |
 | **Platform limitation documented** | Mobile-only responsive test — TestSprite's desktop runner can't simulate viewport resize |
 | **CI/CD integration** | Yes — GitHub Action reruns full suite on every push to master |
 
