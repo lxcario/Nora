@@ -1,15 +1,14 @@
 {
   "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
   "type": "frontend",
-  "name": "Sidebar navigation links open pages without errors",
-  "description": "After login, clicking three representative sidebar links (one from Study, one from My Room, one top-level) navigates to valid pages that render without a 404 or blank screen.",
+  "name": "Sidebar links open Feynman and Settings pages",
+  "description": "After login, clicking Feynman Mode and Settings in the sidebar navigates to pages that render their content without a 404 or blank screen.",
   "priority": "p1",
   "planSteps": [
-    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to finish loading" },
-    { "type": "action", "description": "If a tour or onboarding popup appears, dismiss it" },
-    { "type": "action", "description": "Click the 'Feynman Mode' link inside the Study section of the left sidebar and wait for the page to load" },
-    { "type": "assertion", "description": "Verify the Feynman Mode page loaded — it shows a heading or topic selector, and is NOT a 404 or blank page" },
-    { "type": "action", "description": "Click the 'Settings' link in the left sidebar and wait for the page to load" },
-    { "type": "assertion", "description": "Verify the Settings page loaded — it shows tabs or a settings form, and is NOT a 404 or blank page" }
+    { "type": "action", "description": "Log in with valid credentials and navigate to the dashboard" },
+    { "type": "action", "description": "Click the Feynman Mode link in the Study section of the sidebar" },
+    { "type": "assertion", "description": "Verify the Feynman Mode page loaded — it shows a topic selector or heading, NOT a 404 or blank page" },
+    { "type": "action", "description": "Click the Settings link in the sidebar" },
+    { "type": "assertion", "description": "Verify the Settings page loaded — it shows a settings form or tabs, NOT a 404 or blank page" }
   ]
 }
