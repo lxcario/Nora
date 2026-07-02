@@ -2,7 +2,6 @@
 
 import { useState, useTransition } from "react";
 import { updateVideoTopic } from "@/app/(protected)/app/_actions/study-room";
-import { Loader2 } from "lucide-react";
 
 export interface TopicOption {
   id: string;
@@ -17,15 +16,8 @@ interface TopicLinkerProps {
   onTopicChange?: (topicId: string | null) => void;
 }
 
-export function TopicLinker({
-  topics,
-  videoId,
-  currentTopicId,
-  onTopicChange,
-}: TopicLinkerProps) {
-  const [selectedTopicId, setSelectedTopicId] = useState<string | null>(
-    currentTopicId
-  );
+export function TopicLinker({ topics, videoId, currentTopicId, onTopicChange }: TopicLinkerProps) {
+  const [selectedTopicId, setSelectedTopicId] = useState<string | null>(currentTopicId);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -33,12 +25,10 @@ export function TopicLinker({
     const topicId = value === "none" ? null : value;
     setSelectedTopicId(topicId);
     setError(null);
-
     startTransition(async () => {
       const result = await updateVideoTopic(videoId, topicId);
       if (result.error) {
         setError(result.error);
-        // Revert on failure
         setSelectedTopicId(currentTopicId);
       } else {
         onTopicChange?.(topicId);
@@ -48,7 +38,7 @@ export function TopicLinker({
 
   return (
     <div className="flex flex-col gap-1">
-      <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+      <label className="font-pixel text-[9px] uppercase" style={{ color: "var(--pixel-text-muted)" }}>
         Topic
       </label>
       <div className="relative">
@@ -56,7 +46,14 @@ export function TopicLinker({
           value={selectedTopicId ?? "none"}
           onChange={(e) => handleChange(e.target.value)}
           disabled={isPending}
-          className="block w-full appearance-none rounded-md border border-zinc-300 bg-zinc-50 px-3 py-1.5 pr-8 text-sm text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 disabled:opacity-50"
+          className="pixel-input block w-full text-sm disabled:opacity-50"
+          style={{
+            backgroundColor: "var(--pixel-bg-primary)",
+            color: "var(--pixel-text-primary)",
+            border: "2px solid var(--pixel-border)",
+            padding: "6px 28px 6px 10px",
+            appearance: "none",
+          }}
         >
           <option value="none">None</option>
           {topics.map((t) => (
@@ -66,12 +63,15 @@ export function TopicLinker({
           ))}
         </select>
         {isPending && (
-          <div className="absolute right-2 top-1/2 -translate-y-1/2">
-            <Loader2 className="h-3.5 w-3.5 animate-spin text-zinc-400" />
-          </div>
+          <span
+            className="absolute right-2 top-1/2 -translate-y-1/2 font-pixel text-[9px] animate-pixel-blink"
+            style={{ color: "var(--pixel-accent)" }}
+          >
+            ...
+          </span>
         )}
       </div>
-      {error && <p className="text-xs text-red-500">{error}</p>}
+      {error && <p className="font-pixel text-[9px]" style={{ color: "var(--pixel-error)" }}>{error}</p>}
     </div>
   );
 }
