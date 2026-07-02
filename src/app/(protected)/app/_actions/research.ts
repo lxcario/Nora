@@ -778,11 +778,13 @@ export async function performResearch(query: string): Promise<{
 
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (user) {
-    const rateCheck = checkRateLimit(user.id, "research", RATE_LIMITS.ai_heavy.maxRequests, RATE_LIMITS.ai_heavy.windowMs);
-    if (!rateCheck.allowed) {
-      return { error: `Too many requests. Please wait ${Math.ceil((rateCheck.retryAfterMs ?? 0) / 1000)} seconds.` };
-    }
+  if (!user) {
+    return { error: "Sign in to run a research query." };
+  }
+
+  const rateCheck = checkRateLimit(user.id, "research", RATE_LIMITS.ai_heavy.maxRequests, RATE_LIMITS.ai_heavy.windowMs);
+  if (!rateCheck.allowed) {
+    return { error: `Too many requests. Please wait ${Math.ceil((rateCheck.retryAfterMs ?? 0) / 1000)} seconds.` };
   }
 
   // ── Step 1: Classify query intent ──────────────────────────────────────────

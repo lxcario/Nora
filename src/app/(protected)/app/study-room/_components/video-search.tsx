@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Loader2 } from "lucide-react";
+import { Search } from "lucide-react";
 import { searchVideos } from "../../_actions/study-room";
 
 interface VideoSearchProps {

@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { revalidatePath } from "next/cache";
 import {
   TranscriptSegment,
   VideoRecord,
@@ -97,11 +98,13 @@ export async function searchVideos(query: string): Promise<{
   // Rate limit check (YouTube API is quota-sensitive)
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (user) {
-    const rateCheck = checkRateLimit(user.id, "video_search", RATE_LIMITS.video_search.maxRequests, RATE_LIMITS.video_search.windowMs);
-    if (!rateCheck.allowed) {
-      return { error: `Too many searches. Please wait ${Math.ceil((rateCheck.retryAfterMs ?? 0) / 1000)} seconds.` };
-    }
+  if (!user) {
+    return { error: "Sign in to search for videos." };
+  }
+
+  const rateCheck = checkRateLimit(user.id, "video_search", RATE_LIMITS.video_search.maxRequests, RATE_LIMITS.video_search.windowMs);
+  if (!rateCheck.allowed) {
+    return { error: `Too many searches. Please wait ${Math.ceil((rateCheck.retryAfterMs ?? 0) / 1000)} seconds.` };
   }
 
   const apiKey = process.env.YOUTUBE_API_KEY;
@@ -822,6 +825,7 @@ export async function saveNote(
     updatedAt: data.updated_at,
   };
 
+  revalidatePath("/app/study-room");
   return { data: noteRecord };
 }
 
@@ -944,6 +948,7 @@ export async function updateVideoTopic(
     return { error: "Failed to update video topic. Please try again." };
   }
 
+  revalidatePath("/app/study-room");
   return { success: true };
 }
 
@@ -1042,6 +1047,7 @@ export async function saveVideoCards(
     console.warn("Failed to award XP for video cards:", err);
   }
 
+  revalidatePath("/app/study-room");
   return { success: true, count: cards.length };
 }
 
@@ -1289,8 +1295,8 @@ export async function evaluateWithTranscript(
       segments,
       suggestedCards: (parsed.suggestedCards as { front: string; back: string }[]) ?? [],
       score: computeComprehensionScore(segments),
-      // Transcript-based evaluation is grounded in the video's transcript.
-      grounded: true,
+      // Grounded only when a real transcript was available for evaluation.
+      grounded: Boolean(transcriptText),
       sourceLabel: video.title ? `"${video.title}" transcript` : "video transcript",
     };
   } catch {
@@ -1424,5 +1430,6 @@ export async function recordVideoSession(
     // Don't fail the overall operation — session was recorded successfully
   }
 
+  revalidatePath("/app/study-room");
   return { success: true };
 }

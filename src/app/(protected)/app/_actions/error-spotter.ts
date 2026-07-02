@@ -233,6 +233,15 @@ export async function evaluateSpotterAttempts(
     }, 0)
   );
 
+  // Persist XP atomically (was previously returned client-side only)
+  if (xpEarned > 0) {
+    await supabase.rpc("increment_profile_rewards", {
+      p_user_id: user.id,
+      p_xp: xpEarned,
+      p_coins: 0,
+    });
+  }
+
   return {
     data: {
       totalErrors: errors.length,

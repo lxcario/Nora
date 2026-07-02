@@ -10,6 +10,7 @@ import { callLLM, hasLLMProvider } from "@/lib/llm";
 import { NORA_VOICE_RESEARCH } from "@/lib/nora-voice";
 import { assertPublicHttpUrl } from "@/lib/ssrf";
 import { classifyEventType } from "@/lib/academic/academic-extract";
+import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
 // --- Types ---
 
@@ -58,6 +59,9 @@ export async function ingestPdf(formData: FormData): Promise<IngestionResult> {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { error: "Not authenticated" };
+
+  const rlPdf = checkRateLimit(user.id, "rag_ingest", RATE_LIMITS.ai_heavy.maxRequests, RATE_LIMITS.ai_heavy.windowMs);
+  if (!rlPdf.allowed) return { error: "Too many requests. Please wait a minute." };
 
   const file = formData.get("file") as File | null;
   if (!file) return { error: "No file provided" };
@@ -232,6 +236,9 @@ export async function ingestFromUrl(
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { error: "Not authenticated" };
+
+  const rlIngest = checkRateLimit(user.id, "rag_ingest", RATE_LIMITS.ai_heavy.maxRequests, RATE_LIMITS.ai_heavy.windowMs);
+  if (!rlIngest.allowed) return { error: "Too many requests. Please wait a minute." };
 
   // Validate URL (syntactic) then guard against SSRF (resolves DNS and
   // blocks private/loopback/link-local/metadata addresses before fetching).
@@ -491,6 +498,9 @@ export async function queryRag(
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { error: "Not authenticated" };
+
+  const rlQuery = checkRateLimit(user.id, "rag_query", RATE_LIMITS.ai_heavy.maxRequests, RATE_LIMITS.ai_heavy.windowMs);
+  if (!rlQuery.allowed) return { error: "Too many requests. Please wait a minute." };
 
   // 2. Validate question (3-500 chars)
   const questionValidation = validateQuestion(question);
@@ -1021,6 +1031,9 @@ export async function retryIngestion(
   } = await supabase.auth.getUser();
   if (!user) return { error: "Not authenticated" };
 
+  const rlRetry = checkRateLimit(user.id, "rag_ingest", RATE_LIMITS.ai_heavy.maxRequests, RATE_LIMITS.ai_heavy.windowMs);
+  if (!rlRetry.allowed) return { error: "Too many requests. Please wait a minute." };
+
   // Verify paper belongs to user and has a retriable status
   const { data: paper, error: fetchError } = await supabase
     .from("papers")
@@ -1208,6 +1221,9 @@ export async function deleteFullPaper(
   } = await supabase.auth.getUser();
   if (!user) return { error: "Not authenticated" };
 
+  const rlRetry = checkRateLimit(user.id, "rag_ingest", RATE_LIMITS.ai_heavy.maxRequests, RATE_LIMITS.ai_heavy.windowMs);
+  if (!rlRetry.allowed) return { error: "Too many requests. Please wait a minute." };
+
   // Verify paper belongs to user
   const { data: paper, error: fetchError } = await supabase
     .from("papers")
@@ -1280,6 +1296,9 @@ export async function generateSuggestedQuestions(
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Not authenticated" };
+
+  const rlSuggest = checkRateLimit(user.id, "rag_query", RATE_LIMITS.ai_light.maxRequests, RATE_LIMITS.ai_light.windowMs);
+  if (!rlSuggest.allowed) return { error: "Too many requests. Please wait a minute." };
 
   // Fetch chunks for this paper
   const { data: chunks, error: chunksError } = await supabase
