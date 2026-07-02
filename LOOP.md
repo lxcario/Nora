@@ -10,6 +10,7 @@
 | **New feature shipped under the loop** | Prediction Mode (pretesting effect + calibration) |
 | **Root causes diagnosed** | 5 distinct (wrong URL, nav thrash, data-dependent assertion, stale test name, platform viewport limitation) |
 | **Platform limitation documented** | Mobile-only responsive test — TestSprite's desktop runner can't simulate viewport resize |
+| **CI/CD integration** | Yes — GitHub Action reruns full suite on every push to master |
 
 > Agent-written loop log. One line per iteration.
 > Format: `[timestamp] | [action] | [test_id] | [verdict] | [summary]`
