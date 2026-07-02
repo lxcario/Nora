@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check } from "lucide-react";
 import { playCardSaved } from "@/lib/sfx";
 
 interface SuccessCheckProps {
@@ -35,10 +34,20 @@ export function SuccessCheck({ message, visible }: SuccessCheckProps) {
       className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none"
     >
       <div className="flex flex-col items-center gap-3 animate-pop-in motion-reduce:animate-none">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-500 shadow-lg shadow-green-500/30">
-          <Check className="h-9 w-9 text-white" strokeWidth={3} />
+        <div
+          className="flex h-16 w-16 items-center justify-center"
+          style={{
+            backgroundColor: "var(--pixel-success)",
+            border: "3px solid var(--pixel-border)",
+            boxShadow: "0 0 12px color-mix(in srgb, var(--pixel-success) 40%, transparent)",
+          }}
+        >
+          <img src="/sprites/travel-book/icons/Flower.png" alt="" width={32} height={32} className="pixel-art" />
         </div>
-        <span className="font-pixel text-sm text-zinc-100 dark:text-zinc-200 bg-zinc-900/80 px-3 py-1 rounded">
+        <span
+          className="pixel-panel font-pixel text-sm px-3 py-1"
+          style={{ color: "var(--pixel-text-primary)" }}
+        >
           {message}
         </span>
       </div>

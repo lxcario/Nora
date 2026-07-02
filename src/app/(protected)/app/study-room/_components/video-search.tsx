@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Search, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { searchVideos } from "../../_actions/study-room";
 
 interface VideoSearchProps {
@@ -162,10 +162,13 @@ export function VideoSearch({ onSelectVideo }: VideoSearchProps) {
                   video.durationSeconds
                 )
               }
-              className="group flex gap-3 rounded-lg border border-zinc-200 bg-white p-2 text-left transition-colors hover:border-indigo-300 hover:bg-indigo-50/50 dark:border-zinc-700 dark:bg-zinc-800 dark:hover:border-indigo-600 dark:hover:bg-indigo-900/20"
+              className="pixel-panel pixel-hover-brighten group flex gap-3 p-2 text-left transition-colors"
             >
               {/* Thumbnail */}
-              <div className="relative h-16 w-28 flex-shrink-0 overflow-hidden rounded-md bg-zinc-100 dark:bg-zinc-700">
+              <div
+                className="relative h-16 w-28 flex-shrink-0 overflow-hidden"
+                style={{ backgroundColor: "var(--pixel-bg-primary)", border: "2px solid var(--pixel-border)" }}
+              >
                 {video.thumbnailUrl ? (
                   <img
                     src={video.thumbnailUrl}
@@ -174,21 +177,24 @@ export function VideoSearch({ onSelectVideo }: VideoSearchProps) {
                   />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center">
-                    <Search className="h-5 w-5 text-zinc-400" />
+                    <img src="/sprites/travel-book/icons/Monitor.png" alt="" width={20} height={20} className="pixel-art opacity-50" />
                   </div>
                 )}
                 {/* Duration badge */}
-                <span className="absolute bottom-1 right-1 rounded bg-black/75 px-1 py-0.5 font-mono text-[10px] text-white">
+                <span
+                  className="absolute bottom-1 right-1 font-pixel text-[9px] px-1 py-0.5"
+                  style={{ backgroundColor: "var(--pixel-bg-elevated)", color: "var(--pixel-text-secondary)" }}
+                >
                   {formatDuration(video.durationSeconds)}
                 </span>
               </div>
 
               {/* Info */}
               <div className="flex min-w-0 flex-1 flex-col justify-center">
-                <p className="line-clamp-2 text-xs font-medium text-zinc-800 group-hover:text-indigo-700 dark:text-zinc-200 dark:group-hover:text-indigo-300">
+                <p className="line-clamp-2 text-xs font-medium" style={{ color: "var(--pixel-text-primary)" }}>
                   {video.title}
                 </p>
-                <p className="mt-0.5 truncate text-[11px] text-zinc-500 dark:text-zinc-400">
+                <p className="mt-0.5 truncate font-pixel text-[9px]" style={{ color: "var(--pixel-text-muted)" }}>
                   {video.channelTitle}
                 </p>
               </div>
@@ -199,7 +205,7 @@ export function VideoSearch({ onSelectVideo }: VideoSearchProps) {
 
       {/* Empty state after search */}
       {!isLoading && !error && results.length === 0 && query.trim().length >= 3 && (
-        <p className="text-center text-xs text-zinc-400 dark:text-zinc-500">
+        <p className="text-center font-pixel text-[10px]" style={{ color: "var(--pixel-text-muted)" }}>
           No results found. Try a different search term.
         </p>
       )}

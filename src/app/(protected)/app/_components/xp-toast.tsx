@@ -34,12 +34,15 @@ export function XpToast({ xp, coins, visible }: XpToastProps) {
       aria-live="polite"
       className="fixed top-6 left-1/2 z-50 -translate-x-1/2 pointer-events-none animate-float-up motion-reduce:animate-none motion-reduce:opacity-100"
     >
-      <div className="flex flex-col items-center gap-0.5 rounded-lg bg-zinc-900/90 px-4 py-2 shadow-lg border border-amber-500/40">
-        <span className="font-pixel text-lg text-amber-400 font-bold tracking-wide">
+      <div
+        className="pixel-panel flex flex-col items-center gap-0.5 px-4 py-2"
+        style={{ borderColor: "var(--pixel-accent)", backgroundColor: "var(--pixel-bg-elevated)" }}
+      >
+        <span className="font-pixel text-lg font-bold tracking-wide" style={{ color: "var(--pixel-accent)" }}>
           +{xp} XP
         </span>
         {coins != null && coins > 0 && (
-          <span className="font-pixel text-sm text-yellow-300">
+          <span className="font-pixel text-sm" style={{ color: "var(--pixel-warning)" }}>
             +{coins} coins
           </span>
         )}
