@@ -1,0 +1,37 @@
+name: TestSprite Verification Loop
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  testsprite:
+    name: Rerun TestSprite suite
+    runs-on: ubuntu-latest
+    # Don't block merges — this is a verification step, not a gate.
+    # If the suite fails, the action exits non-zero and shows as a check
+    # failure, but it won't prevent the push from landing.
+    continue-on-error: true
+
+    steps:
+      - name: Install TestSprite CLI
+        run: npm install -g @testsprite/testsprite-cli
+
+      - name: Configure credentials
+        env:
+          TESTSPRITE_API_KEY: ${{ secrets.TESTSPRITE_API_KEY }}
+        run: |
+          TESTSPRITE_API_KEY="${TESTSPRITE_API_KEY}" testsprite setup --from-env --yes --no-agent
+
+      - name: Rerun full test suite against live app
+        env:
+          TESTSPRITE_API_KEY: ${{ secrets.TESTSPRITE_API_KEY }}
+        run: |
+          TESTSPRITE_API_KEY="${TESTSPRITE_API_KEY}" testsprite test rerun \
+            --all \
+            --project 4ba5d8f8-310d-41bc-bbf4-b85208bb6d44 \
+            --target-url https://norastudy.vercel.app \
+            --wait \
+            --timeout 600 \
+            --output json
