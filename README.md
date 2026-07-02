@@ -250,6 +250,26 @@ Security posture — Row-Level Security on every user-owned table, SSRF protecti
 
 ---
 
+## The verification loop (TestSprite)
+
+Nora is an entry in **TestSprite Hackathon Season 3 — "Build the Loop."** The [TestSprite CLI](https://github.com/TestSprite/testsprite-cli) runs real browser tests **in the cloud against the live app** ([norastudy.vercel.app](https://norastudy.vercel.app)) and hands back one self-consistent failure bundle the coding agent acts on: `create → run → failure get → fix → rerun`, and every pass is banked.
+
+**What the loop covers** — a durable suite of frontend scenarios spanning the critical path and feature depth:
+
+| Area | Banked scenarios |
+|---|---|
+| Entry & auth | Landing page + sign-up CTA · Login → dashboard · Signup → onboarding wizard |
+| Core loop | Dashboard stats + daily quests · Sidebar navigation · Review card full flow · Review JOL confidence gate |
+| Learning features | Feynman evaluation + gap analysis · Study Mix interleaved queue · Research Desk sources + synthesis · Study Room video search · Study Planner weekly calendar |
+| World & social | Pixel Room pet + missions · Party create/join · Analytics dashboard · History · Settings theme persistence · Create subject/topic |
+
+**Real fixes the loop caught (see [`LOOP.md`](LOOP.md) for the full per-iteration log):**
+
+- **Signup redirect** — a new account landed on a blank `/app`; the loop caught it and the fix redirects straight to `/app/onboarding`.
+- **Analytics navigation** — a banked test was reaching a dead `/app/room/analytics` URL (404); the failure bundle showed the route mismatch, and the plan was corrected to navigate the sidebar to the real `/app/analytics`.
+
+The banked suite lives on the TestSprite platform under the submitting account, and failure bundles are archived under [`.testsprite/failure/`](.testsprite/).
+
 ## Run it locally
 
 ### Prerequisites

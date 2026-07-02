@@ -1,0 +1,18 @@
+{
+  "testId": "929c51ef-3cb2-452f-9435-16a1b92209ea",
+  "status": "failed",
+  "startedAt": "2026-07-02T07:26:00.424Z",
+  "finishedAt": "2026-07-02T07:36:12.475Z",
+  "videoUrl": "https://testsprite-videos.s3.us-east-1.amazonaws.com/74a84428-e061-70b8-6c8d-b36674881353/1782977769330695//tmp/952f1896-0832-4d4b-b65d-ceff7edd9595/result.webm",
+  "failureAnalysisUrl": null,
+  "snapshotId": "snap_d0f336e1cf53450e",
+  "runIdIfAvailable": "442d4d6e-86b2-4d07-9608-21ce570e1cf1",
+  "codeVersion": "v1",
+  "targetUrl": "https://norastudy.vercel.app",
+  "targetUrlSource": "run",
+  "failedStepIndex": 12,
+  "failureKind": "routing_404",
+  "verdict": "failed",
+  "executionStatus": "completed",
+  "summary": "Failed (routing_404): TEST FAILURE\n\nThe Analytics page could not be reached — the expected Analytics UI was not available to verify stat cards or the consistency heatmap.\n\nObservations:\n- Navigating to /app/room/analytics displayed a \"404 Page not found\" message with text \"This route doesn't exist in Nora.\" \n- The sidebar showed an 'Analytics' label earlier, but no distinct clickable Analytics link could be found after multiple attempts.\n- Attempts to interact with sidebar anchors repeatedly op…"
+}
