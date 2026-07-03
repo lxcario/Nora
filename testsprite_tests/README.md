@@ -6,7 +6,7 @@ live app at **https://norastudy.vercel.app** and banked on the TestSprite
 platform under the submitting account.
 
 - **Project:** Nora — `4ba5d8f8-310d-41bc-bbf4-b85208bb6d44`
-- **Banked suite:** 20 frontend scenarios, **20/20 passing**, every one `createdFrom: cli`
+- **Banked suite:** 28 frontend scenarios, **28/28 passing**, every one `createdFrom: cli`
 - **Per-iteration loop log:** [`../LOOP.md`](../LOOP.md)
 - **Archived failure bundle:** [`failure/analytics-442d4d6e/`](failure/) — a real
   `routing_404` failure the loop caught and fixed
@@ -15,7 +15,7 @@ platform under the submitting account.
 
 Every scenario followed the loop: `create → run → failure get → fix → rerun → bank`.
 
-## Banked suite (20 scenarios, all passing)
+## Banked suite (28 scenarios, all passing)
 
 | # | Test ID | Scenario | Pri | Steps | Plan file |
 |---|---|---|---|---|---|
@@ -39,6 +39,22 @@ Every scenario followed the loop: `create → run → failure get → fix → re
 | 18 | `43aa81fa` | User can create a subject and topic in Settings | p1 | 6 | `plans/create-subject-topic.plan.json` |
 | 19 | `ea7915bb` | Prediction Mode shows questions, accepts guesses, shows calibration | p1 | 5 | `plans/prediction-mode.plan.json` |
 | 20 | `ccf5a39e` | Dashboard companion router renders context-aware CTA and navigates | p1 | 5 | `plans/companion-router.plan.json` |
+| 21 | `78969459` | Practice Exam page shows the exam setup for a logged-in user | p2 | 4 | `plans/exam-setup.plan.json` |
+| 22 | `6191b308` | Knowledge Web page renders its concept explorer | p2 | 3 | `plans/knowledge-web.plan.json` |
+| 23 | `ceb34635` | Eureka page renders the connections explorer | p2 | 3 | `plans/eureka-connections.plan.json` |
+| 24 | `cb9114e7` | Listen Mode page renders topic selection or empty state | p2 | 4 | `plans/listen-mode.plan.json` |
+| 25 | `80e58c2d` | Card Market shows shared decks or a join-a-party prompt | p2 | 4 | `plans/card-market.plan.json` |
+| 26 | `13eb535a` | Journal "Your Story" renders the learning timeline or empty state | p2 | 4 | `plans/journal-story.plan.json` |
+| 27 | `8045ec52` | Error Spotter page renders the challenge setup | p2 | 4 | `plans/error-spotter.plan.json` |
+| 28 | `da45749b` | Memory Garden shows topic health plants or an empty garden | p2 | 4 | `plans/memory-garden.plan.json` |
+
+Tests 21–28 were added in the July 3 loop to expand coverage across eight
+previously-untested features. Six passed on the first run; **Knowledge Web (#22)
+and Eureka (#23)** first came back `blocked` — the pages rendered correctly but
+a verbose two-branch assertion made the testing agent run out of runway before
+emitting a verdict. Tightening each to a single decisive assertion (referencing
+the concrete empty-state control) and rerunning turned both green. See
+[`../LOOP.md`](../LOOP.md) for the per-iteration detail.
 
 ## Retired / experimental plans
 
@@ -51,8 +67,8 @@ final banked suite:
   (`md:hidden`, fixed-bottom) and works for real mobile users; this is a runner
   limitation, out of scope per the "state outside the test's control" rule.
   (See `../LOOP.md`, 2026-07-02.)
-- `calibration-analytics.plan.json`, `memory-garden.plan.json` — exploratory
-  plans drafted during the loop that were folded into other banked scenarios.
+- `calibration-analytics.plan.json` — exploratory plan drafted during the loop
+  that was folded into other banked scenarios.
 
 ## Reproduce
 

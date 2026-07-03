@@ -34,11 +34,12 @@ loop that caught genuine regressions in a production-grade Next.js app.
 
 | Metric | Value |
 |---|---|
-| Tests banked | **20 — all passing** |
-| Loop iterations | **35+** across 3 active build days (Jun 30, Jul 2–3) |
+| Tests banked | **28 — all passing** |
+| Loop iterations | **45+** across 3 active build days (Jun 30, Jul 2–3) |
 | Real product bugs caught & fixed | **4** |
 | Distinct root causes diagnosed | **9** |
 | New features shipped *under* the loop | **2** (Prediction Mode, Companion Router) |
+| Coverage expansion (Jul 3) | **8 new feature scenarios** banked (20 → 28) |
 | Platform limitation found & documented | 1 (desktop-only runner can't simulate mobile resize) |
 | CI/CD | GitHub Action reruns the suite on every push to `master` |
 
@@ -79,13 +80,26 @@ runner uses a fixed desktop viewport and ignores resize steps. The `BottomNav`
 is correctly wired and works for real users — documented as a runner limitation,
 not faked green.
 
-## Suite breadth (20 scenarios across 10+ features)
+### Coverage expansion — 8 new scenarios (Jul 3), one more real loop
+To deepen the suite I added tests for eight previously-untested features:
+Practice Exam, Listen Mode, Card Market, Journal ("Your Story"), Error Spotter,
+Memory Garden, Knowledge Web, and Eureka. Six passed first run. **Knowledge Web
+and Eureka** came back `blocked` — the pages rendered perfectly, but a verbose
+two-branch assertion made the testing agent run out of runway before emitting a
+verdict. Reading the run summary revealed the exact empty-state controls, so I
+tightened each plan to a single decisive assertion (`Generate Knowledge Web` /
+`Discover connections` buttons), pushed the new steps with `test plan put`, and
+reran — both green. A clean create → blocked → diagnose → fix → rerun → pass cycle.
+
+## Suite breadth (28 scenarios across 18+ features)
 
 Entry & auth (landing, login, signup→onboarding) · core loop (dashboard,
 sidebar, review full flow, JOL confidence) · learning features (Feynman
-evaluation, Study Mix, Research Desk, Study Room video, Planner) · world & social
-(Pixel Room, Party, Analytics, History, Settings theme, create subject/topic) ·
-in-loop features (Prediction Mode, Companion Router).
+evaluation, Study Mix, Research Desk, Study Room video, Planner, Practice Exam,
+Listen Mode, Error Spotter) · knowledge tools (Knowledge Web, Eureka, Memory
+Garden, Journal) · world & social (Pixel Room, Party, Card Market, Analytics,
+History, Settings theme, create subject/topic) · in-loop features (Prediction
+Mode, Companion Router).
 
 Full ID-level table: [`testsprite_tests/README.md`](testsprite_tests/README.md).
 

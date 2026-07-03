@@ -1,0 +1,13 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "Listen Mode page renders topic selection or empty state",
+  "description": "A logged-in user opens /app/listen and sees the real Listen Mode feature -- the 'Listen Mode' heading and the guidance about turning notes into a study conversation -- with the interactive area rendered below (either a topic selector to choose material, OR a clear empty state prompting the user to add topics/subjects first). This is a new account, so a generated dialogue is NOT required.",
+  "priority": "p2",
+  "planSteps": [
+    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to finish loading" },
+    { "type": "action", "description": "Navigate directly to the /app/listen route" },
+    { "type": "assertion", "description": "Verify the page renders the 'Listen Mode' heading (not a 404 or blank screen) with the descriptive guidance about turning notes into a study conversation" },
+    { "type": "assertion", "description": "Verify the area below the header renders real content -- either a topic selection control to pick study material OR a clear empty-state message inviting the user to add topics -- rather than an empty or broken container" }
+  ]
+}

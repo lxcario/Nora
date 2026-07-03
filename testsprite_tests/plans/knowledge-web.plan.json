@@ -1,0 +1,13 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "Knowledge Web page renders its concept explorer for a logged-in user",
+  "description": "A logged-in user opens /app/knowledge-web and sees the real Knowledge Web feature -- the 'Knowledge Web' heading and the guidance about seeing how concepts connect across subjects -- with the interactive concept area rendered below (either a graph/node canvas or a clear empty state prompting the user to add concepts). This is a new account, so a populated graph is NOT required.",
+  "priority": "p2",
+  "planSteps": [
+    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to finish loading" },
+    { "type": "action", "description": "Navigate directly to the /app/knowledge-web route" },
+    { "type": "assertion", "description": "Verify the page renders the 'Knowledge Web' heading (not a 404 or blank screen) with the descriptive guidance about how concepts connect across subjects" },
+    { "type": "assertion", "description": "Verify the concept explorer area below the header renders real content -- either an interactive node/graph canvas OR a clear empty-state message inviting the user to add concepts -- rather than an empty or broken container" }
+  ]
+}

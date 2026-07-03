@@ -1,0 +1,13 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "Practice Exam page shows the exam setup for a logged-in user",
+  "description": "A logged-in user opens /app/exam and sees the real Practice Exam setup UI -- the 'Practice Exam' heading, the guidance about uploading a PDF or pasting notes, and the setup controls to start generating an exam -- rather than a 404, a blank page, or unstyled text. Prior exam history is optional and only shows if the account has taken exams.",
+  "priority": "p2",
+  "planSteps": [
+    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to finish loading" },
+    { "type": "action", "description": "Navigate directly to the /app/exam route" },
+    { "type": "assertion", "description": "Verify the page renders the 'Practice Exam' heading (not a 404 or blank screen) together with the descriptive guidance about uploading a PDF or pasting notes to generate a timed exam" },
+    { "type": "assertion", "description": "Verify the exam setup controls are present -- an area to provide source material (a file upload control and/or a text area to paste notes) and a control to begin generating the exam -- confirming the setup component rendered rather than an empty container" }
+  ]
+}

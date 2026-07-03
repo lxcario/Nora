@@ -4,8 +4,8 @@
 
 | Metric | Value |
 |---|---|
-| **Tests banked** | 19 (17 passed, 2 running reruns) |
-| **Loop iterations** | 35+ across June 30, July 2 (3 active days) |
+| **Tests banked** | 28 (28 passed — full suite green) |
+| **Loop iterations** | 45+ across June 30, July 2–3 (3 active days) |
 | **Real bugs caught** | 4 (signup redirect, analytics routing, dashboard streak assertion, history route) |
 | **New feature shipped under the loop** | Prediction Mode (pretesting effect + calibration) |
 | **Root causes diagnosed** | 9 distinct |
@@ -101,3 +101,17 @@
 2026-07-03T02:11:00Z | fix | — | — | Regenerated TestSprite API key (old key sk-user-M118... was revoked). Configured CLI via TESTSPRITE_API_KEY env var.
 2026-07-03T02:11:17Z | run | ccf5a39e | passed | Companion Router test PASSED — 19/19 steps. Login, dashboard load, CTA panel assertion (icon+label+reason), click, navigation to study page all green. Test banked. Suite now **20 tests, all passing.**
 2026-07-03T02:00:00Z | fix | — | — | Off-theme color violations: replaced all indigo/zinc/emerald/red/amber Tailwind classes with pixel-ui token equivalents across 4 files (video-card-editor, party-presence-indicator, pixel-room, study-room-layout). Installed html2canvas so receipt Download button actually works. Committed 7f4a805, deployed to Vercel.
+
+2026-07-03T14:50:39Z | create+run | 78969459 | passed | Practice Exam (/app/exam) — heading + exam setup (upload PDF / paste notes). Passed first run. Suite 21.
+2026-07-03T14:52:31Z | create+run | cb9114e7 | passed | Listen Mode (/app/listen) — heading + topic selector / empty state. Passed first run.
+2026-07-03T14:52:31Z | create+run | 80e58c2d | passed | Card Market (/app/card-market) — heading + shared-deck browser OR "Go to Friends" join prompt. Passed first run.
+2026-07-03T14:52:31Z | create+run | 13eb535a | passed | Journal "Your Story" (/app/journal, unlisted page reached by direct URL) — heading + learning timeline OR "Your story is just beginning" empty state. Passed first run.
+2026-07-03T14:52:31Z | create+run | 8045ec52 | passed | Error Spotter (/app/error-spotter) — heading + challenge setup / topic selector. Passed first run.
+2026-07-03T14:52:31Z | create+run | da45749b | passed | Memory Garden (/app/memory-map) — heading + plant-card grid & health summary OR "Your garden is empty" state. Rewrote the earlier draft to navigate by direct URL instead of the nested sidebar accordion (same lesson as the analytics arc). Passed first run.
+2026-07-03T14:55:47Z | result | 6191b308 | blocked | Knowledge Web (/app/knowledge-web) — page rendered correctly (heading, guidance, and a "Generate Knowledge Web" empty-state button all present; the agent's own findings said PASS) but the run terminated "blocked" before emitting a verdict. Root cause: the assertion was a verbose two-branch "either graph OR empty state … not a broken container" that made the agent burn its runway re-checking both branches.
+2026-07-03T14:55:47Z | result | ceb34635 | blocked | Eureka (/app/eureka) — same pattern: heading + guidance + "Discover connections" empty-state button all rendered, but the verbose OR-assertion blocked a clean verdict.
+2026-07-03T15:13:04Z | fix-plan | 6191b308 | — | Tightened to a single decisive assertion referencing the concrete empty-state control ("Generate Knowledge Web" button); pushed via `test plan put`.
+2026-07-03T15:13:05Z | fix-plan | ceb34635 | — | Tightened to a single decisive assertion referencing the "Discover connections" button; pushed via `test plan put`.
+2026-07-03T15:13:xxZ | rerun | 6191b308 | passed | Knowledge Web PASSED on the tightened plan.
+2026-07-03T15:13:xxZ | rerun | ceb34635 | passed | Eureka PASSED on the tightened plan.
+2026-07-03T15:15:00Z | rerun-all | ALL | passed | **28/28 ALL GREEN.** Suite expanded from 20 to 28 banked scenarios by adding coverage for eight previously-untested features (Practice Exam, Listen Mode, Card Market, Journal, Error Spotter, Memory Garden, Knowledge Web, Eureka). Reconfirmed loop lesson: FE assertions must be single and decisive — verbose "either/or … not broken" assertions can block a verdict even when the page is fully correct.

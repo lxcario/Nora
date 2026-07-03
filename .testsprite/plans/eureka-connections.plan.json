@@ -1,0 +1,13 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "Eureka page renders the connections explorer for a logged-in user",
+  "description": "A logged-in user opens /app/eureka and sees the real Eureka feature -- the 'Eureka!' heading and the guidance about discovering hidden connections between subjects -- with the connections explorer rendered below (either generated connection content/controls or a clear empty state). This is a new account, so populated connections are NOT required.",
+  "priority": "p2",
+  "planSteps": [
+    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to finish loading" },
+    { "type": "action", "description": "Navigate directly to the /app/eureka route" },
+    { "type": "assertion", "description": "Verify the page renders the 'Eureka!' heading (not a 404 or blank screen) with the descriptive guidance about discovering hidden connections between subjects" },
+    { "type": "assertion", "description": "Verify the connections explorer area below the header renders real content -- either a control to generate/reveal a connection and connection cards, OR a clear empty-state or prompt message -- rather than an empty or broken container" }
+  ]
+}

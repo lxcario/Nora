@@ -1,13 +1,13 @@
 {
   "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
   "type": "frontend",
-  "name": "Memory Garden shows topic health as pixel plant cards",
-  "description": "The Memory Garden page visualizes knowledge retention per topic as a grid of plant cards. Each card shows a pixel plant sprite, the topic name, a health label (Blooming/Healthy/Needs water/Forgotten/Seedling), and a retrievability percentage or 'No reviews'. Wilting/forgotten topics are clickable links to the review page.",
+  "name": "Memory Garden shows topic health plants or an empty garden",
+  "description": "A logged-in user opens /app/memory-map and sees the real Memory Garden -- the 'Memory Garden' heading and the guidance that each plant represents a topic whose health shows how well it is remembered. The body shows EITHER a grid of plant cards (each with a pixel plant sprite, topic name, a health label such as Blooming/Healthy/Needs water/Forgotten/Seedling, and a retrievability percentage or 'No reviews') plus a summary strip of health counts, OR a clear 'Your garden is empty' state with a link to set up subjects. This is a new account, so a populated garden is NOT required. A 404 or blank page is not acceptable.",
   "priority": "p2",
   "planSteps": [
-    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to load" },
-    { "type": "action", "description": "Click the Memory Garden link in the sidebar" },
-    { "type": "assertion", "description": "Verify the Memory Garden page shows a heading 'Memory Garden' and EITHER a grid of plant cards arranged in multiple columns (each card containing a pixel plant sprite image, a topic name, a health label, and a percentage or 'No reviews'), OR an empty state message explaining the garden is empty with a link to set up subjects — confirming the page rendered real content rather than a blank container" },
-    { "type": "assertion", "description": "Verify a summary strip is visible above the grid showing counts of plant health categories (such as 'blooming', 'healthy', 'need watering', or 'new'), OR the empty state is shown — confirming the aggregation logic ran" }
+    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to finish loading" },
+    { "type": "action", "description": "Navigate directly to the /app/memory-map route" },
+    { "type": "assertion", "description": "Verify the page renders the 'Memory Garden' heading (not a 404 or blank screen) with the guidance about plants representing topics and their health" },
+    { "type": "assertion", "description": "Verify the body renders exactly one of the two valid states: EITHER a grid of topic plant cards with health labels and a summary strip of health counts, OR the 'Your garden is empty' empty state with a link to set up subjects -- rather than an empty or broken container" }
   ]
 }

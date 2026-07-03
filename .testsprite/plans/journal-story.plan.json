@@ -1,0 +1,13 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "Journal Your Story page renders the learning timeline or empty state",
+  "description": "The Journal is a quiet, unlisted page reached directly at /app/journal (it is intentionally not in the sidebar). A logged-in user who opens it sees the 'Your Story' heading and the subtitle about every explanation written and concept mastered, followed by EITHER a chronological timeline of learning milestone entries with dates, OR a gentle empty state ('Your story is just beginning.') for a new account. A 404 or blank page is not acceptable.",
+  "priority": "p2",
+  "planSteps": [
+    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to finish loading" },
+    { "type": "action", "description": "Navigate directly to the /app/journal route" },
+    { "type": "assertion", "description": "Verify the page renders the 'Your Story' heading (not a 404 or blank screen) with the subtitle referencing the explanations written and concepts mastered" },
+    { "type": "assertion", "description": "Verify the body renders exactly one of the two valid states: EITHER a chronological timeline of milestone entries each showing a formatted date and a sentence, OR the gentle empty-state message 'Your story is just beginning.' -- rather than an empty or broken container" }
+  ]
+}

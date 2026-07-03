@@ -1,0 +1,7 @@
+{
+  "planSteps": [
+    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to finish loading" },
+    { "type": "action", "description": "Navigate directly to the /app/eureka route and wait for the page to finish loading" },
+    { "type": "assertion", "description": "Verify the page shows the 'Eureka!' heading and, below it, a 'Discover connections' button (the empty state for an account with no connections yet). Finding the heading with that button, or already-rendered connection cards, means PASS; a 404 or blank page means FAIL." }
+  ]
+}

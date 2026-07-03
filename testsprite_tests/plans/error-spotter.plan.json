@@ -1,0 +1,13 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "Error Spotter page renders the challenge setup for a logged-in user",
+  "description": "A logged-in user opens /app/error-spotter and sees the real Error Spotter feature -- the 'Error Spotter' heading and the guidance that the AI wrote an explanation with hidden mistakes to find -- with the interactive setup rendered below (either a topic selector to choose material and start a challenge, OR a clear empty state prompting the user to add topics first). This is a new account, so a generated challenge is NOT required.",
+  "priority": "p2",
+  "planSteps": [
+    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to finish loading" },
+    { "type": "action", "description": "Navigate directly to the /app/error-spotter route" },
+    { "type": "assertion", "description": "Verify the page renders the 'Error Spotter' heading (not a 404 or blank screen) with the guidance about finding hidden mistakes in an AI-written explanation" },
+    { "type": "assertion", "description": "Verify the area below the header renders real content -- either a topic selection control to start a challenge OR a clear empty-state message inviting the user to add topics -- rather than an empty or broken container" }
+  ]
+}
