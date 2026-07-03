@@ -1,0 +1,13 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "Pixel Room renders the companion pet and today's missions",
+  "description": "The Pixel Room shows the user's companion as a rendered animated sprite (not a broken-image placeholder), a pet mood/status label, and a Today's Missions list with at least one mission and its progress.",
+  "priority": "p2",
+  "planSteps": [
+    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to load" },
+    { "type": "action", "description": "Click the Pixel Room link in the sidebar" },
+    { "type": "assertion", "description": "Verify the page displays a companion pet sprite image that has actually rendered with visible pixels (not a broken-image icon or empty box), accompanied by a pet name and a mood/status label such as Happy, Neutral, or Sad" },
+    { "type": "assertion", "description": "Verify a Today's Missions section is present listing at least one mission item, and each mission shows a progress indicator (a count like '2 / 20' or a progress bar), confirming the missions area populated with real data rather than an empty heading" }
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "rootCauseHypothesis": "TEST FAILURE\n\nThe Analytics page could not be reached — the expected Analytics UI was not available to verify stat cards or the consistency heatmap.\n\nObservations:\n- Navigating to /app/room/analytics displayed a \"404 Page not found\" message with text \"This route doesn't exist in Nora.\" \n- The sidebar showed an 'Analytics' label earlier, but no distinct clickable Analytics link could be found after multiple attempts.\n- Attempts to interact with sidebar anchors repeatedly opened other pages (e.g., 'Pixel Room') instead of an Analytics view, preventing access to the feature.",
+  "recommendedFixTarget": null,
+  "evidence": []
+}

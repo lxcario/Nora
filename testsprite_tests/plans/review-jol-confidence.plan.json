@@ -1,0 +1,13 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "Review session shows confidence rating before answer reveal",
+  "description": "When the review page loads, it shows EITHER a confidence-gate UI (cards with 1-5 confidence buttons that must be clicked before Reveal Answer appears), OR a session-complete screen, OR an empty state. The confidence gate is the primary feature being tested, but the test must not fail if the account has no due cards.",
+  "priority": "p1",
+  "planSteps": [
+    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to finish loading" },
+    { "type": "action", "description": "Navigate to the Today's Memories review page via the /app/review route" },
+    { "type": "action", "description": "If a tour or onboarding popup appears, dismiss it" },
+    { "type": "assertion", "description": "Verify the page loaded correctly — it shows EITHER (a) a review card with confidence rating buttons (numbers 1 through 5 or labels like 'Can't recall' through 'Certain') visible BEFORE any 'Reveal Answer' button, confirming the JOL confidence gate is active, OR (b) a session-complete or empty-state screen. The page must NOT be a 404 or blank container." }
+  ]
+}

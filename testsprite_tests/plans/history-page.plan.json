@@ -1,0 +1,14 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "History page shows past study activity",
+  "description": "A logged-in user opens the History page and sees past Feynman explanations, video sessions, or research queries grouped by date — or a clear empty-state message if there is no history yet. The page must NOT show a 404.",
+  "priority": "p2",
+  "planSteps": [
+    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to load" },
+    { "type": "action", "description": "Open the History page by navigating to the /app/history route" },
+    { "type": "action", "description": "If a tour or onboarding popup appears, dismiss it" },
+    { "type": "assertion", "description": "Verify this is the real History page — it shows a heading or filter controls related to history, and is NOT a '404 / route doesn't exist' page and NOT a blank container" },
+    { "type": "assertion", "description": "Verify the page shows EITHER a list of past study activity entries grouped by date, OR a clear empty-state message indicating no history yet — either confirms the History view rendered its content correctly" }
+  ]
+}

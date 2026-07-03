@@ -1,0 +1,14 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "Prediction Mode shows questions, accepts guesses, and displays calibration feedback",
+  "description": "A logged-in user opens Prediction Mode (/app/focus), sees an explanatory science card and either a prediction session (with question cards, guess input, confidence buttons) or an empty state prompting them to create cards first. The page renders without errors.",
+  "priority": "p1",
+  "planSteps": [
+    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to load" },
+    { "type": "action", "description": "Open Prediction Mode by navigating to the /app/focus route" },
+    { "type": "action", "description": "If a tour or onboarding popup appears, dismiss it" },
+    { "type": "assertion", "description": "Verify the page shows the heading 'Prediction Mode' and a science explanation card mentioning the pretesting effect — confirming this is the real Prediction Mode page and NOT a 404 or blank container" },
+    { "type": "assertion", "description": "Verify the page shows EITHER a prediction session with a question card (text + a guess textarea + confidence rating buttons numbered 1 through 5 + a submit button) OR an empty state message prompting the user to create cards first — either indicates the feature rendered correctly" }
+  ]
+}

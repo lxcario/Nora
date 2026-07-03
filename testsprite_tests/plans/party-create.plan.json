@@ -1,0 +1,12 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "Friends page shows party discovery or the current party",
+  "description": "The Friends/Party page shows either a discovery view with create-party and join-by-code options, or the user's existing party with its name, members, and quests.",
+  "priority": "p2",
+  "planSteps": [
+    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to load" },
+    { "type": "action", "description": "Click the Friends link in the sidebar" },
+    { "type": "assertion", "description": "Verify the page shows EITHER a discovery view containing a Create Party action and a join-with-code input field, OR an existing-party view displaying the party name with a members section and a quests section — confirming the social view rendered one of its real states rather than an empty container" }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "Mobile viewport shows a bottom nav bar and hides the sidebar",
+  "description": "On a narrow mobile viewport the desktop left sidebar is hidden and a fixed bottom navigation bar appears, presenting its primary destinations (Home, Review, Feynman, Research) plus a More button as a single horizontal row of tap targets pinned to the bottom edge. Tapping a tab navigates.",
+  "priority": "p2",
+  "planSteps": [
+    { "type": "action", "description": "Resize the browser to a narrow mobile viewport about 390 pixels wide" },
+    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to load" },
+    { "type": "action", "description": "If a tour or onboarding popup appears, dismiss it so the bottom of the screen is unobstructed" },
+    { "type": "assertion", "description": "Verify the desktop left sidebar is NOT visible at this width, and instead a navigation bar is pinned to the bottom edge of the screen containing tab items labeled Home, Review, Feynman, Research and a More button, arranged side-by-side in one horizontal row" },
+    { "type": "action", "description": "Tap the Review item in the bottom navigation bar" },
+    { "type": "assertion", "description": "Verify the app navigates to the Review view (the review page content or heading is shown), confirming the bottom-nav items are working links and not just decorative icons" }
+  ]
+}

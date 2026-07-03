@@ -1,0 +1,123 @@
+# Nora × TestSprite Hackathon S3 — "Build the Loop"
+
+> Fill-in-ready draft. Every number here is verified against the TestSprite
+> platform and `LOOP.md`. Map these sections onto the official template in
+> `#hackathon-s3-submissions`.
+
+## One-liner
+
+**Nora** is a pixel-art study operating system built on cognitive science — and
+we used the TestSprite CLI as the checker in a real write → verify → fix → verify
+loop that caught genuine regressions in a production-grade Next.js app.
+
+## Links
+
+- **Live app:** https://norastudy.vercel.app
+- **Repo:** https://github.com/lxcario/Nora
+- **Loop log (per-iteration, agent-written):** [`LOOP.md`](LOOP.md)
+- **Test artifacts + index:** [`testsprite_tests/`](testsprite_tests/)
+- **Archived failure bundle:** [`testsprite_tests/failure/analytics-442d4d6e/`](testsprite_tests/failure/)
+
+## Team
+
+- **Résque** — Discord `resquwue` · GitHub [`lxcario`](https://github.com/lxcario) · X [`@resquedzn05`](https://x.com/resquedzn05)
+- Prior: 2nd place, TestSprite Hackathon S2 (CinePurr)
+
+## TestSprite account & project (Rule 7 — account match)
+
+- **Account:** `resquedzn05@gmail.com` (Résque) — the account that generated **all** banked tests
+- **Project:** Nora — `4ba5d8f8-310d-41bc-bbf4-b85208bb6d44`
+- **Target URL:** https://norastudy.vercel.app
+- Every banked test is `createdFrom: cli` — created and run through the CLI, not the portal.
+
+## The loop, by the numbers
+
+| Metric | Value |
+|---|---|
+| Tests banked | **20 — all passing** |
+| Loop iterations | **35+** across 3 active build days (Jun 30, Jul 2–3) |
+| Real product bugs caught & fixed | **4** |
+| Distinct root causes diagnosed | **9** |
+| New features shipped *under* the loop | **2** (Prediction Mode, Companion Router) |
+| Platform limitation found & documented | 1 (desktop-only runner can't simulate mobile resize) |
+| CI/CD | GitHub Action reruns the suite on every push to `master` |
+
+## What "genuinely used as the checker" looks like here (Rule 4)
+
+This was not a one-shot run. The suite grew and self-corrected over days. Highlights:
+
+### Real bug #1 — Signup redirect (product fix)
+A brand-new account landed on a blank `/app`. The loop caught it; fix redirects
+straight to `/app/onboarding`. (`LOOP.md` 2026-06-30)
+
+### Real bug #2 — Analytics routing (a 4-iteration arc)
+The banked test navigated to a dead `/app/room/analytics` (404). The failure
+bundle (archived under `testsprite_tests/failure/`) pinned the route mismatch.
+Resolving it took four honest iterations — 404 → nav thrash on a nested
+accordion → data-dependent heatmap assertion → an assertion driven by a *stale
+test name* ("…stats and charts") that made the agent expect a chart a new
+account never renders. Renamed the test via `test update`, finalized
+deterministic assertions, **passed** (run `03d2cb32`). (`LOOP.md` 2026-07-02)
+
+### Real bug #3 — Dashboard streak assertion (product/spec drift)
+A test asserted a "streak" indicator that had been intentionally removed (Nora
+uses growth-first XP + coins language). Updated to match the real dashboard.
+
+### Real bug #4 — History route 404
+`/history` (bare) instead of `/app/history` — same class of route bug as
+analytics; plan corrected and re-banked.
+
+### Regression hunting during active development
+New features (**Prediction Mode**, **Companion Router**) touched shared
+components (`game-sidebar.tsx`, dashboard CTA). After each, a full-suite rerun
+confirmed nothing regressed — the exact "build the loop" workflow the hackathon
+is about.
+
+### Honesty about the tool's edge
+The mobile-bottom-nav test was **removed** after two runs proved the cloud
+runner uses a fixed desktop viewport and ignores resize steps. The `BottomNav`
+is correctly wired and works for real users — documented as a runner limitation,
+not faked green.
+
+## Suite breadth (20 scenarios across 10+ features)
+
+Entry & auth (landing, login, signup→onboarding) · core loop (dashboard,
+sidebar, review full flow, JOL confidence) · learning features (Feynman
+evaluation, Study Mix, Research Desk, Study Room video, Planner) · world & social
+(Pixel Room, Party, Analytics, History, Settings theme, create subject/topic) ·
+in-loop features (Prediction Mode, Companion Router).
+
+Full ID-level table: [`testsprite_tests/README.md`](testsprite_tests/README.md).
+
+## Why Nora stands out
+
+- **Production-grade, not a weekend prototype:** Next.js 16 + React 19 +
+  Supabase, 17 DB migrations, 332 unit tests, a 28-component custom pixel-UI
+  library, real pedagogy (FSRS-6 spaced repetition, Feynman evaluation, spaced
+  practice, interleaving).
+- **AI-powered flows tested end-to-end** (Feynman evaluation, Research Desk
+  synthesis) — not just CRUD happy paths.
+- **The loop as methodology:** real regressions caught during active feature
+  work, a documented multi-iteration debugging arc, and CI wiring.
+
+## Bonus: CLI Improvement Bounty contributions (Rule 8)
+
+Separate from judging — genuine improvements to the open-source CLI, opened
+from `lxcario`:
+
+- **Merged:** #37 (SSRF trailing-dot guard), #131 (CR/LF INI-injection fix),
+  #38 (typed auth error envelope), #36 (empty/whitespace `--name` validation),
+  #133 (Node 20/22 CI matrix)
+- **Open, CI green:** #132 (`test flaky` command, tracked by issue #115),
+  #10 (kiro agent target, issue #170), #11 (Node version guard),
+  #12 (`NO_COLOR` support), #39 (whitespace `--name` parity in `test update`)
+
+## Eligibility checklist
+
+- [x] Following TestSprite on X (`@resquedzn05`)
+- [x] Discord member with S03 Participant role (`resquwue`)
+- [x] App live at a public URL throughout the build phase
+- [x] Tests generated by the submitting account (Rule 7)
+- [x] Genuine multi-iteration loop, not one-shot (Rule 4)
+- [ ] Demo video — *recording separately*
+- [ ] Posted in `#hackathon-s3-submissions` using the official template
