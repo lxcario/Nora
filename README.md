@@ -26,7 +26,8 @@
   <img src="https://img.shields.io/badge/TypeScript-strict-3178C6?style=flat-square&logo=typescript" />
   <img src="https://img.shields.io/badge/Supabase-Postgres%20%2B%20pgvector-3ECF8E?style=flat-square&logo=supabase" />
   <img src="https://img.shields.io/badge/FSRS--6-ts--fsrs-blue?style=flat-square" />
-  <img src="https://img.shields.io/badge/tests-332%20passing-729B1B?style=flat-square&logo=vitest" />
+  <img src="https://img.shields.io/badge/unit%20tests-332%20passing-729B1B?style=flat-square&logo=vitest" />
+  <img src="https://img.shields.io/badge/TestSprite-28%2F28%20green-7ee081?style=flat-square" />
   <img src="https://img.shields.io/badge/license-MIT-black?style=flat-square" />
 </p>
 
@@ -40,6 +41,23 @@
 <p align="center">
   <img src="public/ui.png" alt="Nora — the Today screen" width="860" />
 </p>
+
+---
+
+## 🔁 Built in the loop — TestSprite Hackathon S3
+
+Nora is an entry in **TestSprite Hackathon Season 3 — "Build the Loop."** The [TestSprite CLI](https://github.com/TestSprite/testsprite-cli) was used as the *checker* in a real **write → verify → fix → verify** loop, running browser tests **in the cloud against the live app** and handing back one self-consistent failure bundle the coding agent acts on.
+
+|  |  |
+|---|---|
+| **28** durable browser scenarios | **28 / 28 passing** |
+| Every test `createdFrom: cli` | not the portal — genuine CLI loop |
+| **45+** loop iterations · 3 build days | **4** real product bugs caught & fixed |
+| Coverage grew **20 → 28** live | **2** features shipped *under* the loop |
+
+When two new tests came back **`blocked`**, the run summary drove the fix and a rerun turned them green — a clean `create → blocked → diagnose → fix → rerun → pass` cycle. The full per-iteration story is in **[LOOP.md](LOOP.md)**, the submission write-up in **[SUBMISSION.md](SUBMISSION.md)**, and the banked plans + an archived failure bundle in **[testsprite_tests/](testsprite_tests/)**.
+
+*(Jump to [the verification loop section](#the-verification-loop-testsprite) for the details.)*
 
 ---
 
@@ -252,7 +270,7 @@ Security posture — Row-Level Security on every user-owned table, SSRF protecti
 
 ## The verification loop (TestSprite)
 
-Nora is an entry in **TestSprite Hackathon Season 3 — "Build the Loop."** The [TestSprite CLI](https://github.com/TestSprite/testsprite-cli) runs real browser tests **in the cloud against the live app** ([norastudy.vercel.app](https://norastudy.vercel.app)) and hands back one self-consistent failure bundle the coding agent acts on: `create → run → failure get → fix → rerun`, and every pass is banked.
+Nora is an entry in **TestSprite Hackathon Season 3 — "Build the Loop."** The [TestSprite CLI](https://github.com/TestSprite/testsprite-cli) runs real browser tests **in the cloud against the live app** ([norastudy.vercel.app](https://norastudy.vercel.app)) and hands back one self-consistent failure bundle the coding agent acts on: `create → run → failure get → fix → rerun`, and every pass is banked. The suite is **28 scenarios, all green, every one `createdFrom: cli`.**
 
 **What the loop covers** — a durable suite of frontend scenarios spanning the critical path and feature depth:
 
@@ -260,15 +278,19 @@ Nora is an entry in **TestSprite Hackathon Season 3 — "Build the Loop."** The 
 |---|---|
 | Entry & auth | Landing page + sign-up CTA · Login → dashboard · Signup → onboarding wizard |
 | Core loop | Dashboard stats + daily quests · Sidebar navigation · Review card full flow · Review JOL confidence gate |
-| Learning features | Feynman evaluation + gap analysis · Study Mix interleaved queue · Research Desk sources + synthesis · Study Room video search · Study Planner weekly calendar |
-| World & social | Pixel Room pet + missions · Party create/join · Analytics dashboard · History · Settings theme persistence · Create subject/topic |
+| Learning features | Feynman evaluation + gap analysis · Study Mix interleaved queue · Research Desk sources + synthesis · Study Room video search · Study Planner weekly calendar · Practice Exam setup · Listen Mode · Error Spotter |
+| Knowledge tools | Knowledge Web explorer · Eureka connections · Memory Garden · Journal ("Your Story") |
+| World & social | Pixel Room pet + missions · Party create/join · Card Market · Analytics dashboard · History · Settings theme persistence · Create subject/topic |
 
 **Real fixes the loop caught (see [`LOOP.md`](LOOP.md) for the full per-iteration log):**
 
 - **Signup redirect** — a new account landed on a blank `/app`; the loop caught it and the fix redirects straight to `/app/onboarding`.
-- **Analytics navigation** — a banked test was reaching a dead `/app/room/analytics` URL (404); the failure bundle showed the route mismatch, and the plan was corrected to navigate the sidebar to the real `/app/analytics`.
+- **Analytics navigation** — a banked test was reaching a dead `/app/room/analytics` URL (404); the failure bundle showed the route mismatch, and the plan was corrected to open the real `/app/analytics` route.
+- **Knowledge Web & Eureka `blocked` → green** — while expanding coverage from 20 to 28, both pages rendered correctly but a verbose two-branch assertion made the testing agent run out of runway before a verdict. The run summary revealed the exact empty-state controls, so each plan was tightened to a single decisive assertion, pushed with `test plan put`, and reran green — a textbook `create → blocked → diagnose → fix → rerun → pass` cycle.
 
-The banked suite lives on the TestSprite platform under the submitting account, and failure bundles are archived under [`.testsprite/failure/`](.testsprite/).
+**One honest limitation, documented not faked:** the mobile bottom-nav test was *removed* after two runs proved the cloud runner uses a fixed desktop viewport and can't simulate a mobile-width resize. The `BottomNav` is correctly wired and works for real users — this is a runner limitation, out of scope per the "state outside the test's control" rule.
+
+The banked suite lives on the TestSprite platform under the submitting account; the plan files, an archived failure bundle, and a full ID-level index are in [`testsprite_tests/`](testsprite_tests/), with per-run artifacts under [`.testsprite/`](.testsprite/).
 
 ## Run it locally
 
