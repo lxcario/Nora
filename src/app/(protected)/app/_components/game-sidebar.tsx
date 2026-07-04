@@ -37,13 +37,16 @@ function PetWidget({ pet }: { pet: PetSidebarData | null }) {
   if (!pet) {
     return (
       <Link
-        href="/app/room"
-        className="pixel-panel mx-2 mb-1 flex flex-col items-center gap-1 px-2 py-3 pixel-hover-brighten"
+        href="/app/collection"
+        className="pixel-panel mx-2 mb-1 flex flex-col items-center gap-1 px-2 py-3 pixel-hover-brighten group"
         style={{ textDecoration: "none" }}
       >
-        <span className="font-pixel text-2xl text-[var(--pixel-text-secondary)]">?</span>
-        <span className="font-pixel text-[9px] text-[var(--pixel-accent)]">
-          Visit My Room →
+        <span className="font-pixel text-xl animate-pulse group-hover:animate-none">🥚</span>
+        <span className="font-pixel text-[9px] text-[var(--pixel-text-primary)] text-center leading-tight">
+          Choose your
+        </span>
+        <span className="font-pixel text-[9px] text-[var(--pixel-accent)] text-center">
+          companion →
         </span>
       </Link>
     );
