@@ -1,0 +1,13 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "Feynman Mode progress chart renders inside a styled panel with score label",
+  "description": "After restyling the Feynman progress sparkline, the chart should render inside a bordered inset panel with a 'PROGRESS' header and a clearly visible latest score number on the right side. This test confirms the restyle is live and rendering correctly.",
+  "priority": "p1",
+  "planSteps": [
+    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to finish loading" },
+    { "type": "action", "description": "Navigate directly to /app/feynman" },
+    { "type": "action", "description": "Select any available topic from the topic selector dropdown" },
+    { "type": "assertion", "description": "Verify a progress section is visible below the topic selector — it should show a 'PROGRESS' label and a numeric score value on the right side, all inside a bordered panel" }
+  ]
+}

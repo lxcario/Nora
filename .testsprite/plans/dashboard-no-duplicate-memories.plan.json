@@ -1,0 +1,12 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "Dashboard shows memories count only once via the companion CTA",
+  "description": "After fixing a UI duplication bug, the dashboard should show the 'memories to revisit' count exactly once — inside the companion router CTA panel. There should NOT be a second standalone card below it repeating the same number. This test confirms the fix prevents regression.",
+  "priority": "p1",
+  "planSteps": [
+    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to finish loading" },
+    { "type": "assertion", "description": "Verify the companion CTA panel is visible — it contains a clickable card with the text 'memories' or 'Revisit' and an arrow icon" },
+    { "type": "assertion", "description": "Verify there is NO second standalone card below the CTA that also says 'Memories to revisit' with a large number. The memories count should appear only once on the page." }
+  ]
+}

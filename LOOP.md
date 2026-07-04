@@ -56,10 +56,10 @@ Repo: https://github.com/lxcario/Nora
 
 | Metric | Value |
 |--------|-------|
-| **Tests banked** | **33 — all passing** (28 frontend + 4 adversarial FE + 1 backend security) |
-| **Total TestSprite runs** | **50+** |
-| **Loop iterations** | **35** across 4 active build days (Jun 30, Jul 2–4) |
-| **Real product bugs caught & fixed** | **4** (signup redirect, analytics routing, streak counter, history path) |
+| **Tests banked** | **36 — all passing** (28 frontend + 4 adversarial FE + 3 regression FE + 1 backend security) |
+| **Total TestSprite runs** | **55+** |
+| **Loop iterations** | **38** across 4 active build days (Jun 30, Jul 2–4) |
+| **Real product bugs caught & fixed** | **7** (signup redirect, analytics routing, streak counter, history path, duplicate memories card, pet mood mismatch, sparkline unstyled) |
 | **Blocked → diagnosed → fixed → green arcs** | **9** |
 | **Test types used** | Frontend (`--plan-from`) + Backend (`--type backend --code-file`) |
 | **Test deleted (runner limitation, documented)** | 1 (mobile viewport — documented, not hidden) |
@@ -807,6 +807,63 @@ testsprite test create --project 4ba5d8f8-310d-41bc-bbf4-b85208bb6d44 \
 
 ---
 
+## Iterations 36–38 — QA Polish Bugs → Fixed → Regression Tests Banked
+
+**Date:** 2026-07-04
+
+Manual QA uncovered 3 UI inconsistencies that degraded the user experience. Each was fixed and a regression test was banked to prevent recurrence.
+
+### Iteration 36 — Duplicate "Memories to Revisit" Card on Dashboard
+
+**Bug:** The dashboard showed the memories-due count twice — once in the companion router CTA ("Revisit 29 memories before your exam") and again as a standalone stat card below it. Redundant UI that looked unpolished.
+
+**Fix:** Removed the standalone `StatTile` component from Section 3. The companion CTA already shows the count in a clickable, contextual way.
+
+**Regression test:**
+```bash
+testsprite test create --plan-from .testsprite/plans/dashboard-no-duplicate-memories.plan.json \
+  --run --target-url https://norastudy.vercel.app --timeout 600
+```
+
+**Result:** ✅ PASS — 3/3 steps · Test ID: `87f7c99c`
+
+### Iteration 37 — Pet Mood Mismatch Between Sidebar and Pixel Room
+
+**Bug:** The sidebar pet widget always showed "happy" (read from a stale DB column) while the Pixel Room computed mood dynamically from recent activity. A user who hadn't studied in 3 days would see "Eevee happy" in the sidebar but "Eevee is sad..." in the room. Contradictory and confusing.
+
+**Root Cause:** The `getRoomState()` Server Action computed `petState` from activity data but never wrote it back to the `pets` table. The sidebar layout read `pets.state` directly from the DB — a stale value.
+
+**Fix:** Added a DB sync at the end of `getRoomState()`: if the computed state differs from the stored value, update the `pets` table. Now visiting Pixel Room syncs the mood, and the sidebar matches immediately.
+
+**Regression test:**
+```bash
+testsprite test create --plan-from .testsprite/plans/pixel-room-mood-consistent.plan.json \
+  --run --target-url https://norastudy.vercel.app --timeout 600
+```
+
+**Result:** ✅ PASS — 4/4 steps · Test ID: `2c0efffe`
+
+### Iteration 38 — Feynman Sparkline Chart Unstyled and Hard to Read
+
+**Bug:** The progress chart in Feynman Mode was a bare SVG line with no container, no fill, and tiny dots — hard to read and visually jarring compared to the rest of the pixel-art UI.
+
+**Fix:** Restyled the sparkline with:
+- Gradient fill under the line (accent color, 30% → 2% opacity)
+- Subtle grid lines at 25%, 50%, 75%
+- Larger viewport (260×56 vs 220×48)
+- Data points with stroke ring for clarity
+- Wrapped in `pixel-panel-inset` container with "PROGRESS" header
+
+**Regression test:**
+```bash
+testsprite test create --plan-from .testsprite/plans/feynman-sparkline-styled.plan.json \
+  --run --target-url https://norastudy.vercel.app --timeout 600
+```
+
+**Result:** ✅ PASS — 4/4 steps · Test ID: `192686d8`
+
+---
+
 ## Full Regression Rerun
 
 **Date:** 2026-07-04
@@ -860,8 +917,11 @@ Triggered a complete replay of all 33 banked tests (28 core + 4 adversarial + 1 
 | 31 | `624cc332` | Gamification XP round-trip | 7 | ✅ PASS |
 | 32 | `559db2c4` | Research Desk empty query (adversarial) | 5 | ✅ PASS |
 | 33 | `23d76c46` | **Backend: RLS security** (Python, `--type backend`) | 4 | ✅ PASS |
+| 34 | `87f7c99c` | Dashboard no duplicate memories (regression) | 3 | ✅ PASS |
+| 35 | `2c0efffe` | Pixel Room mood matches sidebar (regression) | 4 | ✅ PASS |
+| 36 | `192686d8` | Feynman sparkline styled panel (regression) | 4 | ✅ PASS |
 
-**33 / 33 — ALL GREEN ✅**
+**36 / 36 — ALL GREEN ✅**
 
 ---
 
@@ -900,7 +960,7 @@ All fixes are genuine improvements discovered while actually using the CLI to bu
 
 ---
 
-> **35 iterations · 33 banked scenarios · 50+ TestSprite runs · 4 real product bugs caught · 33/33 all green**
+> **38 iterations · 36 banked scenarios · 55+ TestSprite runs · 7 real product bugs caught · 36/36 all green**
 >
 > Frontend tests (`--plan-from`) + Backend tests (`--type backend --code-file`) + Full regression reruns (`--all --max-concurrency 4`).
 >

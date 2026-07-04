@@ -1,0 +1,13 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "Pixel Room pet mood status matches the sidebar pet mood indicator",
+  "description": "After fixing a mood sync bug, the pet mood displayed in the Pixel Room status message should match the mood shown in the sidebar pet widget. Previously the sidebar always showed 'happy' while the room computed the mood dynamically from activity data, causing contradictions. This test verifies they are now consistent.",
+  "priority": "p1",
+  "planSteps": [
+    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to finish loading" },
+    { "type": "action", "description": "Navigate directly to /app/room" },
+    { "type": "assertion", "description": "Verify the Pixel Room page loads with a pet sprite visible and a mood status message below the room viewport (e.g. 'Eevee is happy' or 'Eevee is sad')" },
+    { "type": "assertion", "description": "Verify the sidebar pet widget on the left shows the same mood state as the room status message — if the room says 'happy' the sidebar should say 'happy', if 'sad' both should say 'sad'. No contradiction between the two." }
+  ]
+}
