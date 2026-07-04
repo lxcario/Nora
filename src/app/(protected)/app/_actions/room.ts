@@ -111,6 +111,14 @@ export async function getRoomState(): Promise<{
   if (sessionCount === 0) petState = "sad";
   else if (sessionCount < 2) petState = "neutral";
 
+  // Sync computed state back to DB so the sidebar is always consistent
+  if (pet && pet.state !== petState) {
+    await supabase
+      .from("pets")
+      .update({ state: petState })
+      .eq("user_id", user.id);
+  }
+
   // Count due cards for missions (FSRS-only after migration 016)
   const today = new Date().toISOString().split("T")[0];
   const { count: dueCards } = await supabase

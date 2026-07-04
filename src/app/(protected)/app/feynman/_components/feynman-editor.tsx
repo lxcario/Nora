@@ -806,9 +806,9 @@ function ScoreSparkline({ points }: { points: TopicScorePoint[] }) {
   const trend = latest - first;
 
   // SVG geometry
-  const W = 220;
-  const H = 48;
-  const pad = 4;
+  const W = 260;
+  const H = 56;
+  const pad = 8;
   const n = points.length;
 
   // X positions evenly spaced; Y inverted (0 score = bottom).
@@ -822,15 +822,20 @@ function ScoreSparkline({ points }: { points: TopicScorePoint[] }) {
     .map((c, i) => `${i === 0 ? "M" : "L"} ${c.x.toFixed(1)} ${c.y.toFixed(1)}`)
     .join(" ");
 
+  // Area fill path (line + close at bottom)
+  const areaPath = n > 1
+    ? `${linePath} L ${coords[coords.length - 1].x.toFixed(1)} ${H - pad} L ${coords[0].x.toFixed(1)} ${H - pad} Z`
+    : "";
+
   return (
-    <div>
-      <div className="mb-1.5 flex items-center justify-between">
-        <span className="text-xs text-[var(--pixel-text-secondary)]">
-          Progress on this topic ({n} attempt{n === 1 ? "" : "s"})
+    <div className="pixel-panel pixel-panel-inset" style={{ padding: "var(--pixel-panel-compact)" }}>
+      <div className="mb-2 flex items-center justify-between">
+        <span className="font-pixel text-[10px] text-[var(--pixel-text-secondary)]">
+          PROGRESS ({n} attempt{n === 1 ? "" : "s"})
         </span>
         {n > 1 && (
           <span
-            className="inline-flex items-center gap-0.5 text-xs"
+            className="inline-flex items-center gap-0.5 font-pixel text-xs"
             style={{
               color:
                 trend > 0
@@ -856,37 +861,58 @@ function ScoreSparkline({ points }: { points: TopicScorePoint[] }) {
           width="100%"
           viewBox={`0 0 ${W} ${H}`}
           preserveAspectRatio="none"
-          className="h-12 flex-1"
+          className="h-14 flex-1"
           role="img"
           aria-label={`Comprehension scores over ${n} attempts, latest ${latest} out of 100`}
         >
-          {/* 50% reference line */}
-          <line
-            x1={pad}
-            y1={H / 2}
-            x2={W - pad}
-            y2={H / 2}
-            stroke="var(--pixel-border-light)"
-            strokeWidth="1"
-            strokeDasharray="3 3"
-          />
+          <defs>
+            <linearGradient id="sparkFill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="var(--pixel-accent)" stopOpacity="0.3" />
+              <stop offset="100%" stopColor="var(--pixel-accent)" stopOpacity="0.02" />
+            </linearGradient>
+          </defs>
+          {/* Subtle grid lines at 25%, 50%, 75% */}
+          {[25, 50, 75].map((pct) => (
+            <line
+              key={pct}
+              x1={pad}
+              y1={pad + (1 - pct / 100) * (H - pad * 2)}
+              x2={W - pad}
+              y2={pad + (1 - pct / 100) * (H - pad * 2)}
+              stroke="var(--pixel-border-light)"
+              strokeWidth="0.5"
+              strokeDasharray="2 4"
+              opacity="0.5"
+            />
+          ))}
+          {/* Gradient fill area */}
+          {n > 1 && (
+            <path
+              d={areaPath}
+              fill="url(#sparkFill)"
+            />
+          )}
+          {/* Main line */}
           {n > 1 && (
             <path
               d={linePath}
               fill="none"
               stroke="var(--pixel-accent)"
-              strokeWidth="2"
+              strokeWidth="2.5"
               strokeLinejoin="round"
               strokeLinecap="round"
             />
           )}
+          {/* Data points */}
           {coords.map((c, i) => (
             <circle
               key={i}
               cx={c.x}
               cy={c.y}
-              r={i === coords.length - 1 ? 3.5 : 2.5}
+              r={i === coords.length - 1 ? 4 : 3}
               fill={verdictColor(c.score)}
+              stroke="var(--pixel-bg-surface)"
+              strokeWidth="1.5"
             >
               <title>{`${c.score}/100`}</title>
             </circle>
@@ -894,12 +920,12 @@ function ScoreSparkline({ points }: { points: TopicScorePoint[] }) {
         </svg>
         <div className="flex flex-col items-end shrink-0">
           <span
-            className="font-pixel text-lg leading-none"
+            className="font-pixel text-xl leading-none"
             style={{ color: verdictColor(latest) }}
           >
             {latest}
           </span>
-          <span className="text-[10px] text-[var(--pixel-text-muted)]">latest</span>
+          <span className="font-pixel text-[9px] text-[var(--pixel-text-muted)]">latest</span>
         </div>
       </div>
     </div>

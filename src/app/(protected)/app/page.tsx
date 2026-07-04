@@ -346,13 +346,6 @@ export default async function DashboardPage() {
       </Link>
 
       {/* ═══ Section 3 — Stat Row ═══ */}
-      {/* Prominent: Cards Due */}
-      <StatTile
-        icon="/sprites/travel-book/icons/Book.png"
-        value={cardsDueCount}
-        label="Memories to revisit"
-        size="hero"
-      />
       {/* Ambient strip: XP / coins (no streak — growth over streaks, per WHY_NORA) */}
       <div className="flex items-center gap-4 px-1 flex-wrap">
         <AmbientStat
