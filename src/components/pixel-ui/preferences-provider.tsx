@@ -322,7 +322,7 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
 
   // Hydrate from storage on mount — apply all saved preferences
   useEffect(() => {
-    const savedCursor = readPref<CursorPack>(CURSOR_KEY, "travelbook") === "catpaw" ? "catpaw" : "travelbook";
+    const savedCursor = readPref<CursorPack>(CURSOR_KEY, "catpaw") === "travelbook" ? "travelbook" : "catpaw";
     const savedAnim = readPref<string>(ANIM_KEY, "on") !== "off";
     const savedTheme = readPref<ThemeMode>(THEME_KEY, "dark") === "light" ? "light" : "dark";
     const savedAccent = readPref<string>(ACCENT_KEY, "");

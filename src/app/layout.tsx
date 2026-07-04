@@ -48,7 +48,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `(function(){try{
 var d=document.documentElement;
-d.setAttribute('data-cursor',localStorage.getItem('pixel-cursor-pack')==='catpaw'?'catpaw':'travelbook');
+d.setAttribute('data-cursor',localStorage.getItem('pixel-cursor-pack')==='travelbook'?'travelbook':'catpaw');
 d.setAttribute('data-animations',localStorage.getItem('pixel-animations')==='off'?'off':'on');
 var p=localStorage.getItem('pixel-palette');
 if(p&&p!==''){
