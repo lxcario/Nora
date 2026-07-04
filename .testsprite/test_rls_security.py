@@ -7,16 +7,21 @@ This test proves that:
 2. Anonymous users cannot read other users' profiles directly
 3. The gamification system is protected against privilege escalation
 
+Environment variables required:
+  SUPABASE_URL — your Supabase project URL
+  SUPABASE_ANON_KEY — the public anon key (safe to use, it's the same one in the frontend bundle)
+
 Run via TestSprite CLI:
   testsprite test create --project 4ba5d8f8-310d-41bc-bbf4-b85208bb6d44 \
     --type backend --name "RLS rejects unauthorized reward manipulation" \
     --code-file .testsprite/test_rls_security.py --run --wait --output json
 """
 
+import os
 import requests
 
-SUPABASE_URL = "https://hwoaljqtjlagxacvopnc.supabase.co"
-ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh3b2FsanF0amxhZ3hhY3ZvcG5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NDMxODgsImV4cCI6MjA5NzExOTE4OH0.7nNSyI1yrALcQ4F-i5N1tfv6Vdx3YAHHezpc0WAxcHA"
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://hwoaljqtjlagxacvopnc.supabase.co")
+ANON_KEY = os.environ.get("SUPABASE_ANON_KEY", os.environ.get("NEXT_PUBLIC_SUPABASE_ANON_KEY", ""))
 
 HEADERS = {
     "apikey": ANON_KEY,
