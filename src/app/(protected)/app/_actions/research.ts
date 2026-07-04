@@ -489,7 +489,10 @@ ${credibilityNote}
 ${sectionInstructions}
 
 CITATION RULES:
-- Every factual claim MUST cite [N] referencing a source above.
+- NEVER invent facts not found in the sources below.
+- If you cannot answer from the provided sources, say "I couldn't find reliable information on this specific aspect."
+- Every claim MUST have a citation number [N] referencing the sources list.
+- Prefer direct quotes from sources over paraphrasing when accuracy matters.
 - Prefer Tier 1 (⭐) sources for core claims.
 - If you use knowledge NOT in the sources, prefix with "Note (unverified): "
 - Do NOT emit [N] unless N is a valid source number (1–${sources.length}).

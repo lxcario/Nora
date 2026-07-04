@@ -90,6 +90,11 @@ export function CursorPicker() {
                   {pack.blurb}
                 </p>
               </div>
+              {pack.id === "travelbook" && (
+                <span className="font-pixel text-[10px] text-[var(--pixel-text-secondary)] flex items-center gap-0.5">
+                  🪙 150
+                </span>
+              )}
               {active && (
                 <span className="font-pixel text-[10px] text-[var(--pixel-accent)]">
                   ✓ ON

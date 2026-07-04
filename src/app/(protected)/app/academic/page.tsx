@@ -48,6 +48,37 @@ export default async function AcademicPage() {
         </p>
       </header>
 
+      {/* Guide panel */}
+      <div className="pixel-panel">
+        <p className="text-sm text-[var(--pixel-text-primary)]">
+          Upload your university PDF (syllabus, academic calendar) and Nora will extract your courses, exam dates, and schedule.
+        </p>
+        {jobProgress && jobProgress.active && (
+          <div className="mt-3 space-y-1">
+            <div className="flex items-center justify-between text-xs text-[var(--pixel-text-secondary)]">
+              <span className="font-pixel">Processing...</span>
+              <span className="font-pixel">
+                {jobProgress.succeeded + jobProgress.failed + jobProgress.skipped} / {jobProgress.pending + jobProgress.running + jobProgress.succeeded + jobProgress.failed + jobProgress.skipped}
+              </span>
+            </div>
+            <div className="h-2 overflow-hidden bg-[var(--pixel-bg-primary)] border border-[var(--pixel-border)]">
+              <div
+                className="h-full transition-all duration-300"
+                style={{
+                  width: `${
+                    (() => {
+                      const total = jobProgress.pending + jobProgress.running + jobProgress.succeeded + jobProgress.failed + jobProgress.skipped;
+                      return total > 0 ? Math.round(((jobProgress.succeeded + jobProgress.failed + jobProgress.skipped) / total) * 100) : 0;
+                    })()
+                  }%`,
+                  backgroundColor: "var(--pixel-accent)",
+                }}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
       <DiscoveryPoller initialProgress={jobProgress} />
 
       {notice.message && (

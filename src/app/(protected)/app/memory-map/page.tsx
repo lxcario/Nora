@@ -125,7 +125,7 @@ export default async function MemoryMapPage() {
     <div className="space-y-6">
       <PageHeader
         title="Memory Garden"
-        description="Each plant represents a topic. Their health shows how well you remember — wilting plants need watering (review)."
+        description="Your knowledge grows here like a garden. Each topic is a plant — blooming when you remember it well, wilting when memories fade. Water your plants by reviewing flashcards before they wither."
       />
 
       {error && (
@@ -147,10 +147,10 @@ export default async function MemoryMapPage() {
               className="pixel-art opacity-60"
             />
             <p className="font-pixel text-sm" style={{ color: "var(--pixel-text-primary)" }}>
-              Your garden is empty
+              Your garden awaits its first seeds
             </p>
             <p className="text-xs" style={{ color: "var(--pixel-text-secondary)" }}>
-              Create subjects and topics in Settings, then start reviewing cards to grow your garden.
+              Every topic you study becomes a plant here. Create subjects in Settings, study with flashcards, and watch your garden bloom.
             </p>
             <Link href="/app/settings" className="pixel-btn pixel-btn-primary pixel-btn-sm">
               Set up subjects

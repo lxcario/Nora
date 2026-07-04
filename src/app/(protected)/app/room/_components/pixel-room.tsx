@@ -406,6 +406,51 @@ export function PixelRoom({
           })}
         </div>
       </div>
+
+      {/* Room Items */}
+      <div className="pixel-panel">
+        <h2 className="font-pixel mb-3 flex items-center gap-2 text-sm">
+          <Layers className="h-4 w-4 text-[var(--pixel-text-secondary)]" />
+          Room Items
+        </h2>
+        <div className="grid grid-cols-3 gap-2">
+          {[
+            { name: "Bookshelf", icon: "/sprites/travel-book/icons/Book.png" },
+            { name: "Piano", icon: "/sprites/travel-book/icons/Piano.png" },
+            { name: "Plant", icon: "/sprites/travel-book/icons/FlowerPot.png" },
+          ].map((item) => (
+            <div
+              key={item.name}
+              className="pixel-panel flex flex-col items-center justify-center gap-1 p-3"
+              style={{ backgroundColor: "var(--pixel-bg-secondary)" }}
+            >
+              <img
+                src={item.icon}
+                alt={item.name}
+                width={28}
+                height={28}
+                className="pixel-art"
+              />
+              <span className="font-pixel text-[9px] text-[var(--pixel-text-secondary)]">
+                {item.name}
+              </span>
+            </div>
+          ))}
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Link
+              key={`empty-${i}`}
+              href="/app/market"
+              className="pixel-panel flex flex-col items-center justify-center gap-1 p-3 opacity-50 hover:opacity-80 transition-opacity"
+              style={{ backgroundColor: "var(--pixel-bg-secondary)", textDecoration: "none" }}
+            >
+              <span className="text-lg text-[var(--pixel-text-secondary)]">+</span>
+              <span className="font-pixel text-[8px] text-[var(--pixel-text-secondary)]">
+                Card Market
+              </span>
+            </Link>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
