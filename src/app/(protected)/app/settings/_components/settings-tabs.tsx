@@ -54,8 +54,6 @@ export interface SettingsTabsProps {
 
 const TABS: { id: SettingsTab; label: string; icon: string }[] = [
   { id: "profile",       label: "Profile",       icon: "/sprites/travel-book/icons/CatHead.png" },
-  { id: "customization", label: "Customization",  icon: "/sprites/travel-book/icons/PaintBrush.png" },
-  { id: "pet",           label: "Pet",            icon: "/sprites/travel-book/icons/PetBowl.png" },
   { id: "preferences",   label: "Preferences",    icon: "/sprites/travel-book/icons/Gear.png" },
   { id: "subjects",      label: "Subjects",       icon: "/sprites/travel-book/icons/Book.png" },
   { id: "account",       label: "Account",        icon: "/sprites/travel-book/icons/Key.png" },

@@ -73,19 +73,34 @@ export async function generatePodcastScript(topicId: string): Promise<{
     return { error: "Need at least 1 Feynman explanation or 3 flashcards for this topic to generate a podcast" };
   }
 
-  const prompt = `Generate a short conversational podcast script about "${topic.name}" (${subjectName}).
+  const prompt = `You are a wise pixel-art Sage character in a cozy study village. A curious Student has come to your tower to learn about "${topic.name}" (${subjectName}).
 
-STUDENT'S CONTENT:
-${feynmanContent ? `Feynman explanations:\n${feynmanContent.slice(0, 2000)}\n\n` : ""}${cardContent ? `Flashcards:\n${cardContent.slice(0, 1500)}` : ""}
+Generate a dialogue between you (the Sage/host) and the Student. Transform the student's notes into an engaging RPG-style conversation where learning feels like a quest.
 
-FORMAT: Two speakers — "host" (explains clearly, uses analogies) and "student" (asks clarifying questions, brings up edge cases).
+STUDENT'S NOTES TO TRANSFORM:
+${feynmanContent ? `Their explanations:\n${feynmanContent.slice(0, 2000)}\n\n` : ""}${cardContent ? `Their flashcards:\n${cardContent.slice(0, 1500)}` : ""}
 
-RULES:
-- Keep it 1000-1500 words total (~5-8 minutes spoken)
-- Structure: intro → explain core concept → question from student → deeper explanation → 2 recall questions → recap
-- Use the student's own content as the basis (don't invent unrelated facts)
-- Make recall questions clear pauses where the listener should think
-- Tone: warm, curious, like two friends studying together
+CHARACTER RULES:
+- The "host" is a warm, wise Sage who uses vivid analogies and pixel-game metaphors
+- The "student" is curious, asks genuine questions, and sometimes challenges the Sage
+- The Sage never repeats the same sentence twice — variety is key
+- Every explanation should build on the previous one (progressive disclosure)
+- Include 2-3 "PAUSE AND THINK" moments where the student should reflect before reading on
+
+STRUCTURE:
+1. Sage greets the student warmly and sets the scene (~1 line)
+2. Core concept explained through analogy (~3-4 exchanges)
+3. Student asks a deeper "why" question
+4. Sage answers with a real-world example (not random — connected to the topic)
+5. PAUSE AND THINK — a recall question for the reader
+6. 1-2 more exchanges building complexity
+7. Short recap from the Sage (~2 lines)
+
+TONE: Warm, curious, playful — like two friends in a cozy pixel tavern. Never robotic or textbook-like.
+
+CRITICAL: Do NOT repeat any sentence verbatim. Do NOT use irrelevant examples. Every line must advance understanding.
+
+Keep it 1000-1500 words total (~5-8 minutes reading).
 
 Respond with valid JSON only:
 {

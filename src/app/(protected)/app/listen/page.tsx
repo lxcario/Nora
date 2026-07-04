@@ -24,7 +24,7 @@ export default async function ListenPage() {
     <div className="space-y-6 max-w-3xl mx-auto">
       <PageHeader
         title="Listen Mode"
-        description="Your notes become a study conversation. Read through it like a dialogue with a friend."
+        description="Your notes become a quest dialogue. A wise Sage in a pixel village teaches you through conversation — pause, think, and learn like an RPG."
       />
       <ListenClient topics={topicOptions} />
     </div>

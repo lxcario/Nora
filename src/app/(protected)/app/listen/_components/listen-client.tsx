@@ -94,7 +94,7 @@ export function ListenClient({ topics }: { topics: TopicOption[] }) {
                       border: `2px solid ${seg.speaker === "host" ? "var(--pixel-accent)" : "var(--pixel-success)"}`,
                     }}
                   >
-                    {seg.speaker === "host" ? "🎓" : "🙋"}
+                    {seg.speaker === "host" ? "🧙" : "🗡️"}
                   </div>
                 </div>
 
