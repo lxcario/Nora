@@ -3,7 +3,7 @@ import type { CSSProperties } from "react";
 export interface PixelSpinnerProps {
   /** Size of each square dot in px. Default 4. */
   size?: number;
-  /** Extra classes — use text-[var(--pixel-*)] to set the dot color (dots use currentColor). */
+  /** Extra classes — e.g. "text-[var(--pixel-accent)]" to set the dot color (dots use currentColor). */
   className?: string;
   /** Accessible label announced to screen readers. Default "Loading". */
   label?: string;
