@@ -1,0 +1,11 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "Dashboard displays XP and coin counters for a logged-in user",
+  "description": "Verify the dashboard shows the XP and coins stat values, confirming the gamification system renders correctly.",
+  "priority": "p2",
+  "planSteps": [
+    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to finish loading" },
+    { "type": "assertion", "description": "Verify the dashboard shows an 'XP' label with a numeric value and a 'Coins' label with a numeric value — both visible on the page" }
+  ]
+}

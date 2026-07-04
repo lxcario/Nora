@@ -56,9 +56,9 @@ Repo: https://github.com/lxcario/Nora
 
 | Metric | Value |
 |--------|-------|
-| **Tests banked** | **36 — all passing** (28 frontend + 4 adversarial FE + 3 regression FE + 1 backend security) |
-| **Total TestSprite runs** | **58+** |
-| **Loop iterations** | **39** across 4 active build days (Jun 30, Jul 2–4) |
+| **Tests banked** | **42 — all passing** (37 frontend + 5 backend security/schema) |
+| **Total TestSprite runs** | **65+** |
+| **Loop iterations** | **42** across 4 active build days (Jun 30, Jul 2–4) |
 | **Real product bugs caught & fixed** | **8** (signup redirect, analytics routing, streak counter, history path, duplicate memories card, pet mood mismatch, sparkline unstyled, sidebar clutter/feature confusion) |
 | **Blocked → diagnosed → fixed → green arcs** | **9** |
 | **Test types used** | Frontend (`--plan-from`) + Backend (`--type backend --code-file`) |
@@ -985,7 +985,7 @@ All fixes are genuine improvements discovered while actually using the CLI to bu
 
 ---
 
-> **39 iterations · 36 banked scenarios · 58+ TestSprite runs · 8 real product bugs caught · 36/36 all green**
+> **42 iterations · 42 banked scenarios · 65+ TestSprite runs · 8 real product bugs caught · 42/42 all green**
 >
 > Frontend tests (`--plan-from`) + Backend tests (`--type backend --code-file`) + Full regression reruns (`--all --max-concurrency 4`).
 >

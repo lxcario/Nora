@@ -1,0 +1,12 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "Journal page renders heading and content for a logged-in user",
+  "description": "Verify the Journal Your Story page at /app/journal loads without crashing and shows its heading.",
+  "priority": "p2",
+  "planSteps": [
+    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to finish loading" },
+    { "type": "action", "description": "Navigate directly to /app/journal" },
+    { "type": "assertion", "description": "Verify the page shows a heading or title related to 'Journal' or 'Your Story' — no crash, no blank screen, no 404" }
+  ]
+}
