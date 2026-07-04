@@ -43,10 +43,10 @@ export function CardMarketClient({ decks, partyName }: { decks: SharedDeck[]; pa
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {[
               { name: "Bookshelf", price: 50, icon: "Book" },
-              { name: "Globe", price: 75, icon: "Globe" },
+              { name: "Globe", price: 75, icon: "Cloud" },
               { name: "Telescope", price: 120, icon: "MagnifyingGlass" },
               { name: "Crystal Ball", price: 200, icon: "Necklace" },
-              { name: "Travel Book Cursor", price: 150, icon: "Cursor" },
+              { name: "Travel Book Cursor", price: 150, icon: "Touch" },
               { name: "Pikachu Companion", price: 300, icon: "Lightbulb" },
             ].map((item) => (
               <div

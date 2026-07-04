@@ -14,6 +14,46 @@ export default function CollectionPage() {
         Earn coins from daily quests and spend them on cursors, themes, and decorations as they unlock.
       </p>
 
+      {/* Companions — pick your pet */}
+      <DialogFrame title="COMPANIONS">
+        <p className="mb-3 text-xs text-[var(--pixel-text-secondary)]">
+          Choose a study buddy that lives in your sidebar. They cheer you on as you learn.
+        </p>
+        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+          {[
+            { id: 25, name: "Pikachu" },
+            { id: 133, name: "Eevee" },
+            { id: 39, name: "Jigglypuff" },
+            { id: 52, name: "Meowth" },
+            { id: 175, name: "Togepi" },
+            { id: 196, name: "Espeon" },
+            { id: 197, name: "Umbreon" },
+            { id: 393, name: "Piplup" },
+            { id: 447, name: "Riolu" },
+            { id: 700, name: "Sylveon" },
+          ].map((pet) => (
+            <div
+              key={pet.id}
+              className="pixel-panel pixel-panel-inset flex flex-col items-center gap-1 py-2 px-1 cursor-pointer pixel-hover-brighten"
+            >
+              <img
+                src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/${pet.id}.gif`}
+                alt={pet.name}
+                width={40}
+                height={40}
+                className="pixel-art"
+              />
+              <span className="font-pixel text-[8px] text-center" style={{ color: "var(--pixel-text-primary)" }}>
+                {pet.name}
+              </span>
+            </div>
+          ))}
+        </div>
+        <p className="mt-2 text-[9px] font-pixel" style={{ color: "var(--pixel-text-muted)" }}>
+          Pet selection coming soon — for now, visit Pixel Room to set your companion.
+        </p>
+      </DialogFrame>
+
       <DialogFrame title="CURSORS">
         <p className="mb-3 text-xs text-[var(--pixel-text-secondary)]">
           Pick the pixel cursor that follows you around the app. Your choice is
