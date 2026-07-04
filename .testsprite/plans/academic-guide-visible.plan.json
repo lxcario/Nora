@@ -1,0 +1,12 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "University page shows upload guide panel for logged-in users",
+  "description": "After adding a guide panel to the academic page, verify that a logged-in user sees the PDF upload explanation and progress indicator.",
+  "priority": "p1",
+  "planSteps": [
+    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to finish loading" },
+    { "type": "action", "description": "Navigate directly to /app/academic" },
+    { "type": "assertion", "description": "Verify the page shows a guide panel containing text about uploading a university PDF (syllabus or academic calendar) — no crash, no blank page" }
+  ]
+}

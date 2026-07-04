@@ -1,0 +1,12 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "Pixel Room shows a room items grid with filled and empty slots",
+  "description": "After adding the room items section, verify that the Pixel Room page displays an items grid showing placed items and empty slots.",
+  "priority": "p1",
+  "planSteps": [
+    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to finish loading" },
+    { "type": "action", "description": "Navigate directly to /app/room" },
+    { "type": "assertion", "description": "Verify the Pixel Room page shows a 'Room Items' section with a grid containing item names (like Bookshelf, Piano, or Plant) and empty '+' slots or a link to the Card Market" }
+  ]
+}

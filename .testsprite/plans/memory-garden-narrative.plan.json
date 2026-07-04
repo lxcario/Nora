@@ -1,0 +1,12 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "Memory Garden shows narrative description and plant grid or story-driven empty state",
+  "description": "After improving the Memory Garden narrative, verify the page shows the RPG-style description about knowledge growing like a garden.",
+  "priority": "p1",
+  "planSteps": [
+    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to finish loading" },
+    { "type": "action", "description": "Navigate directly to /app/memory-map" },
+    { "type": "assertion", "description": "Verify the page shows either a plant grid with health indicators OR an empty state message about 'garden awaits' or 'knowledge grows'. The description should mention plants, blooming, or watering — not be generic." }
+  ]
+}
