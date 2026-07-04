@@ -1,0 +1,14 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "Research Desk handles empty query gracefully without crash",
+  "description": "A logged-in user opens the Research Desk and clicks the search/submit button without entering any query text. The app should show a validation message or keep the UI in its ready state — never crash, never show a blank page, and never make a server call that returns an error the user can see.",
+  "priority": "p1",
+  "planSteps": [
+    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to finish loading" },
+    { "type": "action", "description": "Navigate directly to /app/research" },
+    { "type": "assertion", "description": "Verify the Research Desk page renders — a search/query input is visible" },
+    { "type": "action", "description": "Click the search or submit button without typing anything in the query field" },
+    { "type": "assertion", "description": "Verify no crash occurs — the page stays intact with either a validation message or the input in its ready state. No error toast reading 'something went wrong' and no blank screen." }
+  ]
+}

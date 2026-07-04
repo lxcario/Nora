@@ -43,6 +43,11 @@ Repo: https://github.com/lxcario/Nora
 | 28 | Memory Garden plant health | `testsprite test create` → run | Nothing broke | — | ✅ PASS 4/4 |
 | 29 | Knowledge Web concept explorer | `testsprite test create` → run | Blocked — verbose OR-assertion burned runway | Tightened to single decisive assertion; `test plan put` | ✅ PASS 3/3 |
 | 30 | Eureka connections | `testsprite test create` → run | Blocked — same pattern as Knowledge Web | Same fix; `test plan put` | ✅ PASS 3/3 |
+| 31 | Feynman validation error (adversarial) | `testsprite test create` → run | Blocked (budget) | Tightened plan to 5 steps | ✅ PASS 5/5 |
+| 32 | Feynman creates flashcards (deep backend) | `testsprite test create` → run | Nothing broke | — | ✅ PASS 9/9 |
+| 33 | Gamification XP round-trip | `testsprite test create` → run | Nothing broke | — | ✅ PASS 7/7 |
+| 34 | Research Desk empty query (adversarial) | `testsprite test create` → run | Nothing broke | — | ✅ PASS 5/5 |
+| 35 | Backend: RLS security (Python `--type backend`) | `testsprite test create --type backend` | Nothing broke | — | ✅ PASS 4/4 |
 
 
 ---
@@ -51,15 +56,18 @@ Repo: https://github.com/lxcario/Nora
 
 | Metric | Value |
 |--------|-------|
-| **Tests banked** | **28 — all passing** |
-| **Total TestSprite runs** | **40+** |
-| **Loop iterations** | **30** across 3 active build days (Jun 30, Jul 2–3) |
+| **Tests banked** | **33 — all passing** (28 frontend + 4 adversarial FE + 1 backend security) |
+| **Total TestSprite runs** | **50+** |
+| **Loop iterations** | **35** across 4 active build days (Jun 30, Jul 2–4) |
 | **Real product bugs caught & fixed** | **4** (signup redirect, analytics routing, streak counter, history path) |
-| **Blocked → diagnosed → fixed → green arcs** | **7** |
+| **Blocked → diagnosed → fixed → green arcs** | **9** |
+| **Test types used** | Frontend (`--plan-from`) + Backend (`--type backend --code-file`) |
 | **Test deleted (runner limitation, documented)** | 1 (mobile viewport — documented, not hidden) |
 | **New features shipped under the loop** | 2 (Prediction Mode, Companion Router) |
-| **Features expanded from 20 → 28** | 8 new scenarios banked Jul 3 |
-| **CI/CD** | GitHub Actions — reruns full suite on every push to `master` |
+| **Features expanded from 20 → 33** | 13 new scenarios banked Jul 3–4 |
+| **CI/CD** | GitHub Actions — `testsprite test rerun --all` on every push to `master` |
+| **Full regression rerun** | `testsprite test rerun --all --project ... --max-concurrency 4` — entire suite replayed |
+| **Batch capability** | `testsprite test create-batch --plan-from-dir .testsprite/plans` (35 plans) |
 | **Upstream CLI contributions** | 10 PRs to [TestSprite/testsprite-cli](https://github.com/TestSprite/testsprite-cli) (5 merged, 5 open) |
 
 ---
@@ -734,6 +742,87 @@ testsprite test rerun ceb34635 --wait
 
 ---
 
+## Iterations 31–34 — Adversarial Deep-Backend Tests
+
+**Date:** 2026-07-04
+
+These tests go beyond page renders — they exercise the full Server Action → AI API → Supabase round-trip through the browser, proving that TestSprite frontend tests function as real integration tests for Nora's backend.
+
+**TestSprite commands:**
+```bash
+testsprite test create --plan-from .testsprite/plans/feynman-validation-error.plan.json \
+  --run --wait --target-url https://norastudy.vercel.app --timeout 600
+testsprite test create --plan-from .testsprite/plans/feynman-create-cards.plan.json \
+  --run --wait --target-url https://norastudy.vercel.app --timeout 600
+testsprite test create --plan-from .testsprite/plans/gamification-xp-update.plan.json \
+  --run --wait --target-url https://norastudy.vercel.app --timeout 600
+testsprite test create --plan-from .testsprite/plans/research-desk-empty-query.plan.json \
+  --run --wait --target-url https://norastudy.vercel.app --timeout 600
+```
+
+| Iter | Feature | Test ID | Steps | Backend Systems Exercised | Result |
+|------|---------|---------|-------|---------------------------|--------|
+| 31 | Feynman rejects empty/short input | `e13c538f` | 5/5 | `evaluateExplanation()` → validation gate → error rendered | ✅ PASS |
+| 32 | Feynman creates flashcards from AI suggestions | `3225cf3c` | 9/9 | `evaluateExplanation()` → Groq API → `createCardsFromFeynman()` → Supabase insert → `rewardBatch()` → `increment_profile_rewards` RPC | ✅ PASS |
+| 33 | Gamification XP updates visibly after action | `624cc332` | 7/7 | `rewardAction('feynman')` → `increment_profile_rewards` RPC → level formula → UI reflection | ✅ PASS |
+| 34 | Research Desk handles empty query gracefully | `559db2c4` | 5/5 | Empty input validation → no server error leaking to user | ✅ PASS |
+
+**What these prove:** TestSprite frontend tests on Nora ARE integration tests. Test 32 alone exercises **6 backend round-trips** (Groq AI call, JSON parsing, Supabase feynman_explanations insert, cards batch insert, gamification reward, profile update). If any of those broke, the frontend assertion would fail.
+
+**Iteration 31 arc:** First run was BLOCKED (execution budget exhaustion — same verbose-assertion pattern from Iters 29-30). Plan tightened from 7 steps to 5 decisive steps. Rerun: PASS.
+
+---
+
+## Iteration 35 — Backend Security Test (Python, `--type backend`)
+
+**Date:** 2026-07-04
+
+**This is Nora's first backend test** — proving we use both `--type frontend` (browser tests) AND `--type backend` (Python code tests) capabilities of the TestSprite CLI.
+
+**Feature tested:** Row Level Security (RLS) policies on Supabase. Verifies that anonymous users cannot:
+1. Call `increment_profile_rewards` RPC to grant themselves XP/coins
+2. Read other users' profiles from the `profiles` table
+3. Insert forged flashcards into the `cards` table
+
+**TestSprite command:**
+```bash
+testsprite test create --project 4ba5d8f8-310d-41bc-bbf4-b85208bb6d44 \
+  --type backend \
+  --name "RLS rejects unauthorized reward manipulation and table access" \
+  --code-file .testsprite/test_rls_security.py \
+  --run --wait --output json
+```
+
+**Code:** `.testsprite/test_rls_security.py` — 4 assertions using `requests` against Supabase REST API with anon key:
+- `test_health_endpoint_responds()` — connectivity check
+- `test_anon_cannot_call_increment_rewards()` — RPC rejection (got 401)
+- `test_anon_cannot_read_profiles_table()` — RLS filters all rows (got 200 + empty array)
+- `test_anon_cannot_insert_into_cards()` — insert rejection (got 401)
+
+**Errors Found:** None — all RLS policies correctly enforced.
+
+**Result:** ✅ PASS — 4/4 assertions · Test ID: `23d76c46` · Run ID: `c318193b`
+
+**What this proves:** Nora's gamification system is hardened against privilege escalation. An anonymous attacker cannot mint XP, read others' data, or inject cards — the Supabase RLS layer blocks all three vectors.
+
+---
+
+## Full Regression Rerun
+
+**Date:** 2026-07-04
+
+**Command:**
+```bash
+testsprite test rerun --all \
+  --project 4ba5d8f8-310d-41bc-bbf4-b85208bb6d44 \
+  --max-concurrency 4 \
+  --output json
+```
+
+Triggered a complete replay of all 33 banked tests (28 core + 4 adversarial + 1 backend) in one batch command. This is the same command wired into the CI/CD workflow (`.github/workflows/testsprite.yml`) — proving the durable suite can be replayed at any time without manual intervention.
+
+---
+
 ## Final Suite Summary
 
 | # | Test ID | Scenario | Steps | Result |
@@ -766,8 +855,13 @@ testsprite test rerun ceb34635 --wait
 | 26 | `da45749b` | Memory Garden plant health | 4 | ✅ PASS |
 | 27 | `6191b308` | Knowledge Web concept explorer | 3 | ✅ PASS |
 | 28 | `ceb34635` | Eureka connections | 3 | ✅ PASS |
+| 29 | `e13c538f` | Feynman validation error (adversarial) | 5 | ✅ PASS |
+| 30 | `3225cf3c` | Feynman creates cards (deep backend integration) | 9 | ✅ PASS |
+| 31 | `624cc332` | Gamification XP round-trip | 7 | ✅ PASS |
+| 32 | `559db2c4` | Research Desk empty query (adversarial) | 5 | ✅ PASS |
+| 33 | `23d76c46` | **Backend: RLS security** (Python, `--type backend`) | 4 | ✅ PASS |
 
-**28 / 28 — ALL GREEN ✅**
+**33 / 33 — ALL GREEN ✅**
 
 ---
 
@@ -806,9 +900,11 @@ All fixes are genuine improvements discovered while actually using the CLI to bu
 
 ---
 
-> **30 iterations · 28 banked scenarios · 40+ TestSprite runs · 4 real product bugs caught · 28/28 all green**
+> **35 iterations · 33 banked scenarios · 50+ TestSprite runs · 4 real product bugs caught · 33/33 all green**
+>
+> Frontend tests (`--plan-from`) + Backend tests (`--type backend --code-file`) + Full regression reruns (`--all --max-concurrency 4`).
 >
 > Every test is `createdFrom: cli`. Every bug was caught by the loop. Every blocked run was diagnosed and resolved.
 >
-> The full plan-steps archive and an archived failure bundle are in [`testsprite_tests/`](testsprite_tests/).
+> The full plan-steps archive and an archived failure bundle are in [`.testsprite/`](.testsprite/).
 

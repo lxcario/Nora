@@ -1,0 +1,16 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "Gamification XP and coins update visibly after completing a Feynman evaluation",
+  "description": "After a successful Feynman evaluation, the Server Action calls rewardAction('feynman') which atomically increments XP by 15 and coins by 5 via the increment_profile_rewards RPC. The test verifies that the dashboard stat bar (or session stats) reflects the new XP/coin totals after returning from Feynman Mode — confirming the gamification round-trip (Server Action → Supabase RPC → UI) works end-to-end.",
+  "priority": "p1",
+  "planSteps": [
+    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to finish loading" },
+    { "type": "action", "description": "Note the current XP value shown in the dashboard header or stat bar" },
+    { "type": "action", "description": "Navigate to /app/feynman and select any available topic" },
+    { "type": "action", "description": "Type a detailed explanation of at least 80 characters and click submit, then wait for the evaluation to complete" },
+    { "type": "assertion", "description": "Verify the evaluation result appears with gap analysis segments — confirming the Server Action completed successfully" },
+    { "type": "action", "description": "Navigate back to the dashboard at /app" },
+    { "type": "assertion", "description": "Verify the XP value shown in the dashboard header or stat bar is higher than it was before the evaluation — confirming the gamification increment_profile_rewards RPC ran and the UI reflects the updated total" }
+  ]
+}

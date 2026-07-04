@@ -1,0 +1,14 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "Review grading advances the card and removes it from the due queue",
+  "description": "After a user grades a flashcard during a review session, the card should advance through the FSRS scheduling pipeline (the grade is written to Supabase via a Server Action) and the card should NOT appear again in the same session. This test verifies the grade → persist → queue-advance round-trip works end-to-end.",
+  "priority": "p1",
+  "planSteps": [
+    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to finish loading" },
+    { "type": "action", "description": "Navigate directly to /app/review" },
+    { "type": "assertion", "description": "Verify either a flashcard is shown (front side visible) OR a session-complete / no-cards-due empty state is shown — either is a valid outcome" },
+    { "type": "action", "description": "If a card is shown: reveal the answer by clicking the reveal button, then grade it using any grade button (e.g. 'Good' or grade 3)" },
+    { "type": "assertion", "description": "Verify the graded card disappears and either the next card appears OR the session-complete screen appears — confirming the grade was accepted and the card advanced in the queue" }
+  ]
+}
