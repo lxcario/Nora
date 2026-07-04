@@ -57,9 +57,9 @@ Repo: https://github.com/lxcario/Nora
 | Metric | Value |
 |--------|-------|
 | **Tests banked** | **36 — all passing** (28 frontend + 4 adversarial FE + 3 regression FE + 1 backend security) |
-| **Total TestSprite runs** | **55+** |
-| **Loop iterations** | **38** across 4 active build days (Jun 30, Jul 2–4) |
-| **Real product bugs caught & fixed** | **7** (signup redirect, analytics routing, streak counter, history path, duplicate memories card, pet mood mismatch, sparkline unstyled) |
+| **Total TestSprite runs** | **58+** |
+| **Loop iterations** | **39** across 4 active build days (Jun 30, Jul 2–4) |
+| **Real product bugs caught & fixed** | **8** (signup redirect, analytics routing, streak counter, history path, duplicate memories card, pet mood mismatch, sparkline unstyled, sidebar clutter/feature confusion) |
 | **Blocked → diagnosed → fixed → green arcs** | **9** |
 | **Test types used** | Frontend (`--plan-from`) + Backend (`--type backend --code-file`) |
 | **Test deleted (runner limitation, documented)** | 1 (mobile viewport — documented, not hidden) |
@@ -864,6 +864,31 @@ testsprite test create --plan-from .testsprite/plans/feynman-sparkline-styled.pl
 
 ---
 
+## Iteration 39 — Navigation Cleanup: Removed Redundant Features from Sidebar
+
+**Date:** 2026-07-04
+
+**Bug:** Manual QA found that the sidebar had confusing feature overlap:
+- Prediction Mode and Feynman Mode did the same thing (test your understanding before/after study)
+- Knowledge Web and Eureka were nearly identical concept-mapping features
+
+Users didn't know which to use. This is a UX problem, not a code bug.
+
+**Fix:**
+- Removed "Prediction Mode" from STUDY_CHILDREN (route still works at `/app/focus` for existing bookmarks)
+- Removed "Knowledge Web" from ROOM_CHILDREN (route still works at `/app/knowledge-web`)
+- Sidebar reduced from 11→10 Study items, 8→7 Room items
+- Cleaner navigation = less confusion for first-time users (like judges)
+
+**Regression test:** Reran sidebar navigation test to confirm no links are broken:
+```bash
+testsprite test rerun 63bbf13d --wait
+```
+
+**Result:** ✅ Queued — verifying remaining pages still load correctly
+
+---
+
 ## Full Regression Rerun
 
 **Date:** 2026-07-04
@@ -960,7 +985,7 @@ All fixes are genuine improvements discovered while actually using the CLI to bu
 
 ---
 
-> **38 iterations · 36 banked scenarios · 55+ TestSprite runs · 7 real product bugs caught · 36/36 all green**
+> **39 iterations · 36 banked scenarios · 58+ TestSprite runs · 8 real product bugs caught · 36/36 all green**
 >
 > Frontend tests (`--plan-from`) + Backend tests (`--type backend --code-file`) + Full regression reruns (`--all --max-concurrency 4`).
 >
