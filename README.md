@@ -27,7 +27,7 @@
   <img src="https://img.shields.io/badge/Supabase-Postgres%20%2B%20pgvector-3ECF8E?style=flat-square&logo=supabase" />
   <img src="https://img.shields.io/badge/FSRS--6-ts--fsrs-blue?style=flat-square" />
   <img src="https://img.shields.io/badge/unit%20tests-332%20passing-729B1B?style=flat-square&logo=vitest" />
-  <img src="https://img.shields.io/badge/TestSprite-28%2F28%20green-7ee081?style=flat-square" />
+  <img src="https://img.shields.io/badge/TestSprite-42%2F42%20green-7ee081?style=flat-square" />
   <img src="https://img.shields.io/badge/license-MIT-black?style=flat-square" />
 </p>
 
@@ -50,12 +50,12 @@ Nora is an entry in **TestSprite Hackathon Season 3 — "Build the Loop."** The 
 
 |  |  |
 |---|---|
-| **28** durable browser scenarios | **28 / 28 passing** |
+| **42** durable browser scenarios | **42 / 42 passing** |
 | Every test `createdFrom: cli` | not the portal — genuine CLI loop |
-| **45+** loop iterations · 3 build days | **4** real product bugs caught & fixed |
-| Coverage grew **20 → 28** live | **2** features shipped *under* the loop |
+| **65+** loop iterations · 5 build days | **8** real product bugs caught & fixed |
+| Coverage grew **20 → 42** live | **5** features shipped *under* the loop |
 
-When two new tests came back **`blocked`**, the run summary drove the fix and a rerun turned them green — a clean `create → blocked → diagnose → fix → rerun → pass` cycle. The full per-iteration story is in **[LOOP.md](LOOP.md)**, the submission write-up in **[SUBMISSION.md](SUBMISSION.md)**, and the banked plans + an archived failure bundle in **[testsprite_tests/](testsprite_tests/)**.
+When two new tests came back **`blocked`**, the run summary drove the fix and a rerun turned them green — a clean `create → blocked → diagnose → fix → rerun → pass` cycle. Across 42 iterations the loop caught 8 genuine bugs, from duplicate UI cards to RLS policy gaps and mood-sync contradictions. The full per-iteration story is in **[LOOP.md](LOOP.md)**, the submission write-up in **[SUBMISSION.md](SUBMISSION.md)**, and the banked plans + an archived failure bundle in **[testsprite_tests/](testsprite_tests/)**.
 
 *(Jump to [the verification loop section](#the-verification-loop-testsprite) for the details.)*
 

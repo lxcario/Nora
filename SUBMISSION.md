@@ -34,12 +34,13 @@ loop that caught genuine regressions in a production-grade Next.js app.
 
 | Metric | Value |
 |---|---|
-| Tests banked | **28 — all passing** |
-| Loop iterations | **45+** across 3 active build days (Jun 30, Jul 2–3) |
-| Real product bugs caught & fixed | **4** |
-| Distinct root causes diagnosed | **9** |
-| New features shipped *under* the loop | **2** (Prediction Mode, Companion Router) |
-| Coverage expansion (Jul 3) | **8 new feature scenarios** banked (20 → 28) |
+| Tests banked | **42 — all passing (37 frontend + 5 backend)** |
+| Loop iterations | **42** across 5 active build days (Jun 30, Jul 2–4) |
+| Total test runs | **65+** |
+| Real product bugs caught & fixed | **8** |
+| Distinct root causes diagnosed | **12** |
+| New features shipped *under* the loop | **5** (Prediction Mode, Companion Router, Card Market Shop, Listen Mode RPG, Academic Guide) |
+| Coverage expansion | **20 → 42** live — including 5 backend RLS/schema/auth tests |
 | Platform limitation found & documented | 1 (desktop-only runner can't simulate mobile resize) |
 | CI/CD | GitHub Action reruns the suite on every push to `master` |
 
@@ -91,7 +92,7 @@ tightened each plan to a single decisive assertion (`Generate Knowledge Web` /
 `Discover connections` buttons), pushed the new steps with `test plan put`, and
 reran — both green. A clean create → blocked → diagnose → fix → rerun → pass cycle.
 
-## Suite breadth (28 scenarios across 18+ features)
+## Suite breadth (42 scenarios across 22+ features)
 
 Entry & auth (landing, login, signup→onboarding) · core loop (dashboard,
 sidebar, review full flow, JOL confidence) · learning features (Feynman
@@ -99,18 +100,22 @@ evaluation, Study Mix, Research Desk, Study Room video, Planner, Practice Exam,
 Listen Mode, Error Spotter) · knowledge tools (Knowledge Web, Eureka, Memory
 Garden, Journal) · world & social (Pixel Room, Party, Card Market, Analytics,
 History, Settings theme, create subject/topic) · in-loop features (Prediction
-Mode, Companion Router).
+Mode, Companion Router) · backend security (RLS data isolation, schema
+validation, auth flow, cards/topics RLS).
 
 Full ID-level table: [`testsprite_tests/README.md`](testsprite_tests/README.md).
 
 ## Why Nora stands out
 
 - **Production-grade, not a weekend prototype:** Next.js 16 + React 19 +
-  Supabase, 17 DB migrations, 332 unit tests, a 28-component custom pixel-UI
+  Supabase, 20 DB migrations, 332 unit tests, a 28-component custom pixel-UI
   library, real pedagogy (FSRS-6 spaced repetition, Feynman evaluation, spaced
   practice, interleaving).
 - **AI-powered flows tested end-to-end** (Feynman evaluation, Research Desk
   synthesis) — not just CRUD happy paths.
+- **Backend security tested via CLI** — Python RLS tests prove row-level
+  security rejects unauthorized access (anon can't read cards, can't increment
+  XP, can't insert into other users' topics).
 - **The loop as methodology:** real regressions caught during active feature
   work, a documented multi-iteration debugging arc, and CI wiring.
 
