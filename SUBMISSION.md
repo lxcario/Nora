@@ -34,13 +34,13 @@ loop that caught genuine regressions in a production-grade Next.js app.
 
 | Metric | Value |
 |---|---|
-| Tests banked | **42 — all passing (37 frontend + 5 backend)** |
-| Loop iterations | **42** across 5 active build days (Jun 30, Jul 2–4) |
+| Tests banked | **42 — all passing (39 frontend + 3 backend)** |
+| Loop iterations | **39** across 4 active build days (Jun 30, Jul 2–4) |
 | Total test runs | **65+** |
 | Real product bugs caught & fixed | **8** |
 | Distinct root causes diagnosed | **12** |
-| New features shipped *under* the loop | **5** (Prediction Mode, Companion Router, Card Market Shop, Listen Mode RPG, Academic Guide) |
-| Coverage expansion | **20 → 42** live — including 5 backend RLS/schema/auth tests |
+| New features shipped *under* the loop | **2** (Prediction Mode, Companion Router) |
+| Coverage expansion | **20 → 42** live — including 3 backend RLS/schema tests |
 | Platform limitation found & documented | 1 (desktop-only runner can't simulate mobile resize) |
 | CI/CD | GitHub Action reruns the suite on every push to `master` |
 
@@ -108,7 +108,7 @@ Full ID-level table: [`testsprite_tests/README.md`](testsprite_tests/README.md).
 ## Why Nora stands out
 
 - **Production-grade, not a weekend prototype:** Next.js 16 + React 19 +
-  Supabase, 20 DB migrations, 332 unit tests, a 28-component custom pixel-UI
+  Supabase, 22 DB migrations, 332 unit tests, a 29-component custom pixel-UI
   library, real pedagogy (FSRS-6 spaced repetition, Feynman evaluation, spaced
   practice, interleaving).
 - **AI-powered flows tested end-to-end** (Feynman evaluation, Research Desk

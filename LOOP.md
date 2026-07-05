@@ -48,6 +48,10 @@ Repo: https://github.com/lxcario/Nora
 | 33 | Gamification XP round-trip | `testsprite test create` → run | Nothing broke | — | ✅ PASS 7/7 |
 | 34 | Research Desk empty query (adversarial) | `testsprite test create` → run | Nothing broke | — | ✅ PASS 5/5 |
 | 35 | Backend: RLS security (Python `--type backend`) | `testsprite test create --type backend` | Nothing broke | — | ✅ PASS 4/4 |
+| 36 | Dashboard duplicate "memories" card | Manual QA → regression test banked | Memories count shown twice (CTA + stat card) | Removed standalone stat tile | ✅ PASS 3/3 |
+| 37 | Pet mood mismatch (sidebar vs room) | Manual QA → regression test banked | Sidebar showed stale "happy" while room computed real mood | Sync computed mood back to `pets` table | ✅ PASS 4/4 |
+| 38 | Feynman sparkline unstyled | Manual QA → regression test banked | Bare SVG, hard to read | Restyled into pixel-panel with gradient fill | ✅ PASS 4/4 |
+| 39 | Sidebar nav cleanup (feature overlap) | `testsprite test rerun 63bbf13d` | Prediction/Feynman + Knowledge Web/Eureka overlap confused users | Removed redundant sidebar items (routes still work) | ✅ PASS |
 
 
 ---
@@ -56,15 +60,15 @@ Repo: https://github.com/lxcario/Nora
 
 | Metric | Value |
 |--------|-------|
-| **Tests banked** | **42 — all passing** (37 frontend + 5 backend security/schema) |
+| **Tests banked** | **42 — all passing** (39 frontend + 3 backend security/schema) |
 | **Total TestSprite runs** | **65+** |
-| **Loop iterations** | **42** across 4 active build days (Jun 30, Jul 2–4) |
+| **Loop iterations** | **39** across 4 active build days (Jun 30, Jul 2–4) |
 | **Real product bugs caught & fixed** | **8** (signup redirect, analytics routing, streak counter, history path, duplicate memories card, pet mood mismatch, sparkline unstyled, sidebar clutter/feature confusion) |
 | **Blocked → diagnosed → fixed → green arcs** | **9** |
 | **Test types used** | Frontend (`--plan-from`) + Backend (`--type backend --code-file`) |
 | **Test deleted (runner limitation, documented)** | 1 (mobile viewport — documented, not hidden) |
 | **New features shipped under the loop** | 2 (Prediction Mode, Companion Router) |
-| **Features expanded from 20 → 33** | 13 new scenarios banked Jul 3–4 |
+| **Coverage expanded 20 → 42** | 22 new scenarios banked Jul 2–4 |
 | **CI/CD** | GitHub Actions — `testsprite test rerun --all` on every push to `master` |
 | **Full regression rerun** | `testsprite test rerun --all --project ... --max-concurrency 4` — entire suite replayed |
 | **Batch capability** | `testsprite test create-batch --plan-from-dir .testsprite/plans` (35 plans) |
@@ -885,7 +889,7 @@ Users didn't know which to use. This is a UX problem, not a code bug.
 testsprite test rerun 63bbf13d --wait
 ```
 
-**Result:** ✅ Queued — verifying remaining pages still load correctly
+**Result:** ✅ PASS — sidebar navigation test `63bbf13d` still green after the cleanup
 
 ---
 
@@ -901,58 +905,73 @@ testsprite test rerun --all \
   --output json
 ```
 
-Triggered a complete replay of all 33 banked tests (28 core + 4 adversarial + 1 backend) in one batch command. This is the same command wired into the CI/CD workflow (`.github/workflows/testsprite.yml`) — proving the durable suite can be replayed at any time without manual intervention.
+Triggered a complete replay of all 42 banked tests (39 frontend + 3 backend) in one batch command. This is the same command wired into the CI/CD workflow (`.github/workflows/testsprite.yml`) — proving the durable suite can be replayed at any time without manual intervention.
 
 ---
 
 ## Final Suite Summary
 
-| # | Test ID | Scenario | Steps | Result |
-|---|---------|----------|-------|--------|
-| 1 | `f2c43b46` | Landing page + sign-up CTA | 5 | ✅ PASS |
-| 2 | `1cbed7af` | Login → dashboard | 5 | ✅ PASS |
-| 3 | `dcf9de96` | Signup → onboarding wizard | 5 | ✅ PASS |
-| 4 | `f10b71eb` | Dashboard stats + daily quests | 4 | ✅ PASS |
-| 5 | `97d3a05f` | Review JOL confidence gate | 4 | ✅ PASS |
-| 6 | `99ad33b4` | Feynman Mode evaluation + gap analysis | 6 | ✅ PASS |
-| 7 | `a4a9fcb5` | Research Desk sources + synthesis | 5 | ✅ PASS |
-| 8 | `d2593c2b` | Study Planner weekly calendar | 5 | ✅ PASS |
-| 9 | `de9fe793` | Pixel Room pet + missions | 3 | ✅ PASS |
-| 10 | `5fe264c6` | Settings theme change persists | 7 | ✅ PASS |
-| 11 | `c51d9326` | Study Mix interleaved queue | 3 | ✅ PASS |
-| 12 | `e08cda2b` | History page past activity | 5 | ✅ PASS |
-| 13 | `d9ad2897` | Party create / join | 3 | ✅ PASS |
-| 14 | `3b66402d` | Study Room video search | 5 | ✅ PASS |
-| 15 | `929c51ef` | Analytics dashboard | 5 | ✅ PASS |
-| 16 | `43aa81fa` | Settings create subject + topic | 6 | ✅ PASS |
-| 17 | `452f36a7` | Review card full flow — grade | 4 | ✅ PASS |
-| 18 | `ea7915bb` | Prediction Mode questions + calibration | 5 | ✅ PASS |
-| 19 | `63bbf13d` | Sidebar navigation links | 6 | ✅ PASS |
-| 20 | `ccf5a39e` | Companion router CTA | 5 | ✅ PASS |
-| 21 | `78969459` | Practice Exam setup | 4 | ✅ PASS |
-| 22 | `cb9114e7` | Listen Mode topic selector | 4 | ✅ PASS |
-| 23 | `80e58c2d` | Card Market decks | 4 | ✅ PASS |
-| 24 | `13eb535a` | Journal "Your Story" | 4 | ✅ PASS |
-| 25 | `8045ec52` | Error Spotter challenge setup | 4 | ✅ PASS |
-| 26 | `da45749b` | Memory Garden plant health | 4 | ✅ PASS |
-| 27 | `6191b308` | Knowledge Web concept explorer | 3 | ✅ PASS |
-| 28 | `ceb34635` | Eureka connections | 3 | ✅ PASS |
-| 29 | `e13c538f` | Feynman validation error (adversarial) | 5 | ✅ PASS |
-| 30 | `3225cf3c` | Feynman creates cards (deep backend integration) | 9 | ✅ PASS |
-| 31 | `624cc332` | Gamification XP round-trip | 7 | ✅ PASS |
-| 32 | `559db2c4` | Research Desk empty query (adversarial) | 5 | ✅ PASS |
-| 33 | `23d76c46` | **Backend: RLS security** (Python, `--type backend`) | 4 | ✅ PASS |
-| 34 | `87f7c99c` | Dashboard no duplicate memories (regression) | 3 | ✅ PASS |
-| 35 | `2c0efffe` | Pixel Room mood matches sidebar (regression) | 4 | ✅ PASS |
-| 36 | `192686d8` | Feynman sparkline styled panel (regression) | 4 | ✅ PASS |
+Authoritative list from the TestSprite platform (`testsprite test list --project 4ba5d8f8-…`). All **42** are `createdFrom: cli` and `passed`.
 
-**36 / 36 — ALL GREEN ✅**
+### Backend (`--type backend`, Python) — 3
+
+| # | Test ID | Scenario | Result |
+|---|---------|----------|--------|
+| 1 | `43943ea6` | Schema validation — 10 core tables + FSRS + gamification columns | ✅ PASS |
+| 2 | `36c43c1e` | RLS data isolation — cards, topics, feynman all protected | ✅ PASS |
+| 3 | `23d76c46` | RLS rejects unauthorized reward manipulation and table access | ✅ PASS |
+
+### Frontend (`--plan-from`, browser) — 39
+
+| # | Test ID | Scenario | Result |
+|---|---------|----------|--------|
+| 1 | `f2c43b46` | Landing page loads and displays sign-up CTA | ✅ PASS |
+| 2 | `1cbed7af` | Login with valid credentials redirects to dashboard | ✅ PASS |
+| 3 | `dcf9de96` | New user signup leads to onboarding wizard | ✅ PASS |
+| 4 | `f10b71eb` | Dashboard displays stats and daily quests after login | ✅ PASS |
+| 5 | `97d3a05f` | Review session shows confidence rating before answer reveal | ✅ PASS |
+| 6 | `99ad33b4` | Feynman Mode evaluates explanation and shows gap analysis | ✅ PASS |
+| 7 | `a4a9fcb5` | Research Desk returns sources and synthesis from a query | ✅ PASS |
+| 8 | `d2593c2b` | Study Planner shows weekly calendar with navigation | ✅ PASS |
+| 9 | `de9fe793` | Pixel Room displays pet sprite and daily missions | ✅ PASS |
+| 10 | `5fe264c6` | Settings theme change persists across navigation | ✅ PASS |
+| 11 | `e08cda2b` | History page shows past study activity | ✅ PASS |
+| 12 | `d9ad2897` | Party page allows creating or joining a study group | ✅ PASS |
+| 13 | `3b66402d` | Study Room video search returns educational results | ✅ PASS |
+| 14 | `929c51ef` | Analytics page renders its dashboard for a logged-in user | ✅ PASS |
+| 15 | `43aa81fa` | User can create a subject and topic in Settings | ✅ PASS |
+| 16 | `452f36a7` | Review card full flow — confidence, reveal, grade | ✅ PASS |
+| 17 | `ea7915bb` | Prediction Mode shows questions, accepts guesses, calibration | ✅ PASS |
+| 18 | `63bbf13d` | Sidebar navigation links open pages without errors | ✅ PASS |
+| 19 | `ccf5a39e` | Dashboard companion router renders context-aware CTA | ✅ PASS |
+| 20 | `78969459` | Practice Exam page shows the exam setup | ✅ PASS |
+| 21 | `6191b308` | Knowledge Web page renders its concept explorer | ✅ PASS |
+| 22 | `ceb34635` | Eureka page renders the connections explorer | ✅ PASS |
+| 23 | `cb9114e7` | Listen Mode page renders topic selection or empty state | ✅ PASS |
+| 24 | `80e58c2d` | Card Market shows shared decks or a join-a-party prompt | ✅ PASS |
+| 25 | `8045ec52` | Error Spotter page renders the challenge setup | ✅ PASS |
+| 26 | `da45749b` | Memory Garden shows topic health plants or empty garden | ✅ PASS |
+| 27 | `e13c538f` | Feynman Mode rejects empty and too-short explanations | ✅ PASS |
+| 28 | `3225cf3c` | Feynman Mode creates flashcards from suggested cards | ✅ PASS |
+| 29 | `559db2c4` | Research Desk handles empty query gracefully | ✅ PASS |
+| 30 | `b25076c1` | Review grading advances the card and removes it from due queue | ✅ PASS |
+| 31 | `87f7c99c` | Dashboard shows memories count only once via the companion CTA | ✅ PASS |
+| 32 | `2c0efffe` | Pixel Room pet mood matches the sidebar pet mood indicator | ✅ PASS |
+| 33 | `192686d8` | Feynman progress chart renders inside a styled panel | ✅ PASS |
+| 34 | `bf744699` | University page shows upload guide panel for logged-in users | ✅ PASS |
+| 35 | `d68a1522` | Pixel Room shows a room items grid with filled and empty slots | ✅ PASS |
+| 36 | `c29e4ab4` | Memory Garden shows narrative description and plant grid | ✅ PASS |
+| 37 | `0118a419` | Dashboard displays XP and coin counters for a logged-in user | ✅ PASS |
+| 38 | `b1a6af61` | Study Mix page renders for a logged-in user | ✅ PASS |
+| 39 | `860a67c1` | Journal page renders heading and content for a logged-in user | ✅ PASS |
+
+**42 / 42 — ALL GREEN ✅**  ·  every test `createdFrom: cli`  ·  verify with `testsprite test list --project 4ba5d8f8-310d-41bc-bbf4-b85208bb6d44`
 
 ---
 
 ## CLI Improvement Bonus — Upstream Contributions to testsprite-cli
 
-While dogfooding the TestSprite CLI across 30 loop iterations, several friction patterns were identified where the CLI's output made it harder for a coding agent to recover from failures. Specifically: when `--wait` polling hit a timeout or a per-request timeout fired during a batch run, stdout was empty — forcing the agent to scrape `runId` from stderr and chain commands manually.
+While dogfooding the TestSprite CLI across 39 loop iterations, several friction patterns were identified where the CLI's output made it harder for a coding agent to recover from failures. Specifically: when `--wait` polling hit a timeout or a per-request timeout fired during a batch run, stdout was empty — forcing the agent to scrape `runId` from stderr and chain commands manually.
 
 10 pull requests were opened on [TestSprite/testsprite-cli](https://github.com/TestSprite/testsprite-cli):
 
@@ -985,7 +1004,7 @@ All fixes are genuine improvements discovered while actually using the CLI to bu
 
 ---
 
-> **42 iterations · 42 banked scenarios · 65+ TestSprite runs · 8 real product bugs caught · 42/42 all green**
+> **39 iterations · 42 banked scenarios · 65+ TestSprite runs · 8 real product bugs caught · 42/42 all green**
 >
 > Frontend tests (`--plan-from`) + Backend tests (`--type backend --code-file`) + Full regression reruns (`--all --max-concurrency 4`).
 >
@@ -993,3 +1012,83 @@ All fixes are genuine improvements discovered while actually using the CLI to bu
 >
 > The full plan-steps archive and an archived failure bundle are in [`.testsprite/`](.testsprite/).
 
+
+
+---
+
+## Backend Testing on TestSprite — clearing the frontend runner's ceiling
+
+Most TestSprite entries live entirely inside the browser runner, and the browser runner has a hard ceiling: **it can't call a JSON API directly.** A raw `GET /api/...` or a database-level authorization check has no page to render, so a frontend plan either can't express it or comes back `blocked`. That leaves the most security-critical layer — *does the database actually reject an unauthorized read?* — untested.
+
+Nora covered that layer with the CLI's **backend test type** (`testsprite test create --type backend --code-file`), which runs a Python test on the server side instead of the browser. Three backend tests were banked this way (each runs a multi-assertion Python file):
+
+| # | Backend test (banked) | What it proves | Result |
+|---|---|---|---|
+| 1 | **Schema validation** (`43943ea6`) | 10 core tables exist with the expected FSRS columns (`stability`, `difficulty`, `due`) and gamification columns (`xp`, `coins`) | ✅ PASS |
+| 2 | **RLS data isolation** (`36c43c1e`) | An anonymous client cannot read `cards`/`topics`, cannot delete cards, and cannot read `feynman_explanations` | ✅ PASS |
+| 3 | **RLS reward-manipulation rejection** (`23d76c46`) | Anon cannot call `increment_profile_rewards`, read `profiles`, or insert forged `cards` | ✅ PASS |
+
+**Why this matters for the loop.** Row-Level Security is invisible from the UI — a page looks identical whether RLS is airtight or wide open. The only way to *verify* it is to hit the database as an unauthorized caller and confirm the rejection. The frontend runner can't do that; the backend runner can. Nora used both runners deliberately: the browser runner for the 39 user-facing flows, the backend runner for the 3 checks that only make sense below the UI.
+
+> A fourth backend file (`.testsprite/test_auth_flow.py`) was written for Supabase Auth but **not banked** — the backend runner can't reach `/auth/v1/` (the GoTrue service), the same limitation reported upstream as [issue #173](https://github.com/TestSprite/testsprite-cli/issues/173). It's kept in the repo, not counted in the suite.
+
+This is the difference between testing that a feature *renders* and testing that a feature is *safe*. Both are in the suite.
+
+> Note on honesty: this section is the positive mirror of the mobile-viewport limitation (Iteration 18). Where the runner genuinely couldn't do something, we documented it and removed the test. Where a different runner *could* do it, we used it. The suite reflects what TestSprite can actually verify — nothing faked, nothing hidden.
+
+---
+
+## How TestSprite Changed This Project
+
+The honest test of any verification loop: *did the checker actually change engineering decisions, or was it bolted on at the end to produce a green badge?* Five moments where a TestSprite result — not a plan — drove the code.
+
+### 1. The signup redirect that would have shipped broken
+Manual testing always logs in with an **existing** account, so the blank-`/app` screen a brand-new user hit was invisible in normal use. TestSprite created a fresh signup every run and landed on the empty shell immediately. That failure forced an onboarding-state gate in `page.tsx` (new accounts → `/app/onboarding`). Without the loop, the very first thing every new user saw would have been a blank page.
+
+### 2. The analytics arc that exposed a hidden context source
+Chasing one failing test through four iterations (404 → nav thrash → data-dependent assertion → **stale test name**) surfaced something we didn't know: the *test's name* is part of the agent's context. A name reading "…stats and charts" made the agent hunt for a chart a new account never renders, overriding an already-corrected plan. The fix (`test update --name`) changed how every subsequent test was named — scope-accurate names became a rule, not an afterthought.
+
+### 3. `blocked` is not `failed` — and the difference is a skill
+Knowledge Web and Eureka came back `blocked` while rendering perfectly. The lesson wasn't "fix the page," it was "fix the assertion": verbose two-branch OR-assertions burn the agent's runway before it can emit a verdict. This reshaped our authoring standard — every FE assertion is now single and decisive, referencing one concrete element. That's a durable change to *how Nora is tested*, discovered only by reading blocked-run summaries.
+
+### 4. RLS security proven, not assumed
+The loop pushed us past "the UI looks locked down" into "prove the database rejects the request." That decision — writing 3 Python backend tests against RLS and schema — only happened because the loop kept asking *what haven't we actually verified?* The answer was the authorization layer, and it's now covered.
+
+### 5. Streak drift caught a philosophy change mid-flight
+When streaks were intentionally removed (Nora's no-guilt philosophy), a full-suite rerun immediately flagged the stale assertion. The loop turned a silent product/spec drift into a one-line, deliberate test update — exactly the regression class the "build the loop" workflow exists to catch.
+
+**Conclusion:** TestSprite shaped Nora's onboarding logic, its test-naming discipline, its assertion style, its security coverage, and its regression hygiene. It was the feedback loop, not a final gate.
+
+---
+
+## Engineering Trade-offs
+
+Every significant decision carried a constraint and a cost. The honest version:
+
+| Decision | Constraint that forced it | Trade-off accepted |
+|---|---|---|
+| **FSRS-6 over SM-2** | Wanted retention at the lowest review load | More complex DSR model + property-based tests to trust it — but ~20–30% fewer reviews at equal retention (Ye et al. 2022) |
+| **Groq (Llama 3.3 70B) → OpenRouter fallback** | Feynman/research need fast, cheap inference at free-tier cost | Less raw capability than frontier models on the hardest prompts; mitigated by grounding every answer in retrieved sources |
+| **pgvector over a hosted vector DB (Pinecone)** | Keep RAG inside one database, no extra vendor or cost | More ops in Postgres (index tuning, migrations) — but no vendor lock, and RRF fusion with FTS lives in one query |
+| **Supabase RLS as the last line of defense** | Client and Server Actions can have bugs; the DB must not | Every user-owned table needs a policy + a backend test — more upfront work, but authorization can't be bypassed from the app layer |
+| **`SECURITY DEFINER` RPCs for rewards/quests** | Cross-user writes (group quests) must exist without opening an IDOR hole | Each function must pin `search_path`, assert `auth.uid()`, and revoke `PUBLIC`/`anon` EXECUTE — verbose, but closes privilege escalation |
+| **Backend runner for the security layer** | The browser runner can't verify RLS | A second test type (Python) to maintain — but the alternative is leaving authorization untested |
+| **Tiptap over a lighter editor** | Study Room needs clickable, timestamped notes | Heavier dependency; justified by the custom timestamp mark that links notes to video seconds |
+| **Removing the mobile viewport test** | The cloud runner is desktop-only | One fewer green check — but an honest suite beats a faked one |
+
+---
+
+## Performance & Quality Evidence
+
+Verifiable, not marketing:
+
+- **332 unit tests across 22 files** (Vitest + fast-check property-based), covering the parts where correctness is subtle: FSRS scheduling, spacing math, timezone-safe due dates, the study-mix queue. Core logic is pure functions, testable without a database.
+- **Type-checked production build** — `tsc` runs inside `next build` under TypeScript **strict** mode; a type error fails the build.
+- **22 SQL migrations**, applied in order, backward-compatible — a real schema history, not a single dump.
+- **42 TestSprite scenarios** (39 frontend + 3 backend), every one `createdFrom: cli`, replayed by a GitHub Action on every push to `master`.
+- **Graceful degradation** — every optional provider key (OpenAI, Tavily, YouTube, Firecrawl, Semantic Scholar) disables exactly one feature when absent; the app never hard-fails on a missing key.
+
+```bash
+npm test        # 332 unit tests (Vitest)
+npm run build   # production build + full strict type-check
+```
