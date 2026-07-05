@@ -124,12 +124,12 @@ Full ID-level table: [`testsprite_tests/README.md`](testsprite_tests/README.md).
 Separate from judging — genuine improvements to the open-source CLI, opened
 from `lxcario`:
 
-- **Merged:** #37 (SSRF trailing-dot guard), #131 (CR/LF INI-injection fix),
+- **Merged (9):** #37 (SSRF trailing-dot guard), #131 (CR/LF INI-injection fix),
   #38 (typed auth error envelope), #36 (empty/whitespace `--name` validation),
-  #133 (Node 20/22 CI matrix)
-- **Open, CI green:** #132 (`test flaky` command, tracked by issue #115),
-  #10 (kiro agent target, issue #170), #11 (Node version guard),
-  #12 (`NO_COLOR` support), #39 (whitespace `--name` parity in `test update`)
+  #133 (Node 20/22 CI matrix), #10 (kiro agent target, issue #170),
+  #11 (Node version guard), #12 (`NO_COLOR` support),
+  #39 (whitespace `--name` parity in `test update`)
+- **Open, CI green (1):** #132 (`test flaky` command, tracked by issue #115)
 
 ## Eligibility checklist
 

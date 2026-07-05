@@ -72,7 +72,7 @@ Repo: https://github.com/lxcario/Nora
 | **CI/CD** | **GitLab CI** (`.gitlab-ci.yml`) reruns the unit suite (332 tests) + the TestSprite **backend checker** (schema + 2 RLS tests, drift-immune) on every `master` push — **verified green** ([pipeline](https://gitlab.com/lxcario-group/Nora/-/pipelines)). A GitHub Actions workflow (`.github/workflows/testsprite.yml`) holds the same command but is gated by a GitHub account Actions billing lock. |
 | **Full regression rerun** | `testsprite test rerun --all --project ... --max-concurrency 4` — entire suite replayed from the CLI |
 | **Batch capability** | `testsprite test create-batch --plan-from-dir .testsprite/plans` (35 plans) |
-| **Upstream CLI contributions** | 10 PRs to [TestSprite/testsprite-cli](https://github.com/TestSprite/testsprite-cli) (5 merged, 5 open) |
+| **Upstream CLI contributions** | 10 PRs to [TestSprite/testsprite-cli](https://github.com/TestSprite/testsprite-cli) (**9 merged**, 1 open) |
 
 ---
 
@@ -975,9 +975,9 @@ Authoritative list from the TestSprite platform (`testsprite test list --project
 
 While dogfooding the TestSprite CLI across 39 loop iterations, several friction patterns were identified where the CLI's output made it harder for a coding agent to recover from failures. Specifically: when `--wait` polling hit a timeout or a per-request timeout fired during a batch run, stdout was empty — forcing the agent to scrape `runId` from stderr and chain commands manually.
 
-10 pull requests were opened on [TestSprite/testsprite-cli](https://github.com/TestSprite/testsprite-cli):
+10 pull requests were opened on [TestSprite/testsprite-cli](https://github.com/TestSprite/testsprite-cli) — **9 merged, 1 open**:
 
-**Merged (5 PRs):**
+**Merged (9 PRs):**
 
 | PR | Fix |
 |----|-----|
@@ -986,16 +986,16 @@ While dogfooding the TestSprite CLI across 39 loop iterations, several friction 
 | [#38](https://github.com/TestSprite/testsprite-cli/pull/38) | Auth: preserve typed API error envelope on key verification failure |
 | [#36](https://github.com/TestSprite/testsprite-cli/pull/36) | Reject empty/whitespace-only `--name` in project create/update |
 | [#133](https://github.com/TestSprite/testsprite-cli/pull/133) | CI: test and build against Node 20 and 22 |
+| [#10](https://github.com/TestSprite/testsprite-cli/pull/10) | Add `kiro` as an agent install target (issue [#170](https://github.com/TestSprite/testsprite-cli/issues/170)) |
+| [#11](https://github.com/TestSprite/testsprite-cli/pull/11) | Runtime Node.js version guard with clear error message |
+| [#12](https://github.com/TestSprite/testsprite-cli/pull/12) | Respect `NO_COLOR` env var per no-color.org |
+| [#39](https://github.com/TestSprite/testsprite-cli/pull/39) | Reject whitespace-only `--name` in `test update` (parity with `test create`) |
 
-**Open, CI green, ready to merge (5 PRs):**
+**Open, CI green (1 PR):**
 
 | PR | Tracked by issue | Fix |
 |----|-----------------|-----|
 | [#132](https://github.com/TestSprite/testsprite-cli/pull/132) | [#115](https://github.com/TestSprite/testsprite-cli/issues/115) | New `testsprite test flaky <id>` command — repeat-run flaky-test detector, `--runs` capped at 10 |
-| [#10](https://github.com/TestSprite/testsprite-cli/pull/10) | [#170](https://github.com/TestSprite/testsprite-cli/issues/170) | Add `kiro` as an agent install target |
-| [#11](https://github.com/TestSprite/testsprite-cli/pull/11) | — | Runtime Node.js version guard with clear error message |
-| [#12](https://github.com/TestSprite/testsprite-cli/pull/12) | — | Respect `NO_COLOR` env var per no-color.org |
-| [#39](https://github.com/TestSprite/testsprite-cli/pull/39) | — | Reject whitespace-only `--name` in `test update` (parity with `test create`) |
 
 **Loop friction that motivated the fixes:**
 - Iteration 11 (timeout during batch rerun) → needed `testsprite test wait` to recover
