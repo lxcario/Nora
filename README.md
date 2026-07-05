@@ -28,6 +28,7 @@
   <img src="https://img.shields.io/badge/FSRS--6-ts--fsrs-blue?style=flat-square" />
   <img src="https://img.shields.io/badge/unit%20tests-332%20passing-729B1B?style=flat-square&logo=vitest" />
   <img src="https://img.shields.io/badge/TestSprite-42%2F42%20green-7ee081?style=flat-square" />
+  <a href="https://gitlab.com/lxcario-group/Nora/-/pipelines"><img src="https://gitlab.com/lxcario-group/Nora/badges/master/pipeline.svg" alt="CI pipeline status" /></a>
   <img src="https://img.shields.io/badge/license-MIT-black?style=flat-square" />
 </p>
 
