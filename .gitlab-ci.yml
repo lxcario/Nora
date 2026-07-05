@@ -1,0 +1,43 @@
+# GitLab CI — the TestSprite verification loop, wired into CI.
+#
+# Runs on GitLab's shared runners (free tier). Used because this account's
+# GitHub Actions are gated by a billing lock; GitLab CI is unaffected. The repo
+# is imported/mirrored from https://github.com/lxcario/Nora.
+#
+# Two layers, both verified green locally:
+#   1. Unit suite (Vitest — 332 tests).
+#   2. The TestSprite checker itself: reruns the 3 BACKEND tests
+#      (schema + RLS data isolation + RLS reward-manipulation). These hit the
+#      REST/RLS layer, so they are drift-immune and rerun at ~0 credits — unlike
+#      the browser suite, whose saved scripts drift as the live UI evolves.
+#
+# Setup (one-time, in GitLab): Project → Settings → CI/CD → Variables → add
+#   TESTSPRITE_API_KEY  (masked)  = <your key from .env.local>
+# The CLI reads it via `testsprite setup --from-env`.
+
+stages:
+  - verify
+
+verify:
+  stage: verify
+  image: node:20-slim
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+  cache:
+    key:
+      files:
+        - package-lock.json
+    paths:
+      - node_modules/
+  script:
+    - npm ci
+    - npm test
+    - npm install -g @testsprite/testsprite-cli
+    - testsprite setup --from-env --yes --no-agent
+    - >
+      testsprite test rerun
+      43943ea6-daa9-4a9e-a18d-59d8abacc33e
+      36c43c1e-258b-482a-97be-a135b8107e5a
+      23d76c46-f900-455f-85c5-cdafe379949d
+      --wait --timeout 600 --output json
