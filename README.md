@@ -211,6 +211,36 @@ Your notes · papers · videos
    Journal  (who you're becoming)
 ```
 
+### The AI pipeline
+
+Every AI answer follows the same grounded path — retrieve real sources first, generate second, and never let the model invent. This is the actual data flow in code (`rag/parser.ts` → `lib/rrf.ts` → `lib/llm.ts`), not a marketing diagram:
+
+```
+  Your notes · PDFs · a question
+              │
+              ▼
+   Ingestion   parser.ts → chunker → embedder
+              │              (OpenAI text-embedding-3-small,
+              ▼               optional; FTS-only fallback)
+   paper_chunks  (Postgres + pgvector)
+              │
+              ▼
+   Retrieval   ┌─ pgvector cosine   (match_paper_chunks RPC)
+   queryRag()  └─ Postgres FTS      (ts_rank_cd)
+              │        │
+              └───►  Reciprocal Rank Fusion  (lib/rrf.ts, unit-tested)
+              │
+              ▼
+   Generation  Groq  (Llama 3.3 70B)  ──fallback──►  OpenRouter
+              │   grounded ONLY in the retrieved chunks;
+              │   < 2 sources ⇒ says so · unverified ⇒ labelled
+              ▼
+   Answer + real citations (OpenAlex · Crossref · Unpaywall · Semantic Scholar)
+
+  Outbound fetches (papers · web · calendars) pass through lib/ssrf.ts.
+  Web search (optional) via Tavily. Retrieved text is data, never a prompt.
+```
+
 For the full system design — data model, AI pipeline, retrieval, and security boundaries — see **[ARCHITECTURE.md](ARCHITECTURE.md)**.
 
 ---

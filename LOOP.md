@@ -1080,13 +1080,16 @@ Every significant decision carried a constraint and a cost. The honest version:
 
 ## Performance & Quality Evidence
 
-Verifiable, not marketing:
+Verifiable, not marketing. Numbers below are **measured on this machine / against the live deployment**, reproducible with the commands shown — not estimates.
 
-- **332 unit tests across 22 files** (Vitest + fast-check property-based), covering the parts where correctness is subtle: FSRS scheduling, spacing math, timezone-safe due dates, the study-mix queue. Core logic is pure functions, testable without a database.
-- **Type-checked production build** — `tsc` runs inside `next build` under TypeScript **strict** mode; a type error fails the build.
+- **332 unit tests across 22 files** (Vitest + fast-check property-based), covering the parts where correctness is subtle: FSRS scheduling, spacing math, timezone-safe due dates, the study-mix queue. Core logic is pure functions, testable without a database. **Full suite runs in ~2.4s** (`npm test`).
+- **Type-checked production build passes** — `next build` (Turbopack) **compiles in ~7.4s**, runs the strict-mode TypeScript check, and generates **32 static routes** clean (exit 0). A type error fails the build.
+- **Live latency** (5 samples against `https://norastudy.vercel.app`): **cold start ~1.08s TTFB, warm ~0.28–0.41s** — Vercel edge/SSR.
 - **22 SQL migrations**, applied in order, backward-compatible — a real schema history, not a single dump.
 - **42 TestSprite scenarios** (39 frontend + 3 backend), every one `createdFrom: cli`, replayed by a GitHub Action on every push to `master`.
 - **Graceful degradation** — every optional provider key (OpenAI, Tavily, YouTube, Firecrawl, Semantic Scholar) disables exactly one feature when absent; the app never hard-fails on a missing key.
+
+> Method: `npm test` (Vitest run count + duration), `npm run build` (Turbopack compile time + route count), and 5 sequential `GET /` requests to the live app timed client-side (first = cold). Reproduce anytime; exact ms vary with network and Vercel cache state.
 
 ```bash
 npm test        # 332 unit tests (Vitest)
