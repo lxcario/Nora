@@ -69,8 +69,8 @@ Repo: https://github.com/lxcario/Nora
 | **Test deleted (runner limitation, documented)** | 1 (mobile viewport — documented, not hidden) |
 | **New features shipped under the loop** | 2 (Prediction Mode, Companion Router) |
 | **Coverage expanded 20 → 42** | 22 new scenarios banked Jul 2–4 |
-| **CI/CD** | GitHub Actions — `testsprite test rerun --all` on every push to `master` |
-| **Full regression rerun** | `testsprite test rerun --all --project ... --max-concurrency 4` — entire suite replayed |
+| **CI/CD** | GitHub Actions workflow committed (`.github/workflows/testsprite.yml`) that reruns the suite via `testsprite test rerun --all`; automated runs are gated by a GitHub Actions account billing lock, so the loop was driven directly via the CLI |
+| **Full regression rerun** | `testsprite test rerun --all --project ... --max-concurrency 4` — entire suite replayed from the CLI |
 | **Batch capability** | `testsprite test create-batch --plan-from-dir .testsprite/plans` (35 plans) |
 | **Upstream CLI contributions** | 10 PRs to [TestSprite/testsprite-cli](https://github.com/TestSprite/testsprite-cli) (5 merged, 5 open) |
 
@@ -905,7 +905,7 @@ testsprite test rerun --all \
   --output json
 ```
 
-Triggered a complete replay of all 42 banked tests (39 frontend + 3 backend) in one batch command. This is the same command wired into the CI/CD workflow (`.github/workflows/testsprite.yml`) — proving the durable suite can be replayed at any time without manual intervention.
+Triggered a complete replay of all 42 banked tests (39 frontend + 3 backend) in one batch command from the CLI. This is the same command committed in the CI/CD workflow (`.github/workflows/testsprite.yml`); automated push-triggered runs are currently gated by a GitHub Actions account billing lock, so the replay was driven directly via the CLI. The durable suite can be replayed on demand at any time.
 
 ---
 
@@ -1086,7 +1086,7 @@ Verifiable, not marketing. Numbers below are **measured on this machine / agains
 - **Type-checked production build passes** — `next build` (Turbopack) **compiles in ~7.4s**, runs the strict-mode TypeScript check, and generates **32 static routes** clean (exit 0). A type error fails the build.
 - **Live latency** (5 samples against `https://norastudy.vercel.app`): **cold start ~1.08s TTFB, warm ~0.28–0.41s** — Vercel edge/SSR.
 - **22 SQL migrations**, applied in order, backward-compatible — a real schema history, not a single dump.
-- **42 TestSprite scenarios** (39 frontend + 3 backend), every one `createdFrom: cli`, replayed by a GitHub Action on every push to `master`.
+- **42 TestSprite scenarios** (39 frontend + 3 backend), every one `createdFrom: cli`, replayable in one command (`testsprite test rerun --all`) — the same command committed in the CI workflow.
 - **Graceful degradation** — every optional provider key (OpenAI, Tavily, YouTube, Firecrawl, Semantic Scholar) disables exactly one feature when absent; the app never hard-fails on a missing key.
 
 > Method: `npm test` (Vitest run count + duration), `npm run build` (Turbopack compile time + route count), and 5 sequential `GET /` requests to the live app timed client-side (first = cold). Reproduce anytime; exact ms vary with network and Vercel cache state.

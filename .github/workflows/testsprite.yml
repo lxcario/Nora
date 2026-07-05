@@ -1,18 +1,23 @@
+# TestSprite verification workflow.
+#
+# This reruns the banked suite against the live app with the same command used
+# throughout the build (`testsprite test rerun --all`). It is intentionally
+# `workflow_dispatch` (manual) only: this account's GitHub Actions are currently
+# gated by a billing lock, so a `push:` trigger would produce jobs that never
+# start. Rather than emit misleading check results, the loop was driven directly
+# via the CLI (see LOOP.md). Re-enable the `push:` trigger below once Actions are
+# available on the account.
 name: TestSprite Verification Loop
 
 on:
-  push:
-    branches: [master]
   workflow_dispatch:
+  # push:
+  #   branches: [master]
 
 jobs:
   testsprite:
     name: Rerun TestSprite suite
     runs-on: ubuntu-latest
-    # Don't block merges — this is a verification step, not a gate.
-    # If the suite fails, the action exits non-zero and shows as a check
-    # failure, but it won't prevent the push from landing.
-    continue-on-error: true
 
     steps:
       - name: Install TestSprite CLI
