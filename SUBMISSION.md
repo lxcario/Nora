@@ -42,7 +42,7 @@ loop that caught genuine regressions in a production-grade Next.js app.
 | New features shipped *under* the loop | **2** (Prediction Mode, Companion Router) |
 | Coverage expansion | **20 → 42** live — including 3 backend RLS/schema tests |
 | Platform limitation found & documented | 1 (desktop-only runner can't simulate mobile resize) |
-| CI/CD | GitHub Actions workflow committed (`.github/workflows/testsprite.yml`, `testsprite test rerun --all`); automated runs are gated by a GitHub Actions account billing lock, so the suite was replayed via the CLI |
+| CI/CD | **GitLab CI** reruns the unit suite + the TestSprite **backend checker** on every `master` push — **verified green** (`gitlab.com/lxcario-group/Nora/-/pipelines`). A GitHub Actions workflow holds the same command but is gated by a GitHub account Actions billing lock. |
 
 ## What "genuinely used as the checker" looks like here (Rule 4)
 

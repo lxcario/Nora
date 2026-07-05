@@ -69,7 +69,7 @@ Repo: https://github.com/lxcario/Nora
 | **Test deleted (runner limitation, documented)** | 1 (mobile viewport — documented, not hidden) |
 | **New features shipped under the loop** | 2 (Prediction Mode, Companion Router) |
 | **Coverage expanded 20 → 42** | 22 new scenarios banked Jul 2–4 |
-| **CI/CD** | GitHub Actions workflow committed (`.github/workflows/testsprite.yml`) that reruns the suite via `testsprite test rerun --all`; automated runs are gated by a GitHub Actions account billing lock, so the loop was driven directly via the CLI |
+| **CI/CD** | **GitLab CI** (`.gitlab-ci.yml`) reruns the unit suite (332 tests) + the TestSprite **backend checker** (schema + 2 RLS tests, drift-immune) on every `master` push — **verified green** ([pipeline](https://gitlab.com/lxcario-group/Nora/-/pipelines)). A GitHub Actions workflow (`.github/workflows/testsprite.yml`) holds the same command but is gated by a GitHub account Actions billing lock. |
 | **Full regression rerun** | `testsprite test rerun --all --project ... --max-concurrency 4` — entire suite replayed from the CLI |
 | **Batch capability** | `testsprite test create-batch --plan-from-dir .testsprite/plans` (35 plans) |
 | **Upstream CLI contributions** | 10 PRs to [TestSprite/testsprite-cli](https://github.com/TestSprite/testsprite-cli) (5 merged, 5 open) |
@@ -905,7 +905,9 @@ testsprite test rerun --all \
   --output json
 ```
 
-Triggered a complete replay of all 42 banked tests (39 frontend + 3 backend) in one batch command from the CLI. This is the same command committed in the CI/CD workflow (`.github/workflows/testsprite.yml`); automated push-triggered runs are currently gated by a GitHub Actions account billing lock, so the replay was driven directly via the CLI. The durable suite can be replayed on demand at any time.
+Triggered a complete replay of all 42 banked tests (39 frontend + 3 backend) in one batch command from the CLI. The durable suite can be replayed on demand at any time.
+
+**Continuous integration (GitLab CI).** On every `master` push, [GitLab CI](https://gitlab.com/lxcario-group/Nora/-/pipelines) (`.gitlab-ci.yml`) runs the 332-test unit suite and then reruns the **3 backend TestSprite tests** (`testsprite test rerun 43943ea6 36c43c1e 23d76c46`) against the live project — the checker itself, in CI. First run: **green** — `npm ci` → `332/332` unit tests → `testsprite setup` → `3/3 backend tests passed`. The backend tests are used in CI (not the browser suite) because they hit the REST/RLS layer and are drift-immune, so they rerun deterministically at ~0 credits. The equivalent GitHub Actions workflow (`.github/workflows/testsprite.yml`) holds the same command but is gated by a GitHub account Actions billing lock.
 
 ---
 
