@@ -4,7 +4,7 @@
 
 This feature adds an academic-identity onboarding flow and a personalization layer that collects **real, official** university data (academic calendar, registration/add-drop/midterm/final/make-up dates, holidays, curriculum, courses, syllabi) and uses it to make the planner, dashboard, and RAG semester-aware.
 
-It is implemented entirely on the existing stack — Next.js 16 server actions + Supabase (Postgres, pgvector, Storage, RLS) + Groq→OpenRouter — and **reuses** the existing ingestion pipeline (`rag/parser.ts`, `rag/chunker.ts`, `rag/embedder.ts`, `paper_chunks`), the `match_paper_chunks` RPC, the dual-mode `queryRag()` engine, and the `lib/ssrf.ts` guard. The source `NewFeature.txt` specified a much heavier architecture (Docling OCR workers, Crawl4AI clusters, AWS S3, an API gateway, message queues, a Bayesian consensus engine); this design deliberately replaces those with in-stack equivalents appropriate to a small (2–3 user) deployment.
+It is implemented entirely on the existing stack — Next.js 16 server actions + Supabase (Postgres, pgvector, Storage, RLS) + Groq→OpenRouter — and **reuses** the existing ingestion pipeline (`rag/parser.ts`, `rag/chunker.ts`, `rag/embedder.ts`, `paper_chunks`), the `match_paper_chunks` RPC, the dual-mode `queryRag()` engine, and the `lib/ssrf.ts` guard. The original research brief specified a much heavier architecture (Docling OCR workers, Crawl4AI clusters, AWS S3, an API gateway, message queues, a Bayesian consensus engine); this design deliberately replaces those with in-stack equivalents appropriate to a small (2–3 user) deployment.
 
 ### Key Design Decisions
 
