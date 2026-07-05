@@ -1,34 +1,31 @@
-# Cirrus CI — the TestSprite verification loop, wired into CI.
+# Cirrus CI — continuous verification of the codebase on every push.
 #
-# Why Cirrus and not GitHub Actions: this account's GitHub Actions are gated by a
-# billing lock, so the committed .github/workflows/testsprite.yml can't run.
-# Cirrus runs on its own infra (free for public repos) and is unaffected by that
-# lock — so the checker genuinely reruns on every push here.
+# Runs on Cirrus's own infra (free for public repos), independent of GitHub
+# Actions — so it works even though this account's GitHub Actions are gated by a
+# billing lock. It runs the deterministic checks that gate the build:
+#   * the full unit suite (Vitest — 332 tests, property-based)
+#   * a strict-mode production build (next build runs the TypeScript check)
 #
-# Credit-safe by design: `testsprite test rerun` on a FRONTEND test replays the
-# saved script at NO credit cost, and `--no-auto-heal` guarantees we never spend
-# the 0.2-credit heal-on-drift charge. This job therefore costs 0 credits per run.
-# (Backend tests re-run their closure and DO cost credits, so they're run on
-# demand from the CLI, not in this push-triggered job.)
+# It intentionally does NOT rerun the banked TestSprite browser suite here:
+# frontend reruns replay saved scripts, which drift as the live UI evolves and
+# would turn CI red on drift rather than on a real regression. The TestSprite
+# loop is driven via the CLI (see LOOP.md); the workflow committed under
+# .github/workflows/testsprite.yml holds the `testsprite test rerun --all`
+# command for when GitHub Actions are available on the account.
 #
-# Setup (one-time, done in the Cirrus dashboard, not in this file):
-#   1. Install the Cirrus CI GitHub App on lxcario/Nora (https://cirrus-ci.org).
-#   2. Repository Settings -> add a secured env var:  TESTSPRITE_API_KEY = <key>
-#   The CLI reads TESTSPRITE_API_KEY from the environment via `setup --from-env`.
+# Setup (one-time, in the Cirrus dashboard): install the Cirrus GitHub App on
+# lxcario/Nora at https://cirrus-ci.org. No secrets required for this job.
 
 task:
-  name: TestSprite loop (frontend replay)
+  name: Verify (unit tests + strict build)
   only_if: $CIRRUS_BRANCH == 'master'
   container:
     image: node:20-slim
-  install_cli_script:
-    - npm install -g @testsprite/testsprite-cli
-  configure_script:
-    - testsprite setup --from-env --yes --no-agent
-  rerun_script:
-    - >
-      testsprite test rerun
-      f2c43b46-dafd-47a8-b27a-fa0510c6d95a
-      f10b71eb-af4e-4125-a864-a6c42e941f50
-      63bbf13d-9a53-4502-9584-5bb4bae391f8
-      --wait --timeout 600 --no-auto-heal --output json
+  node_modules_cache:
+    folder: node_modules
+    fingerprint_script: cat package-lock.json
+    populate_script: npm ci
+  test_script:
+    - npm test
+  build_script:
+    - npm run build
