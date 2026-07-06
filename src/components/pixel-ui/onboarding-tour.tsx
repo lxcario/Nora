@@ -124,8 +124,14 @@ export function OnboardingTour({ steps = DEFAULT_STEPS }: { steps?: TourStep[] }
   const rafRef = useRef<number>(0);
 
   // Check if tour should show (first visit after onboarding)
+  // Suppressed in automated runners (navigator.webdriver = true, set by Playwright/headless)
+  // and when ?skip_tour=1 is in the URL (explicit opt-out for CI/testing).
   useEffect(() => {
     try {
+      if (typeof window !== "undefined") {
+        if ((navigator as { webdriver?: boolean }).webdriver) return;
+        if (new URLSearchParams(window.location.search).get("skip_tour") === "1") return;
+      }
       if (!localStorage.getItem(TOUR_STORAGE_KEY)) {
         // Small delay so the page renders first
         const timer = setTimeout(() => setActive(true), 800);
