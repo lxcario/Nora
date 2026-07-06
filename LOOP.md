@@ -73,7 +73,7 @@ Repo: https://github.com/lxcario/Nora
 | **CI/CD** | **GitLab CI** (`.gitlab-ci.yml`) reruns the unit suite (332 tests) + the TestSprite **backend checker** (schema + 2 RLS tests, drift-immune) on every `master` push — **verified green** ([pipeline](https://gitlab.com/lxcario-group/Nora/-/pipelines)). A GitHub Actions workflow (`.github/workflows/testsprite.yml`) holds the same command but is gated by a GitHub account Actions billing lock. |
 | **Full regression rerun** | `testsprite test rerun --all --project ... --max-concurrency 4` — entire suite replayed from the CLI |
 | **Batch capability** | `testsprite test create-batch --plan-from-dir .testsprite/plans` (35 plans) |
-| **Upstream CLI contributions** | 10 PRs to [TestSprite/testsprite-cli](https://github.com/TestSprite/testsprite-cli) (**9 merged**, 1 open) |
+| **Upstream CLI contributions** | 10 PRs to [TestSprite/testsprite-cli](https://github.com/TestSprite/testsprite-cli) — **all 10 merged** ([verify](https://github.com/TestSprite/testsprite-cli/pulls?q=is%3Apr+author%3Alxcario+is%3Amerged)), incl. the new `test flaky` command (#132) |
 
 ---
 
@@ -959,7 +959,7 @@ Authoritative list from the TestSprite platform (`testsprite test list --project
 | 1 | `f2c43b46` | Landing page loads and displays sign-up CTA | ✅ PASS |
 | 2 | `1cbed7af` | Login with valid credentials redirects to dashboard | ✅ PASS |
 | 3 | `dcf9de96` | New user signup leads to onboarding wizard | ✅ PASS |
-| 4 | `f10b71eb` | Dashboard displays stats and daily quests after login | ✅ PASS |
+| 4 | `69c87020` | Dashboard displays stats and daily quests after login | ✅ PASS |
 | 5 | `97d3a05f` | Review session shows confidence rating before answer reveal | ✅ PASS |
 | 6 | `99ad33b4` | Feynman Mode evaluates explanation and shows gap analysis | ✅ PASS |
 | 7 | `a4a9fcb5` | Research Desk returns sources and synthesis from a query | ✅ PASS |
@@ -973,7 +973,7 @@ Authoritative list from the TestSprite platform (`testsprite test list --project
 | 15 | `43aa81fa` | User can create a subject and topic in Settings | ✅ PASS |
 | 16 | `452f36a7` | Review card full flow — confidence, reveal, grade | ✅ PASS |
 | 17 | `ea7915bb` | Prediction Mode shows questions, accepts guesses, calibration | ✅ PASS |
-| 18 | `63bbf13d` | Sidebar navigation links open pages without errors | ✅ PASS |
+| 18 | `83d08540` | Sidebar Feynman link opens the page without a 404 | ✅ PASS |
 | 19 | `ccf5a39e` | Dashboard companion router renders context-aware CTA | ✅ PASS |
 | 20 | `78969459` | Practice Exam page shows the exam setup | ✅ PASS |
 | 21 | `6191b308` | Knowledge Web page renders its concept explorer | ✅ PASS |
@@ -1004,12 +1004,13 @@ Authoritative list from the TestSprite platform (`testsprite test list --project
 
 While dogfooding the TestSprite CLI across 40 loop iterations, several friction patterns were identified where the CLI's output made it harder for a coding agent to recover from failures. Specifically: when `--wait` polling hit a timeout or a per-request timeout fired during a batch run, stdout was empty — forcing the agent to scrape `runId` from stderr and chain commands manually.
 
-10 pull requests were opened on [TestSprite/testsprite-cli](https://github.com/TestSprite/testsprite-cli) — **9 merged, 1 open**:
+10 pull requests were opened on [TestSprite/testsprite-cli](https://github.com/TestSprite/testsprite-cli) — **all 10 merged** ([verify](https://github.com/TestSprite/testsprite-cli/pulls?q=is%3Apr+author%3Alxcario+is%3Amerged)):
 
-**Merged (9 PRs):**
+**Merged (10 PRs):**
 
 | PR | Fix |
 |----|-----|
+| [#132](https://github.com/TestSprite/testsprite-cli/pull/132) | **New `testsprite test flaky <id>` command** — repeat-run flaky-test detector, `--runs` capped at 10 (tracked by issue [#115](https://github.com/TestSprite/testsprite-cli/issues/115)) |
 | [#37](https://github.com/TestSprite/testsprite-cli/pull/37) | SSRF guard: treat trailing-dot hostnames as loopback |
 | [#131](https://github.com/TestSprite/testsprite-cli/pull/131) | Credentials: strip CR/LF to prevent INI injection |
 | [#38](https://github.com/TestSprite/testsprite-cli/pull/38) | Auth: preserve typed API error envelope on key verification failure |
@@ -1020,11 +1021,7 @@ While dogfooding the TestSprite CLI across 40 loop iterations, several friction 
 | [#12](https://github.com/TestSprite/testsprite-cli/pull/12) | Respect `NO_COLOR` env var per no-color.org |
 | [#39](https://github.com/TestSprite/testsprite-cli/pull/39) | Reject whitespace-only `--name` in `test update` (parity with `test create`) |
 
-**Open, CI green (1 PR):**
-
-| PR | Tracked by issue | Fix |
-|----|-----------------|-----|
-| [#132](https://github.com/TestSprite/testsprite-cli/pull/132) | [#115](https://github.com/TestSprite/testsprite-cli/issues/115) | New `testsprite test flaky <id>` command — repeat-run flaky-test detector, `--runs` capped at 10 |
+> **`test flaky` (#132) is now part of the CLI** — Nora didn't just use the checker, it extended it, then dogfooded the new command against its own suite.
 
 **Loop friction that motivated the fixes:**
 - Iteration 11 (timeout during batch rerun) → needed `testsprite test wait` to recover
@@ -1041,7 +1038,35 @@ All fixes are genuine improvements discovered while actually using the CLI to bu
 >
 > Every test is `createdFrom: cli`. Every bug was caught by the loop. Every blocked run was diagnosed and resolved.
 >
-> The full plan-steps archive and an archived failure bundle are in [`.testsprite/`](.testsprite/).
+> The full plan-steps archive and **6 committed failure bundles** are in [`.testsprite/`](.testsprite/) — see the [committed-bundle table](#committed-failure-bundles-real-artifacts) below.
+
+---
+
+## Committed failure bundles (real artifacts)
+
+Pulled straight from the platform with `testsprite test artifact get <runId>` and committed under [`.testsprite/failure/`](.testsprite/failure/). Two are genuine product-bug failures; four are the `blocked`-but-correct arcs whose bundles record the testing agent's own **PASS** verdict — the receipts proving those pages rendered correctly and only the verdict format blocked them (not a broken app, and not verdict-gaming).
+
+| Bundle | Test | Run | Verdict | What it proves |
+|--------|------|-----|---------|----------------|
+| [`history-routing-404-e3e74d60`](.testsprite/failure/history-routing-404-e3e74d60/) | `e08cda2b` | `e3e74d60` | ❌ failed (routing_404) | **Real bug** — root cause: "This route doesn't exist in Nora" (Iter 12) |
+| [`analytics-442d4d6e`](.testsprite/failure/analytics-442d4d6e/) | `929c51ef` | `442d4d6e` | ❌ failed (routing_404) | Analytics arc — dead `/app/room/analytics` route (Iter 15) |
+| [`knowledge-web-blocked-d3109a89`](.testsprite/failure/knowledge-web-blocked-d3109a89/) | `6191b308` | `d3109a89` | ⚠️ blocked | Agent's own `failure.json`: *"TEST BLOCKED: PASS … rendered as required"* (Iter 29) |
+| [`eureka-blocked-1a269881`](.testsprite/failure/eureka-blocked-1a269881/) | `ceb34635` | `1a269881` | ⚠️ blocked | Same blocked-but-correct pattern; agent summary confirms PASS (Iter 30) |
+| [`feynman-validation-blocked-2aa9940e`](.testsprite/failure/feynman-validation-blocked-2aa9940e/) | `e13c538f` | `2aa9940e` | ⚠️ blocked | Adversarial validation; blocked-but-correct (Iter 31) |
+| [`review-grade-blocked-c341079e`](.testsprite/failure/review-grade-blocked-c341079e/) | `452f36a7` | `c341079e` | ⚠️ blocked | Data-dependent review flow; blocked-but-correct (Iter 17) |
+
+## Dogfooding `test flaky` — the command we shipped
+
+Nora added the `testsprite test flaky` command to the CLI ([PR #132](https://github.com/TestSprite/testsprite-cli/pull/132), merged) and then ran it against its own suite. It replays a saved script N times with **auto-heal OFF** (strict verbatim), so a nondeterministic pass/fail can't be masked by drift-healing.
+
+```bash
+testsprite test flaky f2c43b46-dafd-47a8-b27a-fa0510c6d95a --runs 3 --output json
+```
+```json
+{ "testId": "f2c43b46-...", "runs": 3, "passed": 3, "failed": 0, "stableRatio": 1, "verdict": "stable", "failures": [] }
+```
+
+The landing flow isn't just green once — it's **verifiably stable across repeated verbatim replays**. We didn't only use the checker; we extended it, then turned it back on ourselves.
 
 
 

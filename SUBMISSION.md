@@ -17,6 +17,7 @@ loop that caught genuine regressions in a production-grade Next.js app.
 - **Repo:** https://github.com/lxcario/Nora
 - **Loop log (per-iteration, agent-written):** [`LOOP.md`](LOOP.md)
 - **Test artifacts + index:** [`testsprite_tests/`](testsprite_tests/)
+- **Machine-readable manifest (all 42 tests, `createdFrom: cli`, Rule 7 verification):** [`testsprite_tests/manifest-all.json`](testsprite_tests/manifest-all.json)
 - **Archived failure bundle:** [`testsprite_tests/failure/analytics-442d4d6e/`](testsprite_tests/failure/)
 
 ## Team
@@ -125,12 +126,14 @@ Full ID-level table: [`testsprite_tests/README.md`](testsprite_tests/README.md).
 Separate from judging — genuine improvements to the open-source CLI, opened
 from `lxcario`:
 
-- **Merged (9):** #37 (SSRF trailing-dot guard), #131 (CR/LF INI-injection fix),
+- **Merged (all 10):** **#132 (the new `test flaky` command, issue #115)**,
+  #37 (SSRF trailing-dot guard), #131 (CR/LF INI-injection fix),
   #38 (typed auth error envelope), #36 (empty/whitespace `--name` validation),
   #133 (Node 20/22 CI matrix), #10 (kiro agent target, issue #170),
   #11 (Node version guard), #12 (`NO_COLOR` support),
   #39 (whitespace `--name` parity in `test update`)
-- **Open, CI green (1):** #132 (`test flaky` command, tracked by issue #115)
+- Verify: https://github.com/TestSprite/testsprite-cli/pulls?q=is%3Apr+author%3Alxcario+is%3Amerged
+- We didn't just use the checker — we **extended** it (`test flaky`) and dogfooded the new command against our own suite.
 
 ## Eligibility checklist
 

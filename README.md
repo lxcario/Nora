@@ -30,6 +30,7 @@
   <img src="https://img.shields.io/badge/FSRS--6-ts--fsrs-blue?style=flat-square" />
   <img src="https://img.shields.io/badge/unit%20tests-332%20passing-729B1B?style=flat-square&logo=vitest" />
   <img src="https://img.shields.io/badge/TestSprite-42%2F42%20green-7ee081?style=flat-square" />
+  <a href="https://github.com/TestSprite/testsprite-cli/pulls?q=is%3Apr+author%3Alxcario+is%3Amerged"><img src="https://img.shields.io/badge/testsprite--cli-10%20merged%20PRs-19C379?style=flat-square&logo=github" alt="10 merged PRs to testsprite-cli" /></a>
   <a href="https://gitlab.com/lxcario-group/Nora/-/pipelines"><img src="https://gitlab.com/lxcario-group/Nora/badges/master/pipeline.svg" alt="CI pipeline status" /></a>
   <img src="https://img.shields.io/badge/license-MIT-black?style=flat-square" />
 </p>

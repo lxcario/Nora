@@ -1,0 +1,133 @@
+{
+  "$comment": "Consolidated, machine-readable index of every banked TestSprite test for Nora. Source of truth is the TestSprite platform: `testsprite test list --project 4ba5d8f8-310d-41bc-bbf4-b85208bb6d44`. Every test is createdFrom:cli under the submitting account (Rule 7).",
+  "project": {
+    "name": "Nora",
+    "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+    "account": "resquedzn05@gmail.com",
+    "accountName": "Résque",
+    "targetUrl": "https://norastudy.vercel.app",
+    "repo": "https://github.com/lxcario/Nora",
+    "source": "LOOP.md",
+    "verifyCommand": "testsprite test list --project 4ba5d8f8-310d-41bc-bbf4-b85208bb6d44"
+  },
+  "totals": {
+    "frontend": 39,
+    "backend": 3,
+    "uniqueTests": 42,
+    "finalPass": 42,
+    "finalBlocked": 0,
+    "finalFailed": 0,
+    "loopIterations": 40,
+    "totalRuns": "65+",
+    "realProductBugsCaughtAndFixed": 9,
+    "blockedThenDiagnosedThenGreenArcs": 9,
+    "committedFailureBundles": 6,
+    "createdFrom": "cli (100% — no portal-created tests)",
+    "activeBuildDays": ["2026-06-30", "2026-07-02", "2026-07-03", "2026-07-04", "2026-07-06"]
+  },
+  "ci": {
+    "gitlab": {
+      "status": "green",
+      "runs": "332-test unit suite + 3 backend TestSprite tests (`testsprite test rerun 43943ea6 36c43c1e 23d76c46`) on every master push",
+      "pipelines": "https://gitlab.com/lxcario-group/Nora/-/pipelines"
+    },
+    "githubActions": {
+      "file": ".github/workflows/testsprite.yml",
+      "status": "same command as GitLab; gated by a GitHub account Actions billing lock"
+    }
+  },
+  "cliImprovementBonus": {
+    "repo": "https://github.com/TestSprite/testsprite-cli",
+    "author": "lxcario",
+    "merged": 10,
+    "open": 0,
+    "verify": "https://github.com/TestSprite/testsprite-cli/pulls?q=is%3Apr+author%3Alxcario+is%3Amerged",
+    "highlight": "PR #132 added the `testsprite test flaky <id>` command to the CLI"
+  },
+  "realBugsCaughtByLoop": [
+    { "iteration": 3,  "testId": "dcf9de96", "area": "Auth/Onboarding", "bug": "New signup landed on a blank /app shell", "fix": "Onboarding-state gate → new accounts redirect to /app/onboarding" },
+    { "iteration": 12, "testId": "e08cda2b", "area": "Routing", "bug": "History reachable only at /app/history, bare /history 404'd", "fix": "Corrected route in plan + verified" },
+    { "iteration": 15, "testId": "929c51ef", "area": "Analytics/Testing", "bug": "4-arc: routing 404 -> nav thrash -> data-dependent assertion -> stale test NAME drove a wrong assertion", "fix": "test update --name + deterministic assertions" },
+    { "iteration": 19, "testId": "69c87020", "area": "Dashboard", "bug": "Test asserted a streak counter removed by a product philosophy change (no-guilt)", "fix": "Updated assertion to XP + coins (regression caught mid-flight)" },
+    { "iteration": 36, "testId": "87f7c99c", "area": "Dashboard", "bug": "Memories-due count shown twice (CTA + standalone stat tile)", "fix": "Removed redundant StatTile" },
+    { "iteration": 37, "testId": "2c0efffe", "area": "Pixel Room", "bug": "Sidebar pet mood (stale DB column) contradicted room's computed mood", "fix": "Sync computed mood back to pets table in getRoomState()" },
+    { "iteration": 38, "testId": "192686d8", "area": "Feynman", "bug": "Progress sparkline was a bare, hard-to-read SVG", "fix": "Restyled into a pixel-panel with gradient fill + gridlines" },
+    { "iteration": 39, "testId": "83d08540", "area": "Navigation/UX", "bug": "Feature overlap (Prediction/Feynman, Knowledge Web/Eureka) confused users", "fix": "Removed redundant sidebar items (routes preserved)" },
+    { "iteration": 40, "testId": "69c87020", "area": "Onboarding/UX", "bug": "Onboarding tour re-showed on every fresh session (localStorage-only gate) and blocked automated navigation — also hit real users in new browsers", "fix": "Gate tour server-side to genuinely new accounts (created_at < 10 min)" }
+  ],
+  "blockedThenGreenArcs": {
+    "note": "These pages rendered correctly; the runner returned `blocked` because the assertion was a verbose two-branch OR that burned the agent's runway before it emitted a verdict. Each failure bundle records the agent's own 'PASS/success=true' summary. Fix was to tighten the plan to a single decisive assertion (test plan put / test update), not to change the app.",
+    "testIds": ["929c51ef", "452f36a7", "6191b308", "ceb34635", "e13c538f", "69c87020", "83d08540"],
+    "committedBundlesProvingThis": [".testsprite/failure/knowledge-web-blocked-d3109a89", ".testsprite/failure/eureka-blocked-1a269881", ".testsprite/failure/feynman-validation-blocked-2aa9940e", ".testsprite/failure/review-grade-blocked-c341079e"]
+  },
+  "committedFailureBundles": {
+    "note": "Real bundles pulled from the platform via `testsprite test artifact get <runId>` and committed under .testsprite/failure/. Committed evidence per bundle: failure.json (root cause / agent summary), result.json, code.py, step snapshots, and the short run video.mp4 (each < 1 MB, force-added). The repo's `*.mp4` policy only excludes the large standalone demo recording, which is linked via YouTube in the README.",
+    "count": 6,
+    "bundles": [
+      { "path": ".testsprite/failure/history-routing-404-e3e74d60", "testId": "e08cda2b", "runId": "e3e74d60-ae00-4b9f-b9dc-79c7b271fc63", "verdict": "failed", "failureKind": "routing_404", "evidence": "REAL BUG — History 404: root cause 'This route doesn't exist in Nora' (Iter 12)" },
+      { "path": ".testsprite/failure/analytics-442d4d6e", "testId": "929c51ef", "runId": "442d4d6e-86b2-4d07-9608-21ce570e1cf1", "verdict": "failed", "failureKind": "routing_404", "evidence": "Analytics arc — dead /app/room/analytics route (Iter 15)" },
+      { "path": ".testsprite/failure/knowledge-web-blocked-d3109a89", "testId": "6191b308", "runId": "d3109a89-90f3-4b53-92ea-2edd3c70898a", "verdict": "blocked", "evidence": "Agent's own failure.json: 'TEST BLOCKED: PASS ... rendered as required' — proves the app was correct; the verdict format was the issue (Iter 29)" },
+      { "path": ".testsprite/failure/eureka-blocked-1a269881", "testId": "ceb34635", "runId": "1a269881-0cc1-46aa-9d85-a0a2bf777f51", "verdict": "blocked", "evidence": "Same blocked-but-correct pattern; agent summary confirms PASS (Iter 30)" },
+      { "path": ".testsprite/failure/feynman-validation-blocked-2aa9940e", "testId": "e13c538f", "runId": "2aa9940e-718f-454a-9cf5-fa601e135386", "verdict": "blocked", "evidence": "Adversarial validation; blocked-but-correct (Iter 31)" },
+      { "path": ".testsprite/failure/review-grade-blocked-c341079e", "testId": "452f36a7", "runId": "c341079e-3e2d-4b48-8455-7d277a7f676a", "verdict": "blocked", "evidence": "Data-dependent review flow; blocked-but-correct (Iter 17)" }
+    ]
+  },
+  "flakyDogfood": {
+    "note": "Nora authored the `testsprite test flaky` command (PR #132, now merged into the CLI) and ran it against its own banked suite — verbatim replay with auto-heal OFF, so nondeterministic drift cannot be masked.",
+    "results": [
+      { "testId": "f2c43b46", "name": "Landing page loads and displays sign-up CTA", "runs": 3, "passed": 3, "failed": 0, "stableRatio": 1.0, "verdict": "stable" }
+    ]
+  },
+  "runnerLimitationsDocumented": [
+    { "case": "Mobile bottom-nav (Iter 18)", "reason": "Cloud runner uses a fixed desktop viewport and ignores resize steps", "action": "Test removed and documented — not faked green" },
+    { "case": "Supabase Auth (/auth/v1/) backend test", "reason": "Backend runner can't reach the GoTrue service (upstream issue #173)", "action": "test_auth_flow.py kept in repo but NOT banked / not counted" }
+  ],
+  "tests": {
+    "backend": [
+      { "testId": "43943ea6", "type": "backend", "verdict": "pass", "createdFrom": "cli", "name": "Schema validation — 10 core tables + FSRS + gamification columns", "codeFile": ".testsprite/test_supabase_schema.py" },
+      { "testId": "36c43c1e", "type": "backend", "verdict": "pass", "createdFrom": "cli", "name": "RLS data isolation — cards, topics, feynman all protected", "codeFile": ".testsprite/test_rls_cards_topics.py" },
+      { "testId": "23d76c46", "type": "backend", "verdict": "pass", "createdFrom": "cli", "runId": "c318193b", "name": "RLS rejects unauthorized reward manipulation and table access", "codeFile": ".testsprite/test_rls_security.py" }
+    ],
+    "frontend": [
+      { "testId": "f2c43b46", "type": "frontend", "verdict": "pass", "createdFrom": "cli", "name": "Landing page loads and displays sign-up CTA" },
+      { "testId": "1cbed7af", "type": "frontend", "verdict": "pass", "createdFrom": "cli", "name": "Login with valid credentials redirects to dashboard" },
+      { "testId": "dcf9de96", "type": "frontend", "verdict": "pass", "createdFrom": "cli", "name": "New user signup leads to onboarding wizard", "loopNote": "real bug fixed (Iter 3)" },
+      { "testId": "69c87020", "type": "frontend", "verdict": "pass", "createdFrom": "cli", "name": "Dashboard displays stats and daily quests after login", "loopNote": "streak regression (Iter 19) + tour gate (Iter 40); test regenerated in Iter 40 (was f10b71eb)" },
+      { "testId": "97d3a05f", "type": "frontend", "verdict": "pass", "createdFrom": "cli", "name": "Review session shows confidence rating before answer reveal" },
+      { "testId": "99ad33b4", "type": "frontend", "verdict": "pass", "createdFrom": "cli", "name": "Feynman Mode evaluates explanation and shows gap analysis" },
+      { "testId": "a4a9fcb5", "type": "frontend", "verdict": "pass", "createdFrom": "cli", "name": "Research Desk returns sources and synthesis from a query" },
+      { "testId": "d2593c2b", "type": "frontend", "verdict": "pass", "createdFrom": "cli", "name": "Study Planner shows weekly calendar with navigation" },
+      { "testId": "de9fe793", "type": "frontend", "verdict": "pass", "createdFrom": "cli", "name": "Pixel Room displays pet sprite and daily missions" },
+      { "testId": "5fe264c6", "type": "frontend", "verdict": "pass", "createdFrom": "cli", "name": "Settings theme change persists across navigation" },
+      { "testId": "e08cda2b", "type": "frontend", "verdict": "pass", "createdFrom": "cli", "name": "History page shows past study activity", "loopNote": "routing 404 fixed (Iter 12)" },
+      { "testId": "d9ad2897", "type": "frontend", "verdict": "pass", "createdFrom": "cli", "name": "Party page allows creating or joining a study group" },
+      { "testId": "3b66402d", "type": "frontend", "verdict": "pass", "createdFrom": "cli", "name": "Study Room video search returns educational results" },
+      { "testId": "929c51ef", "type": "frontend", "verdict": "pass", "createdFrom": "cli", "name": "Analytics page renders its dashboard for a logged-in user", "loopNote": "4-iteration debugging arc (Iter 15)" },
+      { "testId": "43aa81fa", "type": "frontend", "verdict": "pass", "createdFrom": "cli", "name": "User can create a subject and topic in Settings" },
+      { "testId": "452f36a7", "type": "frontend", "verdict": "pass", "createdFrom": "cli", "name": "Review card full flow — confidence, reveal, grade", "loopNote": "data-dependent refactor (Iter 17)" },
+      { "testId": "ea7915bb", "type": "frontend", "verdict": "pass", "createdFrom": "cli", "name": "Prediction Mode shows questions, accepts guesses, calibration", "loopNote": "new feature shipped under the loop (Iter 20)" },
+      { "testId": "83d08540", "type": "frontend", "verdict": "pass", "createdFrom": "cli", "name": "Sidebar Feynman link opens the page without a 404", "loopNote": "nav cleanup (Iter 39); test regenerated in Iter 40 (was 63bbf13d)" },
+      { "testId": "ccf5a39e", "type": "frontend", "verdict": "pass", "createdFrom": "cli", "name": "Dashboard companion router renders context-aware CTA", "loopNote": "new feature shipped under the loop (Iter 22)" },
+      { "testId": "78969459", "type": "frontend", "verdict": "pass", "createdFrom": "cli", "name": "Practice Exam page shows the exam setup" },
+      { "testId": "6191b308", "type": "frontend", "verdict": "pass", "createdFrom": "cli", "name": "Knowledge Web page renders its concept explorer", "loopNote": "blocked -> tightened -> green (Iter 29)" },
+      { "testId": "ceb34635", "type": "frontend", "verdict": "pass", "createdFrom": "cli", "name": "Eureka page renders the connections explorer", "loopNote": "blocked -> tightened -> green (Iter 30)" },
+      { "testId": "cb9114e7", "type": "frontend", "verdict": "pass", "createdFrom": "cli", "name": "Listen Mode page renders topic selection or empty state" },
+      { "testId": "80e58c2d", "type": "frontend", "verdict": "pass", "createdFrom": "cli", "name": "Card Market shows shared decks or a join-a-party prompt" },
+      { "testId": "8045ec52", "type": "frontend", "verdict": "pass", "createdFrom": "cli", "name": "Error Spotter page renders the challenge setup" },
+      { "testId": "da45749b", "type": "frontend", "verdict": "pass", "createdFrom": "cli", "name": "Memory Garden shows topic health plants or empty garden" },
+      { "testId": "e13c538f", "type": "frontend", "verdict": "pass", "createdFrom": "cli", "name": "Feynman Mode rejects empty and too-short explanations", "loopNote": "adversarial; blocked -> tightened -> green (Iter 31)" },
+      { "testId": "3225cf3c", "type": "frontend", "verdict": "pass", "createdFrom": "cli", "name": "Feynman Mode creates flashcards from suggested cards", "loopNote": "deep backend: exercises 6 server round-trips (Iter 32)" },
+      { "testId": "559db2c4", "type": "frontend", "verdict": "pass", "createdFrom": "cli", "name": "Research Desk handles empty query gracefully" },
+      { "testId": "b25076c1", "type": "frontend", "verdict": "pass", "createdFrom": "cli", "name": "Review grading advances the card and removes it from due queue" },
+      { "testId": "87f7c99c", "type": "frontend", "verdict": "pass", "createdFrom": "cli", "name": "Dashboard shows memories count only once via the companion CTA", "loopNote": "regression test for real bug (Iter 36)" },
+      { "testId": "2c0efffe", "type": "frontend", "verdict": "pass", "createdFrom": "cli", "name": "Pixel Room pet mood matches the sidebar pet mood indicator", "loopNote": "regression test for real bug (Iter 37)" },
+      { "testId": "192686d8", "type": "frontend", "verdict": "pass", "createdFrom": "cli", "name": "Feynman progress chart renders inside a styled panel", "loopNote": "regression test for real bug (Iter 38)" },
+      { "testId": "bf744699", "type": "frontend", "verdict": "pass", "createdFrom": "cli", "name": "University page shows upload guide panel for logged-in users" },
+      { "testId": "d68a1522", "type": "frontend", "verdict": "pass", "createdFrom": "cli", "name": "Pixel Room shows a room items grid with filled and empty slots" },
+      { "testId": "c29e4ab4", "type": "frontend", "verdict": "pass", "createdFrom": "cli", "name": "Memory Garden shows narrative description and plant grid" },
+      { "testId": "0118a419", "type": "frontend", "verdict": "pass", "createdFrom": "cli", "name": "Dashboard displays XP and coin counters for a logged-in user" },
+      { "testId": "b1a6af61", "type": "frontend", "verdict": "pass", "createdFrom": "cli", "name": "Study Mix page renders for a logged-in user" },
+      { "testId": "860a67c1", "type": "frontend", "verdict": "pass", "createdFrom": "cli", "name": "Journal page renders heading and content for a logged-in user" }
+    ]
+  }
+}

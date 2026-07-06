@@ -1,0 +1,18 @@
+{
+  "testId": "6191b308-c665-4a17-a80a-46bab6cf8f08",
+  "status": "blocked",
+  "startedAt": "2026-07-03T14:52:33.473Z",
+  "finishedAt": "2026-07-03T14:55:47.016Z",
+  "videoUrl": "https://testsprite-videos.s3.us-east-1.amazonaws.com/74a84428-e061-70b8-6c8d-b36674881353/1783090546803565//tmp/7f46b1f9-5deb-4940-8031-f19b436bd4bd/result.webm",
+  "failureAnalysisUrl": null,
+  "snapshotId": "snap_1e11c200a7b3665d",
+  "runIdIfAvailable": "d3109a89-90f3-4b53-92ea-2edd3c70898a",
+  "codeVersion": "v1",
+  "targetUrl": "https://norastudy.vercel.app",
+  "targetUrlSource": "run",
+  "failedStepIndex": 8,
+  "failureKind": null,
+  "verdict": "blocked",
+  "executionStatus": "completed",
+  "summary": "Blocked before a verdict could be produced: TEST BLOCKED: PASS: The Knowledge Web page renders correctly for a new account.\n\nFindings (observed in this session):\n- The page shows the heading: 'Knowledge Web'.\n- The guidance text directly under the heading is visible: 'See how your concepts connect across subjects. Tap a node to explore its relationships.'\n- The concept explorer area below the header displays a clear empty-state prompt: a button labeled 'Generate Knowledge Web' and helper text '…"
+}
