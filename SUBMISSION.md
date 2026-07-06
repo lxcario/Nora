@@ -35,9 +35,9 @@ loop that caught genuine regressions in a production-grade Next.js app.
 | Metric | Value |
 |---|---|
 | Tests banked | **42 — all passing (39 frontend + 3 backend)** |
-| Loop iterations | **39** across 4 active build days (Jun 30, Jul 2–4) |
+| Loop iterations | **40** across 5 active build days (Jun 30, Jul 2–4, Jul 6) |
 | Total test runs | **65+** |
-| Real product bugs caught & fixed | **8** |
+| Real product bugs caught & fixed | **9** |
 | Distinct root causes diagnosed | **12** |
 | New features shipped *under* the loop | **2** (Prediction Mode, Companion Router) |
 | Coverage expansion | **20 → 42** live — including 3 backend RLS/schema tests |

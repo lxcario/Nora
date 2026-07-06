@@ -53,10 +53,10 @@ Nora is an entry in **TestSprite Hackathon Season 3 — "Build the Loop."** The 
 |---|---|
 | **42** durable scenarios (39 browser + 3 backend) | **42 / 42 passing** |
 | Every test `createdFrom: cli` | not the portal — genuine CLI loop |
-| **39** loop iterations · **65+** runs · 4 build days | **8** real product bugs caught & fixed |
+| **40** loop iterations · **65+** runs · 5 build days | **9** real product bugs caught & fixed |
 | Coverage grew **20 → 42** live | **2** features shipped *under* the loop |
 
-When two new tests came back **`blocked`**, the run summary drove the fix and a rerun turned them green — a clean `create → blocked → diagnose → fix → rerun → pass` cycle. Across 39 iterations the loop caught 8 genuine bugs, from duplicate UI cards to RLS policy gaps and mood-sync contradictions. The full per-iteration story is in **[LOOP.md](LOOP.md)**, the submission write-up in **[SUBMISSION.md](SUBMISSION.md)**, and the banked plans + an archived failure bundle in **[testsprite_tests/](testsprite_tests/)**.
+When two new tests came back **`blocked`**, the run summary drove the fix and a rerun turned them green — a clean `create → blocked → diagnose → fix → rerun → pass` cycle. Across 40 iterations the loop caught 9 genuine bugs, from duplicate UI cards to mood-sync contradictions and an onboarding tour that re-appeared on every fresh browser session. The full per-iteration story is in **[LOOP.md](LOOP.md)**, the submission write-up in **[SUBMISSION.md](SUBMISSION.md)**, and the banked plans + an archived failure bundle in **[testsprite_tests/](testsprite_tests/)**.
 
 *(Jump to [the verification loop section](#the-verification-loop-testsprite) for the details.)*
 

@@ -52,6 +52,7 @@ Repo: https://github.com/lxcario/Nora
 | 37 | Pet mood mismatch (sidebar vs room) | Manual QA → regression test banked | Sidebar showed stale "happy" while room computed real mood | Sync computed mood back to `pets` table | ✅ PASS 4/4 |
 | 38 | Feynman sparkline unstyled | Manual QA → regression test banked | Bare SVG, hard to read | Restyled into pixel-panel with gradient fill | ✅ PASS 4/4 |
 | 39 | Sidebar nav cleanup (feature overlap) | `testsprite test rerun 63bbf13d` | Prediction/Feynman + Knowledge Web/Eureka overlap confused users | Removed redundant sidebar items (routes still work) | ✅ PASS |
+| 40 | Dashboard + Sidebar hardening | `testsprite test create --plan-from …` | Onboarding tour re-showed on every fresh browser session (no localStorage) and blocked navigation | Gated tour to newly-onboarded accounts (server-side); resynced test credential; tightened assertions | ✅ PASS 42/42 |
 
 
 ---
@@ -62,8 +63,8 @@ Repo: https://github.com/lxcario/Nora
 |--------|-------|
 | **Tests banked** | **42 — all passing** (39 frontend + 3 backend security/schema) |
 | **Total TestSprite runs** | **65+** |
-| **Loop iterations** | **39** across 4 active build days (Jun 30, Jul 2–4) |
-| **Real product bugs caught & fixed** | **8** (signup redirect, analytics routing, streak counter, history path, duplicate memories card, pet mood mismatch, sparkline unstyled, sidebar clutter/feature confusion) |
+| **Loop iterations** | **40** across 5 active build days (Jun 30, Jul 2–4, Jul 6) |
+| **Real product bugs caught & fixed** | **9** (signup redirect, analytics routing, streak counter, history path, duplicate memories card, pet mood mismatch, sparkline unstyled, sidebar clutter/feature confusion, onboarding tour re-showing on fresh sessions) |
 | **Blocked → diagnosed → fixed → green arcs** | **9** |
 | **Test types used** | Frontend (`--plan-from`) + Backend (`--type backend --code-file`) |
 | **Test deleted (runner limitation, documented)** | 1 (mobile viewport — documented, not hidden) |
@@ -893,6 +894,34 @@ testsprite test rerun 63bbf13d --wait
 
 ---
 
+## Iteration 40 — Onboarding Tour Blocked Automated Navigation (Product Bug → Fixed)
+
+**Date:** 2026-07-06
+
+**Trigger:** Regenerating the Dashboard and Sidebar coverage from their plans surfaced a hard blocker on fresh runner sessions.
+
+**Errors found (TestSprite `blocked`):**
+- Both tests blocked before a verdict. Failure summary: the agent couldn't get past a welcome overlay — *"the page does not expose a clickable element matching `get_by_role('button', name='Skip tour')`."*
+- **Root cause (real product bug):** the onboarding tour rendered on **every** session that lacked the `nora_onboarding_tour_completed` localStorage flag. A cloud runner starts each run with a fresh browser profile (no localStorage), so the tour re-appeared every time and intercepted navigation. This also affects real users — an established user opening Nora in a new browser or incognito window would see the welcome tour all over again.
+- A second issue surfaced during diagnosis: the TestSprite project's stored login credential had drifted from the test account's current password (reset earlier in the loop), so freshly-generated tests failed login with "Invalid email or password" while older banked scripts still passed on the previous credential.
+
+**Fixes:**
+- **Tour gating (product fix):** the tour now renders only for a genuinely new user — one whose `academic_profiles.created_at` is within the last 10 minutes — computed server-side in `layout.tsx`. Established accounts (and automated runners on a seeded account) never see it. Correct UX *and* it unblocks automated navigation. (`src/app/(protected)/app/layout.tsx`, `src/components/pixel-ui/onboarding-tour.tsx`)
+- **Credential resync:** updated the project's stored test-account credential to match the live app account (`testsprite project update … --password …`).
+- **Assertion tightening:** rewrote both plans to a single decisive assertion (the Iter 29–30 lesson) and regenerated the tests so their scripts match the current, tour-free UI.
+
+**Verification:**
+```bash
+testsprite test create --plan-from .testsprite/plans/dashboard-loads.plan.json --run --wait --target-url https://norastudy.vercel.app --timeout 600
+testsprite test create --plan-from .testsprite/plans/sidebar-navigation.plan.json --run --wait --target-url https://norastudy.vercel.app --timeout 600
+```
+
+**Result:** ✅ PASS — both green; full suite back to **42/42**.
+
+**Lesson:** a cloud runner is a permanent "new browser." Any first-visit-only UI (tours, cookie banners, "what's new" modals) must be gated on real server state, not just localStorage, or it will silently block automated navigation — and re-annoy real users on new devices.
+
+---
+
 ## Full Regression Rerun
 
 **Date:** 2026-07-04
@@ -973,7 +1002,7 @@ Authoritative list from the TestSprite platform (`testsprite test list --project
 
 ## CLI Improvement Bonus — Upstream Contributions to testsprite-cli
 
-While dogfooding the TestSprite CLI across 39 loop iterations, several friction patterns were identified where the CLI's output made it harder for a coding agent to recover from failures. Specifically: when `--wait` polling hit a timeout or a per-request timeout fired during a batch run, stdout was empty — forcing the agent to scrape `runId` from stderr and chain commands manually.
+While dogfooding the TestSprite CLI across 40 loop iterations, several friction patterns were identified where the CLI's output made it harder for a coding agent to recover from failures. Specifically: when `--wait` polling hit a timeout or a per-request timeout fired during a batch run, stdout was empty — forcing the agent to scrape `runId` from stderr and chain commands manually.
 
 10 pull requests were opened on [TestSprite/testsprite-cli](https://github.com/TestSprite/testsprite-cli) — **9 merged, 1 open**:
 
@@ -1006,7 +1035,7 @@ All fixes are genuine improvements discovered while actually using the CLI to bu
 
 ---
 
-> **39 iterations · 42 banked scenarios · 65+ TestSprite runs · 8 real product bugs caught · 42/42 all green**
+> **40 iterations · 42 banked scenarios · 65+ TestSprite runs · 9 real product bugs caught · 42/42 all green**
 >
 > Frontend tests (`--plan-from`) + Backend tests (`--type backend --code-file`) + Full regression reruns (`--all --max-concurrency 4`).
 >
