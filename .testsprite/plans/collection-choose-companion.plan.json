@@ -1,0 +1,14 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "Collection page lets a user choose a companion pet",
+  "description": "On the Collection page, the Companions grid shows self-hosted pet sprites that render as visible animated creatures (not broken-image placeholders), and clicking a companion selects it (the tile becomes visibly chosen). Regression coverage for the self-hosted sprite fix and the newly wired pet selection.",
+  "priority": "p2",
+  "planSteps": [
+    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to load" },
+    { "type": "action", "description": "Navigate directly to the /app/collection page by URL" },
+    { "type": "assertion", "description": "Verify the Companions section shows a grid of companion pet sprites that have rendered as visible pixel creatures (not broken-image icons or empty boxes), each with a name label such as Pikachu, Eevee, or Sylveon" },
+    { "type": "action", "description": "Click one of the companion tiles (for example, the Eevee tile) to set it as the study companion" },
+    { "type": "assertion", "description": "Verify the clicked companion becomes visibly selected — the tile shows an accent-colored highlight or a checkmark, and the helper text indicates a companion has been set" }
+  ]
+}

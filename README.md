@@ -29,7 +29,7 @@
   <img src="https://img.shields.io/badge/Supabase-Postgres%20%2B%20pgvector-3ECF8E?style=flat-square&logo=supabase" />
   <img src="https://img.shields.io/badge/FSRS--6-ts--fsrs-blue?style=flat-square" />
   <img src="https://img.shields.io/badge/unit%20tests-332%20passing-729B1B?style=flat-square&logo=vitest" />
-  <img src="https://img.shields.io/badge/TestSprite-42%2F42%20green-7ee081?style=flat-square" />
+  <img src="https://img.shields.io/badge/TestSprite-43%2F43%20green-7ee081?style=flat-square" />
   <a href="https://github.com/TestSprite/testsprite-cli/pulls?q=is%3Apr+author%3Alxcario+is%3Amerged"><img src="https://img.shields.io/badge/testsprite--cli-10%20merged%20PRs-19C379?style=flat-square&logo=github" alt="10 merged PRs to testsprite-cli" /></a>
   <a href="https://gitlab.com/lxcario-group/Nora/-/pipelines"><img src="https://gitlab.com/lxcario-group/Nora/badges/master/pipeline.svg" alt="CI pipeline status" /></a>
   <img src="https://img.shields.io/badge/license-MIT-black?style=flat-square" />
@@ -60,10 +60,10 @@ Nora is an entry in **TestSprite Hackathon Season 3 — "Build the Loop."** The 
 
 |  |  |
 |---|---|
-| **42** durable scenarios (39 browser + 3 backend) | **42 / 42 passing** |
+| **43** durable scenarios (40 browser + 3 backend) | **43 / 43 passing** |
 | Every test `createdFrom: cli` | not the portal — genuine CLI loop |
-| **40** loop iterations · **65+** runs · 5 build days | **9** real product bugs caught & fixed |
-| Coverage grew **20 → 42** live | **2** features shipped *under* the loop |
+| **41** loop iterations · **70+** runs · 5 build days | **9** real product bugs caught & fixed |
+| Coverage grew **20 → 43** live | **2** features shipped *under* the loop |
 
 When two new tests came back **`blocked`**, the run summary drove the fix and a rerun turned them green — a clean `create → blocked → diagnose → fix → rerun → pass` cycle. Across 40 iterations the loop caught 9 genuine bugs, from duplicate UI cards to mood-sync contradictions and an onboarding tour that re-appeared on every fresh browser session. The full per-iteration story is in **[LOOP.md](LOOP.md)**, the submission write-up in **[SUBMISSION.md](SUBMISSION.md)**, and the banked plans + an archived failure bundle in **[testsprite_tests/](testsprite_tests/)**.
 
@@ -310,7 +310,7 @@ Security posture — Row-Level Security on every user-owned table, SSRF protecti
 
 ## The verification loop (TestSprite)
 
-Nora is an entry in **TestSprite Hackathon Season 3 — "Build the Loop."** The [TestSprite CLI](https://github.com/TestSprite/testsprite-cli) runs real browser tests **in the cloud against the live app** ([norastudy.vercel.app](https://norastudy.vercel.app)) and hands back one self-consistent failure bundle the coding agent acts on: `create → run → failure get → fix → rerun`, and every pass is banked. The suite is **42 scenarios, all green, every one `createdFrom: cli`** — 39 frontend flows plus 3 backend security/schema checks.
+Nora is an entry in **TestSprite Hackathon Season 3 — "Build the Loop."** The [TestSprite CLI](https://github.com/TestSprite/testsprite-cli) runs real browser tests **in the cloud against the live app** ([norastudy.vercel.app](https://norastudy.vercel.app)) and hands back one self-consistent failure bundle the coding agent acts on: `create → run → failure get → fix → rerun`, and every pass is banked. The suite is **43 scenarios, all green, every one `createdFrom: cli`** — 40 frontend flows plus 3 backend security/schema checks.
 
 **What the loop covers** — a durable suite of frontend scenarios spanning the critical path and feature depth:
 

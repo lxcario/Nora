@@ -61,7 +61,7 @@ Repo: https://github.com/lxcario/Nora
 
 | Metric | Value |
 |--------|-------|
-| **Tests banked** | **42 — all passing** (39 frontend + 3 backend security/schema) |
+| **Tests banked** | **43 — all passing** (40 frontend + 3 backend security/schema) |
 | **Total TestSprite runs** | **65+** |
 | **Loop iterations** | **40** across 5 active build days (Jun 30, Jul 2–4, Jul 6) |
 | **Real product bugs caught & fixed** | **9** (signup redirect, analytics routing, streak counter, history path, duplicate memories card, pet mood mismatch, sparkline unstyled, sidebar clutter/feature confusion, onboarding tour re-showing on fresh sessions) |
@@ -922,6 +922,30 @@ testsprite test create --plan-from .testsprite/plans/sidebar-navigation.plan.jso
 
 ---
 
+## Iteration 41 — Companion Sprites (Manual QA → Fixed → Regression Banked)
+
+**Date:** 2026-07-06
+
+**Found via:** manual QA on a fresh browser session — **not** caught by TestSprite (see the honest note below). The companion pet was rendering as a broken-image placeholder across the Pixel Room, the sidebar widget, and the Collection page.
+
+**Root cause:** every sprite was hotlinked live from `raw.githubusercontent.com` — a non-CDN host that rate-limits and intermittently 404s. So the sprites loaded only *sometimes*, and Sylveon (a Gen-6 Pokémon) had no Gen-V animated sprite at all (a permanent 404).
+
+**Honest note on why the loop didn't catch it:** the existing room test (`de9fe793`) already asserts the pet sprite renders "not a broken-image placeholder" — and it *passed*, because the flaky host happened to serve the image during those runs. That non-deterministic pass masked the real, unreliable user experience. This is a genuine limitation worth stating plainly: a test that depends on a flaky third-party host can pass green while real users see breakage. **This was not a TestSprite catch — it was manual QA.** It's banked below as regression coverage, not claimed as a loop catch.
+
+**Fix:**
+- Self-hosted all 39 sprites (12 starters + their evolution lines + collection mons) under `public/sprites/pets/` — served from Nora's own origin, so the pet no longer depends on any third-party image host.
+- Added `petSpriteUrl()` and made `getPokemon()` return the local sprite and stay resilient even if the PokeAPI JSON endpoint is unreachable.
+- Wired the Collection companions grid to actually select a pet via `choosePet()` (it was a decorative "coming soon" mock).
+
+**Verification:**
+- Reran the existing room sprite test `de9fe793` against the fixed live app → **PASS** (now deterministic — the sprite is same-origin).
+- Banked a **new** regression test for the Collection selection flow — **`f4663fb7`** (run `940e5b93`) → **PASS 5/5**: sprites render + clicking a companion selects it.
+- Suite grew **42 → 43** (40 frontend + 3 backend), all green.
+
+**Lesson:** a green test isn't proof if it leans on infrastructure you don't control. Pull external assets in-house so the assertion measures *your* app, not a third party's uptime.
+
+---
+
 ## Full Regression Rerun
 
 **Date:** 2026-07-04
@@ -942,7 +966,7 @@ Triggered a complete replay of all 42 banked tests (39 frontend + 3 backend) in 
 
 ## Final Suite Summary
 
-Authoritative list from the TestSprite platform (`testsprite test list --project 4ba5d8f8-…`). All **42** are `createdFrom: cli` and `passed`.
+Authoritative list from the TestSprite platform (`testsprite test list --project 4ba5d8f8-…`). All **43** are `createdFrom: cli` and `passed`.
 
 ### Backend (`--type backend`, Python) — 3
 
@@ -952,7 +976,7 @@ Authoritative list from the TestSprite platform (`testsprite test list --project
 | 2 | `36c43c1e` | RLS data isolation — cards, topics, feynman all protected | ✅ PASS |
 | 3 | `23d76c46` | RLS rejects unauthorized reward manipulation and table access | ✅ PASS |
 
-### Frontend (`--plan-from`, browser) — 39
+### Frontend (`--plan-from`, browser) — 40
 
 | # | Test ID | Scenario | Result |
 |---|---------|----------|--------|
@@ -995,8 +1019,9 @@ Authoritative list from the TestSprite platform (`testsprite test list --project
 | 37 | `0118a419` | Dashboard displays XP and coin counters for a logged-in user | ✅ PASS |
 | 38 | `b1a6af61` | Study Mix page renders for a logged-in user | ✅ PASS |
 | 39 | `860a67c1` | Journal page renders heading and content for a logged-in user | ✅ PASS |
+| 40 | `f4663fb7` | Collection page lets a user choose a companion pet (regression: self-hosted sprites + wired selection) | ✅ PASS |
 
-**42 / 42 — ALL GREEN ✅**  ·  every test `createdFrom: cli`  ·  verify with `testsprite test list --project 4ba5d8f8-310d-41bc-bbf4-b85208bb6d44`
+**43 / 43 — ALL GREEN ✅**  ·  every test `createdFrom: cli`  ·  verify with `testsprite test list --project 4ba5d8f8-310d-41bc-bbf4-b85208bb6d44`
 
 ---
 
@@ -1032,7 +1057,7 @@ All fixes are genuine improvements discovered while actually using the CLI to bu
 
 ---
 
-> **40 iterations · 42 banked scenarios · 65+ TestSprite runs · 9 real product bugs caught · 42/42 all green**
+> **41 iterations · 43 banked scenarios · 70+ TestSprite runs · 9 real product bugs caught · 43/43 all green**
 >
 > Frontend tests (`--plan-from`) + Backend tests (`--type backend --code-file`) + Full regression reruns (`--all --max-concurrency 4`).
 >
@@ -1142,7 +1167,7 @@ Verifiable, not marketing. Numbers below are **measured on this machine / agains
 - **Type-checked production build passes** — `next build` (Turbopack) **compiles in ~7.4s**, runs the strict-mode TypeScript check, and generates **32 static routes** clean (exit 0). A type error fails the build.
 - **Live latency** (5 samples against `https://norastudy.vercel.app`): **cold start ~1.08s TTFB, warm ~0.28–0.41s** — Vercel edge/SSR.
 - **22 SQL migrations**, applied in order, backward-compatible — a real schema history, not a single dump.
-- **42 TestSprite scenarios** (39 frontend + 3 backend), every one `createdFrom: cli`, replayable in one command (`testsprite test rerun --all`) — the same command committed in the CI workflow.
+- **43 TestSprite scenarios** (40 frontend + 3 backend), every one `createdFrom: cli`, replayable in one command (`testsprite test rerun --all`) — the same command committed in the CI workflow.
 - **Graceful degradation** — every optional provider key (OpenAI, Tavily, YouTube, Firecrawl, Semantic Scholar) disables exactly one feature when absent; the app never hard-fails on a missing key.
 
 > Method: `npm test` (Vitest run count + duration), `npm run build` (Turbopack compile time + route count), and 5 sequential `GET /` requests to the live app timed client-side (first = cold). Reproduce anytime; exact ms vary with network and Vercel cache state.

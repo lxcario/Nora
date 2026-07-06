@@ -17,7 +17,7 @@ loop that caught genuine regressions in a production-grade Next.js app.
 - **Repo:** https://github.com/lxcario/Nora
 - **Loop log (per-iteration, agent-written):** [`LOOP.md`](LOOP.md)
 - **Test artifacts + index:** [`testsprite_tests/`](testsprite_tests/)
-- **Machine-readable manifest (all 42 tests, `createdFrom: cli`, Rule 7 verification):** [`testsprite_tests/manifest-all.json`](testsprite_tests/manifest-all.json)
+- **Machine-readable manifest (all 43 tests, `createdFrom: cli`, Rule 7 verification):** [`testsprite_tests/manifest-all.json`](testsprite_tests/manifest-all.json)
 - **Archived failure bundle:** [`testsprite_tests/failure/analytics-442d4d6e/`](testsprite_tests/failure/)
 
 ## Team
@@ -36,13 +36,13 @@ loop that caught genuine regressions in a production-grade Next.js app.
 
 | Metric | Value |
 |---|---|
-| Tests banked | **42 — all passing (39 frontend + 3 backend)** |
+| Tests banked | **43 — all passing (40 frontend + 3 backend)** |
 | Loop iterations | **40** across 5 active build days (Jun 30, Jul 2–4, Jul 6) |
 | Total test runs | **65+** |
 | Real product bugs caught & fixed | **9** |
 | Distinct root causes diagnosed | **12** |
 | New features shipped *under* the loop | **2** (Prediction Mode, Companion Router) |
-| Coverage expansion | **20 → 42** live — including 3 backend RLS/schema tests |
+| Coverage expansion | **20 → 43** live — including 3 backend RLS/schema tests |
 | Platform limitation found & documented | 1 (desktop-only runner can't simulate mobile resize) |
 | CI/CD | **GitLab CI** reruns the unit suite + the TestSprite **backend checker** on every `master` push — **verified green** (`gitlab.com/lxcario-group/Nora/-/pipelines`). A GitHub Actions workflow holds the same command but is gated by a GitHub account Actions billing lock. |
 
@@ -94,7 +94,7 @@ tightened each plan to a single decisive assertion (`Generate Knowledge Web` /
 `Discover connections` buttons), pushed the new steps with `test plan put`, and
 reran — both green. A clean create → blocked → diagnose → fix → rerun → pass cycle.
 
-## Suite breadth (42 scenarios across 22+ features)
+## Suite breadth (43 scenarios across 22+ features)
 
 Entry & auth (landing, login, signup→onboarding) · core loop (dashboard,
 sidebar, review full flow, JOL confidence) · learning features (Feynman
