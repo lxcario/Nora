@@ -36,7 +36,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const [academicProfile, profile, petResult] = await Promise.all([
     supabase
       .from("academic_profiles")
-      .select("id")
+      .select("id, created_at")
       .eq("user_id", user.id)
       .maybeSingle()
       .then((r) => r.data),
@@ -60,6 +60,15 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (!academicProfile) {
     redirect("/app/onboarding");
   }
+
+  // Only show the welcome tour to a genuinely new user — one who finished
+  // onboarding within the last 10 minutes. Established accounts (and automated
+  // test runners logging into a seeded account) never see it, so it can't block
+  // navigation on a fresh browser profile with no localStorage.
+  const onboardedAt = (academicProfile as { created_at?: string }).created_at;
+  const isNewlyOnboarded = onboardedAt
+    ? Date.now() - new Date(onboardedAt).getTime() < 10 * 60 * 1000
+    : false;
 
   const profileWithAvatar = profile
     ? {
@@ -108,7 +117,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             </main>
             <BottomNav />
             <CommandPalette />
-            <OnboardingTour />
+            {isNewlyOnboarded && <OnboardingTour />}
           </div>
         </div>
         <StudySessionWidget />
