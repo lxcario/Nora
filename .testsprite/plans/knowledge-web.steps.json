@@ -1,7 +1,0 @@
-{
-  "planSteps": [
-    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to finish loading" },
-    { "type": "action", "description": "Navigate directly to the /app/knowledge-web route and wait for the page to finish loading" },
-    { "type": "assertion", "description": "Verify the page shows the 'Knowledge Web' heading and, below it, a 'Generate Knowledge Web' button (the empty state for an account with no generated web yet). Finding either the heading with that button, or an already-rendered node graph, means PASS; a 404 or blank page means FAIL." }
-  ]
-}

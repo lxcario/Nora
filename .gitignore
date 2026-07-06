@@ -56,3 +56,52 @@ testsprite_tests\tmp\config.json
 
 # Kiro IDE settings (may contain API keys)
 .kiro/settings/
+
+# Demo / video media — kept local, never pushed (GitHub 100MB cap; linked via YouTube in README)
+*.mp4
+*.webm
+*.mov
+/reel/
+/remotion/
+scripts/demo.mjs
+docs/DEMO-SCRIPT.md
+
+# Local TestSprite scratch + capture artifacts
+.ts-*.json
+/.playwright-mcp/
+
+# ── Local-only working files (kept on disk, never pushed) ───────────────
+# Strategy / planning / research scratch
+/nora_1olma_stratejisi.md
+/30_loop_md_proje.md
+/HACKATHON-PLAN.md
+/AUDIT.md
+/DECISIONS.md
+/MOTION_SPEC.md
+/QUALITY_BAR.md
+/STORYBOARD.md
+/X-POST.md
+/NORA-AWWWARDS-SPEC.md
+/FrontendOptimization.md
+/uiuxgpt.md
+/whatisthis.md
+/geminiresearch.md
+/nora-agent-prompt.md
+/nora-ux-audit-prompt.md
+/deep-research-report*.md
+/discord.txt
+
+# Root-level capture screenshots (public/ images are tracked and unaffected)
+/*.png
+/*.jpeg
+/audit-screenshots/
+
+# Personal academic calendar PDF (test fixture under test/data is unaffected)
+/*.pdf
+
+# Local helper scripts
+/check-*.ps1
+/wait-tests.ps1
+
+# Loose TestSprite scratch step files (plans/ are tracked)
+/.testsprite/*.steps.json

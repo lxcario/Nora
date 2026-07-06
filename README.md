@@ -9,6 +9,8 @@
 <p align="center"><em>Built on learning science. Designed to feel like home.</em></p>
 
 <p align="center">
+  <a href="https://www.youtube.com/watch?v=u9lo9GYdCf8"><strong>▶ Watch the 3-min demo</strong></a>
+  &nbsp;·&nbsp;
   <a href="https://norastudy.vercel.app">Live app</a>
   &nbsp;·&nbsp;
   <a href="#run-it-locally">Run locally</a>
@@ -41,6 +43,18 @@
 
 <p align="center">
   <img src="public/ui.png" alt="Nora — the Today screen" width="860" />
+</p>
+
+<br/>
+
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=u9lo9GYdCf8">
+    <img src="https://img.youtube.com/vi/u9lo9GYdCf8/maxresdefault.jpg" alt="Watch the Nora demo" width="720" />
+    <br/>
+    <strong>▶&nbsp; Watch the 3-minute demo</strong>
+  </a>
+  <br/>
+  <sub>A full walkthrough — the learning loop, the AI pipeline, and the TestSprite verification story.</sub>
 </p>
 
 ---
