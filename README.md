@@ -445,6 +445,8 @@ If your change makes Nora feel more like Nora — welcome.
 
 Application code is **MIT**. Assets carry their own licenses: LPC character art is CC BY-SA 3.0 / GPL 3.0, and the UI sprites are CC0. Academic data comes from OpenAlex (CC0), Crossref, and Unpaywall under their respective terms. See [`docs/ASSETS.md`](docs/ASSETS.md) for the full attribution list.
 
+Companion pet visuals use sprites served through the free, open-source [PokéAPI](https://pokeapi.co/) sprite set (`PokeAPI/sprites`). Pokémon and all related sprites, names, and characters are trademarks of and © Nintendo, Game Freak, and The Pokémon Company. Nora is an independent, non-commercial, fan-made educational project — it is not affiliated with, sponsored by, or endorsed by those companies, and all rights to that content remain with their owners.
+
 Nora is an educational, non-commercial project. Third-party content is used for technical demonstration only, and all rights remain with their respective owners.
 
 ---

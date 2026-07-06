@@ -80,6 +80,20 @@ LPC content **must not** be mixed with CC0/custom content in a way that hides at
 
 > **TODO:** Once you finalize which specific animals you use as pets, list sprite filenames here.
 
+### 3.2 Companion Pets (PokéAPI sprites)
+
+- **Name:** PokéAPI sprite set (`PokeAPI/sprites`)
+- **Source:** PokéAPI — free, open-source Pokémon data + sprite project
+- **URL:** https://pokeapi.co/ · https://github.com/PokeAPI/sprites
+- **What we use:**
+  - Animated Gen-V-style companion sprites for the study pet / room companion, self-hosted under `public/sprites/pets/{id}.gif` for reliable loading.
+- **Trademark / rights notice:**
+  - The PokéAPI sprite *project* is open source, but **Pokémon and all related sprites, names, and characters are trademarks of and © Nintendo, Game Freak, and The Pokémon Company.**
+  - Nora is an **independent, non-commercial, fan-made educational project**. It is **not affiliated with, sponsored by, or endorsed by** Nintendo, Game Freak, or The Pokémon Company. All rights to that content remain with their owners.
+- **Usage rules:**
+  - Sprites are used only for non-commercial technical demonstration inside Nora.
+  - We do not sell, sublicense, or present this content as our own original work.
+
 ---
 
 ## 4. LPC Environment Tiles
@@ -169,8 +183,9 @@ For reference, there are curated gists and lists of free game dev assets (includ
 
 ## 7. How We Combine LPC and CC0 Assets
 
-- **Characters, pets, environment** → LPC (CC BY‑SA 3.0 / GPL 3.0)  
+- **Characters, environment** → LPC (CC BY‑SA 3.0 / GPL 3.0)  
   - Count as “share‑alike” art; our combinations stay under compatible licenses.
+- **Companion pets** → PokéAPI sprites (see §3.2) — trademarked Pokémon content, used non-commercially for demonstration only; not merged into LPC files.
 - **UI frames, icons, fonts (where possible)** → CC0 / OFL  
   - No license conflicts, because CC0/OFL assets are not being *merged into* LPC sprites; they’re used as separate layers (UI) in the app.[web:83][web:84][web:91]
 
