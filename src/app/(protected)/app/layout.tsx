@@ -93,7 +93,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       pokemonId,
       name: petResult.name ?? "Buddy",
       state: (petResult.state ?? "neutral") as "happy" | "neutral" | "sad" | "forest_rescue",
-      spriteUrl: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/${pokemonId}.gif`,
+      spriteUrl: `/sprites/pets/${pokemonId}.gif`,
     };
   }
 

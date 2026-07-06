@@ -30,33 +30,51 @@ export const STARTER_POKEMON = [
 ];
 
 /**
- * Fetches Pokémon data from PokeAPI.
+ * Resolves a Pokémon id to its self-hosted animated sprite.
+ * Sprites live in `public/sprites/pets/` so the pet system never depends on a
+ * flaky third-party image host (raw.githubusercontent rate-limits hotlinks).
+ */
+export function petSpriteUrl(id: number | string): string {
+  return `/sprites/pets/${id}.gif`;
+}
+
+/**
+ * Fetches Pokémon metadata (name, types) from PokeAPI for the given id.
+ * The sprite is always served locally via {@link petSpriteUrl}, so the pet
+ * still renders even when the PokeAPI JSON endpoint is unreachable.
  */
 export async function getPokemon(idOrName: number | string): Promise<PokemonData | null> {
+  const numericHint = typeof idOrName === "number" ? idOrName : parseInt(idOrName, 10);
   try {
     const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${idOrName}`, {
       next: { revalidate: 86400 }, // cache for 24h
     });
 
-    if (!res.ok) return null;
-
-    const data = await res.json();
-
-    // Prefer animated sprite, fall back to static
-    const animatedSprite =
-      data.sprites?.versions?.["generation-v"]?.["black-white"]?.animated?.front_default;
-    const staticSprite = data.sprites?.front_default;
-
-    return {
-      id: data.id,
-      name: data.name,
-      sprite: animatedSprite || staticSprite || "",
-      spriteStatic: staticSprite || "",
-      types: data.types?.map((t: { type: { name: string } }) => t.type.name) ?? [],
-    };
+    if (res.ok) {
+      const data = await res.json();
+      return {
+        id: data.id,
+        name: data.name,
+        sprite: petSpriteUrl(data.id),
+        spriteStatic: petSpriteUrl(data.id),
+        types: data.types?.map((t: { type: { name: string } }) => t.type.name) ?? [],
+      };
+    }
   } catch {
-    return null;
+    // fall through to the offline-safe fallback below
   }
+
+  // Offline / not-found fallback: still show the local sprite if we have an id.
+  if (Number.isFinite(numericHint) && numericHint > 0) {
+    return {
+      id: numericHint,
+      name: typeof idOrName === "string" ? idOrName : `pokemon-${numericHint}`,
+      sprite: petSpriteUrl(numericHint),
+      spriteStatic: petSpriteUrl(numericHint),
+      types: [],
+    };
+  }
+  return null;
 }
 
 /**

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { STARTER_POKEMON } from "@/lib/pokeapi";
+import { STARTER_POKEMON, petSpriteUrl } from "@/lib/pokeapi";
 import { choosePet } from "@/app/(protected)/app/_actions/gamification";
 import { Loader2, Check } from "lucide-react";
 import Image from "next/image";
@@ -54,7 +54,7 @@ export function PetSelector({ currentPetType }: { currentPetType: string | null 
               }}
             >
               <Image
-                src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/${pokemon.id}.gif`}
+                src={petSpriteUrl(pokemon.id)}
                 alt={pokemon.name}
                 width={40}
                 height={40}
