@@ -43,12 +43,6 @@
 <br/>
 
 <p align="center">
-  <img src="public/ui.png" alt="Nora — the Today screen" width="860" />
-</p>
-
-<br/>
-
-<p align="center">
   <a href="https://www.youtube.com/watch?v=u9lo9GYdCf8">
     <img src="https://img.youtube.com/vi/u9lo9GYdCf8/maxresdefault.jpg" alt="Watch the Nora demo" width="720" />
     <br/>
