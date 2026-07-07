@@ -15,6 +15,7 @@ loop that caught genuine regressions in a production-grade Next.js app.
 - **Demo video (3 min):** https://www.youtube.com/watch?v=u9lo9GYdCf8
 - **Live app:** https://norastudy.vercel.app
 - **Repo:** https://github.com/lxcario/Nora
+- **Blog post (Medium):** https://medium.com/@resquedzn05/i-built-a-study-app-that-teaches-without-guilt-then-i-had-to-prove-it-actually-worked-89ee85e8c392
 - **Loop log (per-iteration, agent-written):** [`LOOP.md`](LOOP.md)
 - **Test artifacts + index:** [`testsprite_tests/`](testsprite_tests/)
 - **Machine-readable manifest (all 43 tests, `createdFrom: cli`, Rule 7 verification):** [`testsprite_tests/manifest-all.json`](testsprite_tests/manifest-all.json)

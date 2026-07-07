@@ -13,6 +13,8 @@
   &nbsp;·&nbsp;
   <a href="https://norastudy.vercel.app">Live app</a>
   &nbsp;·&nbsp;
+  <a href="https://medium.com/@resquedzn05/i-built-a-study-app-that-teaches-without-guilt-then-i-had-to-prove-it-actually-worked-89ee85e8c392">Blog post</a>
+  &nbsp;·&nbsp;
   <a href="#run-it-locally">Run locally</a>
   &nbsp;·&nbsp;
   <a href="ARCHITECTURE.md">Architecture</a>
