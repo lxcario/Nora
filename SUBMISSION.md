@@ -176,11 +176,11 @@ verdicts. We built it because our own suite needed it, then dogfooded it against
 Nora before it merged. The loop didn't just *use* the tool; it made the tool
 better.
 
-**CI that knows its limits.** The GitLab pipeline reruns all 7 backend
-tests — not the full 61-scenario browser suite — because saved browser scripts
-drift as the live UI evolves, while RLS/schema checks hit the REST layer and are
-drift-immune. That's a deliberate choice: cheap, fast, always meaningful. The
-full browser suite runs manually via `rerun --all` after significant changes.
+**CI that runs the full loop.** The GitLab pipeline reruns the entire 61-test
+banked suite on every `master` push — not just a subset. Backend tests hit the
+REST/RLS layer and are drift-immune. Frontend tests replay saved scripts for
+free; auto-heal engages only when the UI has genuinely drifted. The build
+knows if anything breaks, anywhere.
 
 ## Bonus: CLI Improvement Bounty contributions (Rule 8)
 

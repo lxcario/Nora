@@ -6,20 +6,15 @@
 #
 # Two layers, both verified green locally:
 #   1. Unit suite (Vitest — 394 tests).
-#   2. The TestSprite checker: reruns ALL 7 backend tests (schema validation,
-#      RLS data isolation, RLS reward-manipulation, reward RPC boundary, party
-#      quest IDOR, Feynman/LLM auth boundary, academic data RLS). These hit the
-#      Supabase REST/RLS layer directly, so they are drift-immune and rerun at
-#      ~0 credits — unlike the browser suite, whose saved scripts drift as the
-#      live UI evolves.
+#   2. The TestSprite checker: reruns the FULL banked suite (61 tests) against
+#      the live Vercel deployment. Backend tests (7) hit the REST/RLS layer and
+#      are drift-immune. Frontend tests (50) replay saved scripts for free —
+#      auto-heal fires only when the UI has actually drifted.
 #
-# Why only backend tests in CI:
-#   Frontend tests replay saved browser scripts against the live UI — any copy
-#   change or layout tweak breaks them, making them unsuitable for automated
-#   gating. The 7 backend tests hit the REST API and prove Row-Level Security
-#   holds: they never drift because the database schema is the contract.
-#   The full 61-test suite (including frontend) runs manually via
-#   `testsprite test rerun --all` after significant changes — see LOOP.md Iter 51.
+# Why --all instead of a subset:
+#   Frontend verbatim replays are free (no credit charge). If the UI hasn't
+#   changed, they pass instantly. If it has, auto-heal engages and either fixes
+#   the script or reports a genuine regression. Either way, the build knows.
 #
 # Setup (one-time, in GitLab): Project → Settings → CI/CD → Variables → add
 #   TESTSPRITE_API_KEY  (masked)  = <your key from .env.local>
@@ -45,14 +40,13 @@ verify:
     - npm test
     - npm install -g @testsprite/testsprite-cli
     - testsprite setup --from-env --yes --no-agent
-    # Rerun all backend tests in the project (drift-immune, ~0 credits each).
-    # These hit the Supabase REST/RLS layer directly and prove security holds —
-    # they never break from UI changes. Covers all 7 banked backend scenarios:
-    # schema validation, RLS data isolation, reward-manipulation rejection,
-    # reward RPC boundary/IDOR, party quest IDOR, Feynman/LLM auth, academic RLS.
+    # Rerun the full banked suite against the live app.
+    # Backend tests (7) hit the Supabase REST/RLS layer — drift-immune, ~0 credits.
+    # Frontend tests (50) replay saved scripts — free verbatim replays, auto-heal
+    # engages only if the UI drifted (small credit, rare after stabilization).
+    # This gates the build on the entire TestSprite suite, not just a subset.
     - >
       testsprite test rerun
       --all
       --project 4ba5d8f8-310d-41bc-bbf4-b85208bb6d44
-      --type backend
-      --wait --timeout 600 --output json
+      --wait --timeout 900 --max-concurrency 4 --output json
