@@ -82,4 +82,10 @@ export const RATE_LIMITS = {
   ai_light: { maxRequests: 30, windowMs: 60_000 },
   /** Video search (YouTube API quota-sensitive) — 5 per minute */
   video_search: { maxRequests: 5, windowMs: 60_000 },
+  /**
+   * Reward/XP writes — generous for a real study session, but caps scripted
+   * abuse of the atomic reward RPC. Best-effort per server instance (see the
+   * honest caveat in SECURITY.md) — 60 per minute.
+   */
+  reward: { maxRequests: 60, windowMs: 60_000 },
 } as const;

@@ -80,7 +80,7 @@ Nora fetches external content (academic PDFs, university calendars, web results)
 ## Input handling & AI safety
 
 - **Grounded generation.** AI answers are constrained to retrieved sources; unverified output is labelled and insufficient data is declared rather than fabricated.
-- **Rate limiting.** AI-backed actions are rate-limited per action type to contain abuse and cost.
+- **Rate limiting.** AI-backed actions *and reward writes* are rate-limited per user, per action type, to contain abuse and cost (`src/lib/rate-limit.ts`; the atomic reward RPC is capped via the `reward` preset). **Honest caveat:** the limiter is an in-memory sliding window, so it is *best-effort per server instance* — on a serverless / multi-instance deployment it neither shares state across instances nor survives a cold start. It raises the cost of scripted abuse but is not a hard distributed quota; the database-side identity guard (above) is the authoritative control, and a shared store (e.g. Redis) would be required for a strict global limit.
 - **File uploads** are size-capped (PDFs to 20 MB local / 50 MB by URL) and parsed defensively.
 
 ---
@@ -95,7 +95,7 @@ Security controls that can't be seen in the UI are verified directly, as part of
   - `feynman_sessions` are unreadable without the owner's session.
   A page looks identical whether RLS is airtight or wide open — the only way to know is to hit the database as an attacker would and confirm the denial. The browser runner can't do that; the backend runner can, so both are used.
 - **Schema invariants are checked** — the tables and the columns the reward/scheduling logic depends on (`stability`, `difficulty`, `due`, `state`, `xp`, `coins`) exist and are typed as expected.
-- **`SECURITY DEFINER` functions are covered by the reward round-trip tests** — a user can earn XP through the legitimate path, but the identity assertion blocks awarding XP to an arbitrary target user.
+- **`SECURITY DEFINER` functions are covered by the reward round-trip tests** — a user can earn XP through the legitimate path, but the identity assertion blocks awarding XP to an arbitrary target user. This guard is also pinned by a dedicated SQL test ([`supabase/tests/013_reward_rpc_guard.test.sql`](supabase/tests/013_reward_rpc_guard.test.sql)) that simulates an authenticated attacker (via the request JWT claim) calling the reward RPC against a *foreign* user id, and asserts the call is rejected (`42501`) with the victim's balance unchanged — while the legitimate self-reward path still succeeds.
 
 See [`LOOP.md`](LOOP.md) → *Backend Testing on TestSprite* for the per-test table.
 

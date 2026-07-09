@@ -2,7 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/supabase/auth";
 import { DialogFrame, PixelCounter } from "@/components/pixel-ui";
-import { endOfUserLocalDay } from "@/lib/due";
+import { endOfUserLocalDay, startOfUserLocalDay, userLocalDateKey } from "@/lib/due";
 import { computeStreak } from "@/lib/streak";
 import { getNextStudyAction } from "@/lib/study-router";
 
@@ -137,7 +137,10 @@ export default async function DashboardPage() {
   const now = new Date();
   const timezone = profile?.timezone ?? "UTC";
   const dueCutoff = endOfUserLocalDay(now, timezone);
-  const today = now.toISOString().split("T")[0];
+  // User-local calendar day: the key for "today" and the UTC instant of the
+  // user's local midnight (the correct lower bound for today's quest counters).
+  const todayKey = userLocalDateKey(now, timezone);
+  const localDayStart = startOfUserLocalDay(now, timezone).toISOString();
   const thirtyDaysAgo = new Date(now);
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   const sevenDaysFromNow = new Date(now);
@@ -178,17 +181,17 @@ export default async function DashboardPage() {
       .from("card_reviews")
       .select("id", { count: "exact", head: true })
       .eq("user_id", user!.id)
-      .gte("reviewed_at", `${today}T00:00:00`),
+      .gte("reviewed_at", localDayStart),
     supabase
       .from("feynman_explanations")
       .select("id", { count: "exact", head: true })
       .eq("user_id", user!.id)
-      .gte("created_at", `${today}T00:00:00`),
+      .gte("created_at", localDayStart),
     supabase
       .from("study_sessions")
       .select("id", { count: "exact", head: true })
       .eq("user_id", user!.id)
-      .gte("started_at", `${today}T00:00:00`),
+      .gte("started_at", localDayStart),
     getFriendsFeed(supabase, user!.id),
     supabase
       .from("feynman_explanations")
@@ -218,12 +221,12 @@ export default async function DashboardPage() {
   // ── Derived values (all data is now in hand) ──
   const activityDates = new Set<string>();
   (sessions ?? []).forEach((s) =>
-    activityDates.add((s.started_at as string).split("T")[0])
+    activityDates.add(userLocalDateKey(new Date(s.started_at as string), timezone))
   );
   (reviews ?? []).forEach((r) =>
-    activityDates.add((r.reviewed_at as string).split("T")[0])
+    activityDates.add(userLocalDateKey(new Date(r.reviewed_at as string), timezone))
   );
-  const streak = computeStreak(activityDates);
+  const streak = computeStreak(activityDates, now, timezone);
 
   const xpTotal = profile?.xp ?? 0;
   const coins = profile?.coins ?? 0;
@@ -249,14 +252,11 @@ export default async function DashboardPage() {
     if (score >= 80 && !masteredTopic && topicName) masteredTopic = topicName;
   }
 
-  // Check if returning after a break (no activity for 2+ days before today)
-  const yesterday = new Date(now);
-  yesterday.setDate(yesterday.getDate() - 1);
-  const dayBefore = new Date(now);
-  dayBefore.setDate(dayBefore.getDate() - 2);
+  // Check if returning after a break (no activity for 2+ user-local days before today)
+  const yesterdayKey = userLocalDateKey(new Date(now.getTime() - 24 * 60 * 60 * 1000), timezone);
+  const dayBeforeKey = userLocalDateKey(new Date(now.getTime() - 48 * 60 * 60 * 1000), timezone);
   const returningAfterBreak =
-    !activityDates.has(yesterday.toISOString().split("T")[0]) &&
-    !activityDates.has(dayBefore.toISOString().split("T")[0]);
+    !activityDates.has(yesterdayKey) && !activityDates.has(dayBeforeKey);
 
   // Blooming count (rough topic estimate from cards with stability > 10)
   const bloomingCount = Math.min(Math.floor((bloomingCards ?? 0) / 5), 20);
@@ -271,7 +271,6 @@ export default async function DashboardPage() {
     struggledTopic,
     masteredTopic,
     feynmanProgressToday: feynmanProgress,
-    reviewProgressToday: reviewProgress,
     returningAfterBreak,
     allQuestsDone,
     streak,
@@ -290,7 +289,7 @@ export default async function DashboardPage() {
     returningAfterBreak,
     bloomingCount,
     allQuestsDoneYesterday: false, // TODO: check yesterday's quests
-    seedKey: `${user!.id}:${today}`,
+    seedKey: `${user!.id}:${todayKey}`,
   });
 
   return (

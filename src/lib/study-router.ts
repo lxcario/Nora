@@ -12,9 +12,10 @@
  *   3. Struggled topic recently → revisit via Feynman
  *   4. Cards due (1-5) → gentle review nudge
  *   5. Feynman quota not hit today → explain something
- *   6. Returning after break → easy re-entry (review if cards, else feynman)
- *   7. All quests done → explore (research desk)
- *   8. Default → feynman (the core act)
+ *   6. Mastered a topic (nothing due, already explained today) → celebrate + connect (Eureka)
+ *   7. Returning after break → easy re-entry (review if cards, else feynman)
+ *   8. All quests done → explore (research desk)
+ *   9. Default → feynman (the core act)
  */
 
 // ---------------------------------------------------------------------------
@@ -27,7 +28,6 @@ export interface StudyRouterContext {
   struggledTopic: string | null;
   masteredTopic: string | null;
   feynmanProgressToday: number;
-  reviewProgressToday: number;
   returningAfterBreak: boolean;
   allQuestsDone: boolean;
   streak: number;
@@ -99,7 +99,20 @@ export function getNextStudyAction(ctx: StudyRouterContext): StudyAction {
     };
   }
 
-  // 6. Returning after a break — gentle re-entry
+  // 6. Mastered a topic — nothing's fading and they've already explained today.
+  //    Celebrate the win and point toward connecting it in Eureka.
+  if (!ctx.examSoon && ctx.cardsDue === 0 && ctx.masteredTopic) {
+    const streakNote =
+      ctx.streak > 1 ? ` ${ctx.streak}-day streak — momentum's with you.` : "";
+    return {
+      href: "/app/eureka",
+      label: `You've mastered ${ctx.masteredTopic} — connect it`,
+      reason: `Nothing's fading and you've explained today.${streakNote} Link ${ctx.masteredTopic} to a new idea.`,
+      icon: "/sprites/travel-book/icons/Lightbulb.png",
+    };
+  }
+
+  // 7. Returning after a break — gentle re-entry
   if (ctx.returningAfterBreak) {
     return {
       href: "/app/feynman",
@@ -109,7 +122,7 @@ export function getNextStudyAction(ctx: StudyRouterContext): StudyAction {
     };
   }
 
-  // 7. All quests done today — celebrate + suggest exploration
+  // 8. All quests done today — celebrate + suggest exploration
   if (ctx.allQuestsDone) {
     return {
       href: "/app/research",
@@ -119,7 +132,7 @@ export function getNextStudyAction(ctx: StudyRouterContext): StudyAction {
     };
   }
 
-  // 8. Default: feynman (the core cognitive act)
+  // 9. Default: feynman (the core cognitive act)
   return {
     href: "/app/feynman",
     label: "Explain something you're learning",

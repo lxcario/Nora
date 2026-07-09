@@ -18,7 +18,7 @@ loop that caught genuine regressions in a production-grade Next.js app.
 - **Blog post (Medium):** https://medium.com/@resquedzn05/i-built-a-study-app-that-teaches-without-guilt-then-i-had-to-prove-it-actually-worked-89ee85e8c392
 - **Loop log (per-iteration, agent-written):** [`LOOP.md`](LOOP.md)
 - **Test artifacts + index:** [`testsprite_tests/`](testsprite_tests/)
-- **Machine-readable manifest (all 43 tests, `createdFrom: cli`, Rule 7 verification):** [`testsprite_tests/manifest-all.json`](testsprite_tests/manifest-all.json)
+- **Machine-readable manifest (all 44 tests, `createdFrom: cli`, Rule 7 verification):** [`testsprite_tests/manifest-all.json`](testsprite_tests/manifest-all.json)
 - **Archived failure bundle:** [`testsprite_tests/failure/analytics-442d4d6e/`](testsprite_tests/failure/)
 
 ## Team
@@ -37,13 +37,13 @@ loop that caught genuine regressions in a production-grade Next.js app.
 
 | Metric | Value |
 |---|---|
-| Tests banked | **43 — all passing (40 frontend + 3 backend)** |
-| Loop iterations | **40** across 5 active build days (Jun 30, Jul 2–4, Jul 6) |
-| Total test runs | **65+** |
+| Tests banked | **44 — all passing (41 frontend + 3 backend)** |
+| Loop iterations | **42** across 6 active build days (Jun 30, Jul 2–4, Jul 6, Jul 8) |
+| Total test runs | **80+** |
 | Real product bugs caught & fixed | **9** |
 | Distinct root causes diagnosed | **12** |
 | New features shipped *under* the loop | **2** (Prediction Mode, Companion Router) |
-| Coverage expansion | **20 → 43** live — including 3 backend RLS/schema tests |
+| Coverage expansion | **20 → 44** live — including 3 backend RLS/schema tests |
 | Platform limitation found & documented | 1 (desktop-only runner can't simulate mobile resize) |
 | CI/CD | **GitLab CI** reruns the unit suite + the TestSprite **backend checker** on every `master` push — **verified green** (`gitlab.com/lxcario-group/Nora/-/pipelines`). A GitHub Actions workflow holds the same command but is gated by a GitHub account Actions billing lock. |
 
@@ -95,6 +95,24 @@ tightened each plan to a single decisive assertion (`Generate Knowledge Web` /
 `Discover connections` buttons), pushed the new steps with `test plan put`, and
 reran — both green. A clean create → blocked → diagnose → fix → rerun → pass cycle.
 
+### S3 loop hardening + the Calibration data-seed arc (Jul 8)
+A late hardening pass added five quality arcs — a timezone-correct daily loop, a
+companion-router mastery rule, grounded-eval prompt-injection fencing, and
+reward-RPC integrity (a per-user rate limit + a SQL guard test proving an
+authenticated caller can't inflate a *foreign* user's balance). That logic is
+proven by the expanded unit suite (**332 → 394 tests**) plus the new SQL test.
+The **Confidence Calibration** dashboard was then banked under a real loop:
+`test create` came back **blocked** four times — the agent confirmed the section
+rendered ("RESULT: PASS") but wouldn't certify a verdict because the test
+account's data produced the *"Not enough data yet"* empty state (20 JOL reviews
+concentrated in fewer than 3 confidence levels). Tightening the assertion didn't
+move it — the block tracked the **data, not the plan**. Fix: seeded real
+`card_reviews` with confidence ratings via a Supabase **user token**
+(password-grant, no service-role) so the confidence-vs-recall curve renders,
+updated the plan to assert the populated chart, and reran → **PASS** (test
+`3261aea6`, run `7b7ae0ee`). Lesson banked: a `blocked` verdict on an empty state
+is a data signal, not a plan bug.
+
 ## Suite breadth (43 scenarios across 22+ features)
 
 Entry & auth (landing, login, signup→onboarding) · core loop (dashboard,
@@ -111,7 +129,7 @@ Full ID-level table: [`testsprite_tests/README.md`](testsprite_tests/README.md).
 ## Why Nora stands out
 
 - **Production-grade, not a weekend prototype:** Next.js 16 + React 19 +
-  Supabase, 22 DB migrations, 332 unit tests, a 29-component custom pixel-UI
+  Supabase, 22 DB migrations, 394 unit tests, a 29-component custom pixel-UI
   library, real pedagogy (FSRS-6 spaced repetition, Feynman evaluation, spaced
   practice, interleaving).
 - **AI-powered flows tested end-to-end** (Feynman evaluation, Research Desk

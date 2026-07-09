@@ -10,7 +10,12 @@
 
 import { describe, it, expect } from "vitest";
 import fc from "fast-check";
-import { endOfUserLocalDay, isDueToday } from "./due";
+import {
+  endOfUserLocalDay,
+  startOfUserLocalDay,
+  userLocalDateKey,
+  isDueToday,
+} from "./due";
 
 // ---------------------------------------------------------------------------
 // Fixed reference timestamps for deterministic unit tests
@@ -241,6 +246,158 @@ describe("property tests — DUE-1", () => {
           return isDueToday(due, now, tz) === due.getTime() <= end.getTime();
         }
       )
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// startOfUserLocalDay — unit tests
+// ---------------------------------------------------------------------------
+
+describe("startOfUserLocalDay — UTC timezone", () => {
+  it("returns 00:00:00.000 UTC on the same calendar date", () => {
+    const start = startOfUserLocalDay(UTC_NOON_JUNE_15, "UTC");
+    expect(start.toISOString()).toBe("2025-06-15T00:00:00.000Z");
+  });
+
+  it("works when now is at the very end of a UTC day", () => {
+    const lateUtc = new Date("2025-06-15T23:59:59.999Z");
+    const start = startOfUserLocalDay(lateUtc, "UTC");
+    expect(start.toISOString()).toBe("2025-06-15T00:00:00.000Z");
+  });
+});
+
+describe("startOfUserLocalDay — timezone behind UTC (America/New_York, EDT = UTC−4)", () => {
+  // UTC 02:00 June 15 = June 14 22:00 EDT → local date is June 14
+  it("resolves to start of June 14 local when UTC is already June 15 early morning", () => {
+    const start = startOfUserLocalDay(UTC_EARLY_JUNE_15, "America/New_York");
+    // June 14 00:00:00.000 EDT = June 14 04:00:00.000Z
+    expect(start.toISOString()).toBe("2025-06-14T04:00:00.000Z");
+  });
+
+  // UTC 12:00 June 15 = 08:00 EDT → local date is June 15
+  it("resolves to start of June 15 local when UTC noon June 15", () => {
+    const start = startOfUserLocalDay(UTC_NOON_JUNE_15, "America/New_York");
+    // June 15 00:00:00.000 EDT = June 15 04:00:00.000Z
+    expect(start.toISOString()).toBe("2025-06-15T04:00:00.000Z");
+  });
+});
+
+describe("startOfUserLocalDay — timezone ahead of UTC (Asia/Tokyo, JST = UTC+9)", () => {
+  // UTC 12:00 June 15 = June 15 21:00 JST → local date is June 15
+  it("resolves to start of June 15 local when UTC noon June 15", () => {
+    const start = startOfUserLocalDay(UTC_NOON_JUNE_15, "Asia/Tokyo");
+    // June 15 00:00:00.000 JST = June 14 15:00:00.000Z
+    expect(start.toISOString()).toBe("2025-06-14T15:00:00.000Z");
+  });
+});
+
+describe("startOfUserLocalDay — invalid/empty timezone falls back to UTC", () => {
+  it("handles empty string", () => {
+    const start = startOfUserLocalDay(UTC_NOON_JUNE_15, "");
+    expect(start.toISOString()).toBe("2025-06-15T00:00:00.000Z");
+  });
+
+  it("handles a nonsense string", () => {
+    const start = startOfUserLocalDay(UTC_NOON_JUNE_15, "Not/ATimezone");
+    expect(start.toISOString()).toBe("2025-06-15T00:00:00.000Z");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// userLocalDateKey — unit tests
+// ---------------------------------------------------------------------------
+
+describe("userLocalDateKey", () => {
+  it("returns YYYY-MM-DD for the UTC local date", () => {
+    expect(userLocalDateKey(UTC_NOON_JUNE_15, "UTC")).toBe("2025-06-15");
+  });
+
+  it("rolls back a day for a behind-UTC zone near the UTC day boundary", () => {
+    // 02:00Z June 15 = 22:00 EDT June 14
+    expect(userLocalDateKey(UTC_EARLY_JUNE_15, "America/New_York")).toBe("2025-06-14");
+  });
+
+  it("stays on the same local day for an ahead-UTC zone", () => {
+    // 12:00Z June 15 = 21:00 JST June 15
+    expect(userLocalDateKey(UTC_NOON_JUNE_15, "Asia/Tokyo")).toBe("2025-06-15");
+  });
+
+  it("falls back to UTC for an invalid timezone", () => {
+    expect(userLocalDateKey(UTC_NOON_JUNE_15, "Not/ATimezone")).toBe("2025-06-15");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Property tests — start/end/key coherence
+// ---------------------------------------------------------------------------
+
+describe("property tests — local-day boundaries", () => {
+  const TIMEZONES = [
+    "UTC",
+    "America/New_York",
+    "America/Los_Angeles",
+    "Europe/London",
+    "Europe/Berlin",
+    "Asia/Tokyo",
+    "Asia/Kolkata",
+    "Pacific/Auckland",
+    "Pacific/Honolulu",
+  ] as const;
+
+  const tzArb = fc.constantFrom(...TIMEZONES);
+  const nowArb = fc
+    .integer({ min: 0, max: 730 })
+    .map((offsetDays) => new Date(UTC_NOON_JUNE_15.getTime() + offsetDays * 86_400_000));
+
+  it("start <= now for every tz/instant", () => {
+    fc.assert(
+      fc.property(nowArb, tzArb, (now, tz) => {
+        return startOfUserLocalDay(now, tz).getTime() <= now.getTime();
+      })
+    );
+  });
+
+  it("start strictly precedes end of the same local day", () => {
+    fc.assert(
+      fc.property(nowArb, tzArb, (now, tz) => {
+        return (
+          startOfUserLocalDay(now, tz).getTime() <
+          endOfUserLocalDay(now, tz).getTime()
+        );
+      })
+    );
+  });
+
+  it("now is bounded by [start, end] of its local day", () => {
+    fc.assert(
+      fc.property(nowArb, tzArb, (now, tz) => {
+        const start = startOfUserLocalDay(now, tz).getTime();
+        const end = endOfUserLocalDay(now, tz).getTime();
+        return start <= now.getTime() && now.getTime() <= end;
+      })
+    );
+  });
+
+  it("the local-day span is never more than 25h (DST-safe)", () => {
+    fc.assert(
+      fc.property(nowArb, tzArb, (now, tz) => {
+        const span =
+          endOfUserLocalDay(now, tz).getTime() -
+          startOfUserLocalDay(now, tz).getTime();
+        return span > 0 && span <= 25 * 60 * 60 * 1000;
+      })
+    );
+  });
+
+  it("start, now, and end all share the same local date key", () => {
+    fc.assert(
+      fc.property(nowArb, tzArb, (now, tz) => {
+        const startKey = userLocalDateKey(startOfUserLocalDay(now, tz), tz);
+        const nowKey = userLocalDateKey(now, tz);
+        const endKey = userLocalDateKey(endOfUserLocalDay(now, tz), tz);
+        return startKey === nowKey && nowKey === endKey;
+      })
     );
   });
 });

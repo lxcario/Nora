@@ -138,3 +138,80 @@ export function endOfUserLocalDay(now: Date, timezone: string): Date {
 export function isDueToday(due: Date, now: Date, timezone: string): boolean {
   return due.getTime() <= endOfUserLocalDay(now, timezone).getTime();
 }
+
+/**
+ * Returns the UTC instant that corresponds to 00:00:00.000 on the calendar
+ * day that contains `now` when viewed in `timezone`.
+ *
+ * This is the start-of-day mirror of {@link endOfUserLocalDay}. Together they
+ * bound the user's local calendar day:
+ *   startOfUserLocalDay(now, tz) <= now <= endOfUserLocalDay(now, tz)
+ *
+ * Examples:
+ *   now = 2025-06-15T02:00:00Z, tz = "America/New_York" (EDT, UTC−4)
+ *   → local date is June 14 → start = 2025-06-14T04:00:00.000Z
+ *
+ *   now = 2025-06-15T12:00:00Z, tz = "Asia/Tokyo" (JST, UTC+9)
+ *   → local date is June 15 → start = 2025-06-14T15:00:00.000Z
+ *
+ * Falls back to UTC when `timezone` is empty or unrecognised.
+ *
+ * @param now      Reference UTC instant (typically `new Date()`).
+ * @param timezone IANA timezone string (e.g. "Europe/London").
+ */
+export function startOfUserLocalDay(now: Date, timezone: string): Date {
+  const tz = isValidTimezone(timezone) ? timezone : "UTC";
+
+  // Step 1 — find the user's local calendar date for `now`.
+  const dateParts = new Intl.DateTimeFormat("en-US", {
+    timeZone: tz,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(now);
+
+  const getDate = (type: string) =>
+    Number(dateParts.find((p) => p.type === type)?.value ?? "0");
+
+  const year = getDate("year");
+  const month = getDate("month"); // 1-indexed
+  const day = getDate("day");
+
+  // Step 2 — naive UTC Date for 00:00:00.000 on this calendar date.
+  const naiveStartUtc = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
+
+  // Step 3 — how many ms is `tz` ahead of UTC at that naive moment?
+  const offset = utcOffsetMs(naiveStartUtc, tz);
+
+  // Step 4 — shift: "local 00:00:00.000" as a UTC instant = naiveStart − offset.
+  //   e.g. NYC (offset = −14_400_000): naiveStart + 14_400_000 → 4 h later ✓
+  //   e.g. Tokyo (offset = +32_400_000): naiveStart − 32_400_000 → 9 h earlier ✓
+  return new Date(naiveStartUtc.getTime() - offset);
+}
+
+/**
+ * Returns the user's local calendar date for `date` as a stable YYYY-MM-DD key.
+ *
+ * This is the single source of truth for day-keying activity by the user's
+ * local date (not the server's UTC date). Use it on both sides of a lookup —
+ * when building an activity Set and when probing it — so the keys always match.
+ *
+ * Falls back to UTC when `timezone` is empty or unrecognised.
+ *
+ * @param date     A UTC instant.
+ * @param timezone User's IANA timezone string.
+ */
+export function userLocalDateKey(date: Date, timezone: string): string {
+  const tz = isValidTimezone(timezone) ? timezone : "UTC";
+
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: tz,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
+
+  return `${get("year")}-${get("month")}-${get("day")}`;
+}

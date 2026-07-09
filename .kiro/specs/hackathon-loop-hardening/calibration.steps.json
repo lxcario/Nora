@@ -1,0 +1,7 @@
+{
+  "planSteps": [
+    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to finish loading" },
+    { "type": "action", "description": "Navigate directly to the /app/analytics route and wait for it to finish loading" },
+    { "type": "assertion", "description": "Verify the Confidence Calibration section is populated: the 'Confidence Calibration' heading is visible, and below it a 'Confidence vs Actual Recall' chart renders with bars across confidence levels 1 through 5, together with a calibration classification label (Well Calibrated / Overconfident / Underconfident) and a calibration deviation percentage. A visible per-confidence chart plus the classification and deviation readout = PASS. A 404, a blank page, or the 'Not enough data yet' empty state = FAIL." }
+  ]
+}

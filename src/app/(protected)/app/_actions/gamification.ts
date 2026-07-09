@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
 /**
  * XP/Coin reward rules:
@@ -53,6 +54,18 @@ export async function rewardAction(
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { error: "Not authenticated" };
+
+  // Rate-limit reward writes: generous for real study, but caps scripted abuse
+  // of the atomic reward RPC. Best-effort per server instance (see SECURITY.md).
+  const rl = checkRateLimit(
+    user.id,
+    "reward",
+    RATE_LIMITS.reward.maxRequests,
+    RATE_LIMITS.reward.windowMs
+  );
+  if (!rl.allowed) {
+    return { error: "Too many reward requests — please slow down a moment." };
+  }
 
   const { xp: xpGained, coins: coinsGained, affinity: petAffinityChange } = getRewardAmounts(action);
 
@@ -120,6 +133,17 @@ export async function rewardBatch(
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { error: "Not authenticated" };
+
+  // Rate-limit reward writes (shared "reward" budget with rewardAction).
+  const rl = checkRateLimit(
+    user.id,
+    "reward",
+    RATE_LIMITS.reward.maxRequests,
+    RATE_LIMITS.reward.windowMs
+  );
+  if (!rl.allowed) {
+    return { error: "Too many reward requests — please slow down a moment." };
+  }
 
   const { xp: xpPerAction, coins: coinsPerAction, affinity: affinityPerAction } = getRewardAmounts(action);
 

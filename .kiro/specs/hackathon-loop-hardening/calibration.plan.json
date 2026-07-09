@@ -1,0 +1,14 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "Confidence Calibration renders on the Analytics page for a logged-in user",
+  "description": "A logged-in user opens /app/analytics and sees the Confidence Calibration section powered by getCalibrationData(). It shows the 'Confidence Calibration' heading and an insight sentence about how well the user's confidence matches recall. This account may have fewer than 20 JOL-rated reviews, so the insufficient-data empty state ('need at least 20 reviews with confidence ratings') is an ACCEPTABLE pass; a populated confidence 1-5 curve is NOT required. CONTRACT: the UI must render the heading text 'Confidence Calibration' and always render the action's insight string.",
+  "priority": "p2",
+  "planSteps": [
+    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to finish loading" },
+    { "type": "action", "description": "Navigate directly to the /app/analytics route and wait for it to finish loading" },
+    { "type": "action", "description": "If a tour or onboarding popup appears, dismiss it so the page content is unobstructed" },
+    { "type": "assertion", "description": "Verify the page renders the 'Confidence Calibration' heading (not a 404 or blank screen)" },
+    { "type": "assertion", "description": "Verify the calibration section renders real content beneath the heading: either a confidence-vs-recall curve/chart with points for confidence levels 1 through 5, OR the insufficient-data guidance message telling the user they need at least 20 reviews with confidence ratings. Either one is a PASS." }
+  ]
+}

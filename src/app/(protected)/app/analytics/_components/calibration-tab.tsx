@@ -1,6 +1,6 @@
 "use client";
 
-import { type CalibrationData } from "../../_actions/calibration";
+import { type CalibrationData } from "@/lib/calibration";
 
 // ---------------------------------------------------------------------------
 // Metacognition — Calibration Curve Tab
