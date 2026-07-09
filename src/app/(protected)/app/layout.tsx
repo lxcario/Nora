@@ -80,7 +80,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       }
     : null;
 
-  // Pet data for sidebar widget
+  // Pet data for sidebar widget — compute mood from activity (same logic as
+  // room.ts) so the sidebar always agrees with the Pixel Room.
   let petSidebarData: {
     pokemonId: number;
     name: string;
@@ -89,10 +90,38 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   } | null = null;
   if (petResult) {
     const pokemonId = parseInt(petResult.pet_type ?? "25") || 25;
+
+    // Activity-based mood (mirrors room.ts logic: 0 sessions = sad, <2 = neutral, ≥2 = happy)
+    const threeDaysAgo = new Date();
+    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+    const { count: recentSessions } = await supabase
+      .from("study_sessions")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .gte("started_at", threeDaysAgo.toISOString());
+
+    let computedState: "happy" | "neutral" | "sad" | "forest_rescue" = "happy";
+    const sessionCount = recentSessions ?? 0;
+    if (sessionCount === 0) computedState = "sad";
+    else if (sessionCount < 2) computedState = "neutral";
+
+    // If the stored state is forest_rescue (a quest-driven state), keep it.
+    const storedState = (petResult.state ?? "neutral") as "happy" | "neutral" | "sad" | "forest_rescue";
+    const finalState = storedState === "forest_rescue" ? storedState : computedState;
+
+    // Sync to DB if drifted (non-blocking, fire-and-forget)
+    if (storedState !== finalState) {
+      supabase
+        .from("pets")
+        .update({ state: finalState })
+        .eq("user_id", user.id)
+        .then(() => {});
+    }
+
     petSidebarData = {
       pokemonId,
       name: petResult.name ?? "Buddy",
-      state: (petResult.state ?? "neutral") as "happy" | "neutral" | "sad" | "forest_rescue",
+      state: finalState,
       spriteUrl: `/sprites/pets/${pokemonId}.gif`,
     };
   }
