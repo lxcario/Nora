@@ -5,11 +5,21 @@
 # is imported/mirrored from https://github.com/lxcario/Nora.
 #
 # Two layers, both verified green locally:
-#   1. Unit suite (Vitest — 332 tests).
-#   2. The TestSprite checker itself: reruns the 3 BACKEND tests
-#      (schema + RLS data isolation + RLS reward-manipulation). These hit the
-#      REST/RLS layer, so they are drift-immune and rerun at ~0 credits — unlike
-#      the browser suite, whose saved scripts drift as the live UI evolves.
+#   1. Unit suite (Vitest — 394 tests).
+#   2. The TestSprite checker: reruns ALL 7 backend tests (schema validation,
+#      RLS data isolation, RLS reward-manipulation, reward RPC boundary, party
+#      quest IDOR, Feynman/LLM auth boundary, academic data RLS). These hit the
+#      Supabase REST/RLS layer directly, so they are drift-immune and rerun at
+#      ~0 credits — unlike the browser suite, whose saved scripts drift as the
+#      live UI evolves.
+#
+# Why only backend tests in CI:
+#   Frontend tests replay saved browser scripts against the live UI — any copy
+#   change or layout tweak breaks them, making them unsuitable for automated
+#   gating. The 7 backend tests hit the REST API and prove Row-Level Security
+#   holds: they never drift because the database schema is the contract.
+#   The full 61-test suite (including frontend) runs manually via
+#   `testsprite test rerun --all` after significant changes — see LOOP.md Iter 51.
 #
 # Setup (one-time, in GitLab): Project → Settings → CI/CD → Variables → add
 #   TESTSPRITE_API_KEY  (masked)  = <your key from .env.local>
@@ -35,9 +45,14 @@ verify:
     - npm test
     - npm install -g @testsprite/testsprite-cli
     - testsprite setup --from-env --yes --no-agent
+    # Rerun all backend tests in the project (drift-immune, ~0 credits each).
+    # These hit the Supabase REST/RLS layer directly and prove security holds —
+    # they never break from UI changes. Covers all 7 banked backend scenarios:
+    # schema validation, RLS data isolation, reward-manipulation rejection,
+    # reward RPC boundary/IDOR, party quest IDOR, Feynman/LLM auth, academic RLS.
     - >
       testsprite test rerun
-      43943ea6-daa9-4a9e-a18d-59d8abacc33e
-      36c43c1e-258b-482a-97be-a135b8107e5a
-      23d76c46-f900-455f-85c5-cdafe379949d
+      --all
+      --project 4ba5d8f8-310d-41bc-bbf4-b85208bb6d44
+      --type backend
       --wait --timeout 600 --output json

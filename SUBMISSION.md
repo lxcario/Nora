@@ -176,7 +176,7 @@ verdicts. We built it because our own suite needed it, then dogfooded it against
 Nora before it merged. The loop didn't just *use* the tool; it made the tool
 better.
 
-**CI that knows its limits.** The GitLab pipeline only reruns the 3 backend
+**CI that knows its limits.** The GitLab pipeline reruns all 7 backend
 tests — not the full 61-scenario browser suite — because saved browser scripts
 drift as the live UI evolves, while RLS/schema checks hit the REST layer and are
 drift-immune. That's a deliberate choice: cheap, fast, always meaningful. The
