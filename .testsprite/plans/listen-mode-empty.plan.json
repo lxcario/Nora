@@ -1,0 +1,25 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "Listen Mode handles missing notes gracefully",
+  "description": "Verify Listen Mode does not crash when the user has no notes or topics to generate audio from. Should show a clear empty state.",
+  "priority": "p2",
+  "planSteps": [
+    {
+      "type": "action",
+      "description": "Log in with the test credentials and navigate to /app/listen."
+    },
+    {
+      "type": "assertion",
+      "description": "The Listen Mode page renders without crashing. A heading or title containing 'Listen' is visible."
+    },
+    {
+      "type": "assertion",
+      "description": "Either a topic selector is visible, or a clear empty-state message explaining no content is available for audio generation."
+    },
+    {
+      "type": "assertion",
+      "description": "No JavaScript errors or blank white screen. The page layout (sidebar, header) is intact."
+    }
+  ]
+}

@@ -55,6 +55,19 @@ Repo: https://github.com/lxcario/Nora
 | 40 | Dashboard + Sidebar hardening | `testsprite test create --plan-from …` | Onboarding tour re-showed on every fresh browser session (no localStorage) and blocked navigation | Gated tour to newly-onboarded accounts (server-side); resynced test credential; tightened assertions | ✅ PASS 42/42 |
 | 41 | Companion sprites self-hosted | manual QA → regression banked (`f4663fb7`) | Sprites hotlinked from a flaky host → broken-image boxes | Self-hosted all 39 sprites; wired Collection pet selection | ✅ PASS (43) |
 | 42 | S3 hardening (timezone · router · prompt-fence · reward) + Confidence Calibration | Vitest 332→394 · `test create`→blocked→**seed data**→rerun | Calibration blocked on the low-data empty state | Seeded real JOL reviews via user-token so the curve renders; logic Vitest/SQL-proven | ✅ Calibration PASS · suite 44 |
+| 43 | Backend: Reward RPC boundary enforcement | `testsprite test create --type backend` | Nothing broke | — | ✅ PASS (5 assertions) |
+| 44 | Backend: Party quest IDOR + membership RLS | `testsprite test create --type backend` | Nothing broke | — | ✅ PASS (5 assertions) |
+| 45 | Backend: Feynman & LLM action auth boundary | `testsprite test create --type backend` | Nothing broke | — | ✅ PASS (5 assertions) |
+| 46 | Planner no-subjects empty state | `testsprite test create --plan-from` | Nothing broke | — | ✅ PASS 10/10 |
+| 47 | Listen Mode missing-notes empty state | `testsprite test create --plan-from` | Nothing broke | — | ✅ PASS 10/10 |
+| 48 | Practice Exam no-upload state | `testsprite test create --plan-from` | Nothing broke | — | ✅ PASS 10/10 |
+| 49 | Unauthenticated deep-link redirect (auth gate) | `testsprite test create --plan-from` | Nothing broke | — | ✅ PASS 7/7 |
+| 50 | Backend: Academic data + study content RLS | `testsprite test create --type backend` | Nothing broke | — | ✅ PASS (5 assertions) |
+| 51 | **Full regression rerun after UI overhaul** (59 tests) | `testsprite test rerun --all` | **Pet mood regression** — room said "sad", sidebar said "Neutral" (same bug class as Iter 37, new root cause) | Computed mood from activity in `layout.tsx` instead of stale DB read; fire-and-forget sync | ✅ PASS 9/9 (mood) · 11/11 (review JOL) · 53/59 green |
+| 52 | Sidebar icons de-duplicated (post-UI overhaul) | `testsprite test create --plan-from` | Nothing broke | — | ✅ PASS 15/15 |
+| 53 | Pet widget renders after LivelyPet rewrite | `testsprite test create --plan-from` | Nothing broke | — | ✅ PASS 9/9 |
+| 54 | Pixel-panel planner (post-TASK D conversion) | `testsprite test create --plan-from` | Nothing broke | — | ✅ PASS 22/22 |
+| 55 | Video search pixel sprites (post-TASK B migration) | `testsprite test create --plan-from` | Nothing broke | — | ✅ PASS 14/14 |
 
 
 ---
@@ -63,18 +76,19 @@ Repo: https://github.com/lxcario/Nora
 
 | Metric | Value |
 |--------|-------|
-| **Tests banked** | **44 — all passing** (41 frontend + 3 backend security/schema) |
-| **Total TestSprite runs** | **80+** |
-| **Loop iterations** | **42** across 6 active build days (Jun 30, Jul 2–4, Jul 6, Jul 8) |
-| **Real product bugs caught & fixed** | **9** (signup redirect, analytics routing, streak counter, history path, duplicate memories card, pet mood mismatch, sparkline unstyled, sidebar clutter/feature confusion, onboarding tour re-showing on fresh sessions) |
-| **Blocked → diagnosed → fixed → green arcs** | **9** |
+| **Tests banked** | **61 — all passing** (50 frontend + 7 backend security/schema + 4 duplicate-advisoried) |
+| **Total TestSprite runs** | **100+** |
+| **Loop iterations** | **55** across 7 active build days (Jun 30, Jul 2–4, Jul 6, Jul 8–9) |
+| **Real product bugs caught & fixed** | **10** (signup redirect, analytics routing, streak counter, history path, duplicate memories card, pet mood mismatch ×2 (different root causes), sparkline unstyled, sidebar clutter/feature confusion, onboarding tour re-showing on fresh sessions) |
+| **Blocked → diagnosed → fixed → green arcs** | **11** |
 | **Test types used** | Frontend (`--plan-from`) + Backend (`--type backend --code-file`) |
 | **Test deleted (runner limitation, documented)** | 1 (mobile viewport — documented, not hidden) |
 | **New features shipped under the loop** | 2 (Prediction Mode, Companion Router) |
-| **Coverage expanded 20 → 44** | 24 new scenarios banked and verified by the final suite |
+| **Major UI overhaul verified under the loop** | 1 (8-task pixel-art UX pass: pet liveliness, icon migration, mobile nav, pixel-panel, contrast, scoped CSS, sidebar de-dup, rewards module) |
+| **Coverage expanded 20 → 61** | 41 new scenarios banked and verified by the final suite |
 | **CI/CD** | **GitLab CI** (`.gitlab-ci.yml`) reruns the unit suite (394 tests) + the TestSprite **backend checker** (schema + 2 RLS tests, drift-immune) on every `master` push — **verified green** ([pipeline](https://gitlab.com/lxcario-group/Nora/-/pipelines)). A GitHub Actions workflow (`.github/workflows/testsprite.yml`) holds the same command but is gated by a GitHub account Actions billing lock. |
-| **Full regression rerun** | `testsprite test rerun --all --project ... --max-concurrency 4` — entire suite replayed from the CLI |
-| **Batch capability** | `testsprite test create-batch --plan-from-dir .testsprite/plans` (35 plans) |
+| **Full regression rerun** | `testsprite test rerun --all --project ... --max-concurrency 4` — entire 59-test suite replayed post-UI-overhaul; caught 1 genuine regression |
+| **Batch capability** | `testsprite test create-batch --plan-from-dir .testsprite/plans` (45+ plans) |
 | **Upstream CLI contributions** | 10 PRs to [TestSprite/testsprite-cli](https://github.com/TestSprite/testsprite-cli) — **all 10 merged** ([verify](https://github.com/TestSprite/testsprite-cli/pulls?q=is%3Apr+author%3Alxcario+is%3Amerged)), incl. the new `test flaky` command (#132) |
 
 ---

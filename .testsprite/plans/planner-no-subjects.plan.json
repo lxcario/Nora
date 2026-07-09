@@ -1,0 +1,29 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "Planner renders gracefully with no subjects or sessions",
+  "description": "Verify the weekly planner page does not crash or show a blank screen when the user has no subjects configured. Should show an empty state or guidance.",
+  "priority": "p1",
+  "planSteps": [
+    {
+      "type": "action",
+      "description": "Log in with the test credentials and navigate to /app/planner."
+    },
+    {
+      "type": "assertion",
+      "description": "The planner page renders without crashing — a week grid or calendar view is visible."
+    },
+    {
+      "type": "assertion",
+      "description": "The week navigation arrows (previous week and next week) are visible and clickable."
+    },
+    {
+      "type": "action",
+      "description": "Click the next-week arrow to navigate forward one week."
+    },
+    {
+      "type": "assertion",
+      "description": "The week label updates to show the next week's date range. No crash or blank screen."
+    }
+  ]
+}

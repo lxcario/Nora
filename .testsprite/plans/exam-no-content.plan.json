@@ -1,0 +1,25 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "Practice Exam page handles no-upload state correctly",
+  "description": "Verify the Practice Exam page does not crash when no exam content has been uploaded. The page should show upload controls and guidance.",
+  "priority": "p2",
+  "planSteps": [
+    {
+      "type": "action",
+      "description": "Log in with the test credentials and navigate to /app/exam."
+    },
+    {
+      "type": "assertion",
+      "description": "The Practice Exam page renders without crashing. A heading containing 'Exam' or 'Practice' is visible."
+    },
+    {
+      "type": "assertion",
+      "description": "Upload controls or a text input area for pasting content is visible, OR a clear empty-state message explaining what to do."
+    },
+    {
+      "type": "assertion",
+      "description": "No JavaScript errors or blank screen. The sidebar navigation remains accessible."
+    }
+  ]
+}

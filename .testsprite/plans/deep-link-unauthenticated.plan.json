@@ -1,0 +1,29 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "Unauthenticated deep-link to /app/feynman redirects to login",
+  "description": "Verify the auth edge gate (proxy.ts) correctly redirects unauthenticated users who directly visit a protected deep-link to the login page. No crash, no flash of protected content.",
+  "priority": "p1",
+  "planSteps": [
+    {
+      "type": "action",
+      "description": "Navigate directly to https://norastudy.vercel.app/app/feynman without any authentication (fresh browser, no cookies)."
+    },
+    {
+      "type": "assertion",
+      "description": "The browser is redirected to the login page. The URL shows /login or the login form is visible."
+    },
+    {
+      "type": "assertion",
+      "description": "No protected content (Feynman Mode heading, explanation input, topic selector) is visible. Only the login form is shown."
+    },
+    {
+      "type": "action",
+      "description": "Navigate directly to https://norastudy.vercel.app/app/settings without authentication."
+    },
+    {
+      "type": "assertion",
+      "description": "Again redirected to login. No settings page content leaks."
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+[
+  { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to finish loading." },
+  { "type": "action", "description": "Navigate to /app/review." },
+  { "type": "assertion", "description": "The page loads without crashing. It shows ONE of: (a) a review card with confidence rating buttons (1-5 or descriptive labels like 'Can't recall' / 'Certain') visible before any Reveal Answer button — meaning the JOL confidence gate is active, OR (b) a session-complete message or empty-state indicating no cards are due for review today. Both are valid passing outcomes. The page must NOT be a 404, a blank white container, or an error message." }
+]

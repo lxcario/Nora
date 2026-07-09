@@ -1,0 +1,8 @@
+[
+  {
+    "kind": "snapshot",
+    "stepIndex": 6,
+    "summary": "Step 6 'Open the Pixel Room page (navigate to the 'Pixel Room' page /app/room) so the room pet sprite and the room status message can be inspected' passed.",
+    "path": "steps/06-snapshot.html"
+  }
+]

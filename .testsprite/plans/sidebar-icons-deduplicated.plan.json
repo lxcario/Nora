@@ -1,0 +1,33 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "Sidebar icons are distinct per feature after de-duplication",
+  "description": "After TASK G de-duplication, verify the sidebar renders distinct icons for Feynman (Microphone), Study Planner (Pencil), Practice Exam (Document), and Eureka (Lightbulb). No two adjacent items should share the same icon sprite.",
+  "priority": "p1",
+  "planSteps": [
+    {
+      "type": "action",
+      "description": "Log in with test credentials and wait for the dashboard to load fully."
+    },
+    {
+      "type": "assertion",
+      "description": "The sidebar is visible with navigation items for the study features."
+    },
+    {
+      "type": "assertion",
+      "description": "The Feynman Mode sidebar item is visible and has an icon (sprite or image)."
+    },
+    {
+      "type": "assertion",
+      "description": "The Study Planner sidebar item is visible and has an icon distinct from Feynman's."
+    },
+    {
+      "type": "action",
+      "description": "Click on the Feynman Mode sidebar item to navigate."
+    },
+    {
+      "type": "assertion",
+      "description": "The Feynman Mode page renders — a heading or content area related to explanation/evaluation is visible."
+    }
+  ]
+}

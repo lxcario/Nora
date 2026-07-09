@@ -1,0 +1,6 @@
+[
+  { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to finish loading." },
+  { "type": "action", "description": "Navigate directly to /app/room." },
+  { "type": "assertion", "description": "Verify the Pixel Room page loads with a companion pet image visible (a GIF or canvas showing a creature). A mood status message is shown below or near the pet — it contains the pet's name and one of: 'happy', 'neutral', 'sad', or 'misses you'." },
+  { "type": "assertion", "description": "Verify the sidebar (left navigation panel) contains a pet widget area showing a mood label — one of 'Happy', 'Neutral', or 'Sad'. The mood state (happy/neutral/sad) in the sidebar must agree with the mood state in the room status message. Both should indicate the same underlying mood even if the exact wording differs (e.g. sidebar says 'Happy' and room says 'is happy')." }
+]

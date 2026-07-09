@@ -1,0 +1,18 @@
+{
+  "testId": "2c0efffe-d48b-4c72-9ffa-9d6dfe083d1d",
+  "status": "failed",
+  "startedAt": "2026-07-09T17:52:32.405Z",
+  "finishedAt": "2026-07-09T17:55:39.560Z",
+  "videoUrl": "https://testsprite-videos.s3.us-east-1.amazonaws.com/74a84428-e061-70b8-6c8d-b36674881353/1783619737021264//tmp/6ef1588e-6907-49e7-9045-a43d5cb0352e/result.webm",
+  "failureAnalysisUrl": null,
+  "snapshotId": "snap_c0fe6941f9b04e2c",
+  "runIdIfAvailable": "8c4a8dc0-eca6-446c-8958-1bef58841027",
+  "codeVersion": "v1",
+  "targetUrl": "https://norastudy.vercel.app",
+  "targetUrlSource": "run",
+  "failedStepIndex": 7,
+  "failureKind": "unknown",
+  "verdict": "failed",
+  "executionStatus": "completed",
+  "summary": "Failed: TEST FAILURE\n\nThe pet mood shown in the Pixel Room does not match the sidebar pet widget mood.\n\nObservations:\n- The room status message reads: \"Pip is sad... Complete a session to start improving their mood.\" (room indicates sad)\n- The sidebar pet widget shows: \"Neutral\""
+}

@@ -1,0 +1,29 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "Planner uses pixel-panel styling (no rounded-lg containers)",
+  "description": "After TASK D pixel-panel conversion, verify the planner page renders academic event chips and deadline banners inside pixel-panel styled containers rather than rounded-lg containers. The visual should be cohesive with the pixel-art design system.",
+  "priority": "p2",
+  "planSteps": [
+    {
+      "type": "action",
+      "description": "Log in with test credentials and navigate to /app/planner."
+    },
+    {
+      "type": "assertion",
+      "description": "The planner page renders with a weekly calendar grid visible."
+    },
+    {
+      "type": "assertion",
+      "description": "Any info banners, deadline warnings, or academic event containers on the page use the pixel-panel style (visible border, no rounded corners). If no academic events exist, assert the calendar grid is cleanly rendered."
+    },
+    {
+      "type": "action",
+      "description": "Click the next-week navigation arrow."
+    },
+    {
+      "type": "assertion",
+      "description": "The week advances without visual glitches — the grid updates and no containers break or show inconsistent styling."
+    }
+  ]
+}

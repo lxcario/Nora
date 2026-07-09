@@ -1,0 +1,8 @@
+[
+  {
+    "kind": "snapshot",
+    "stepIndex": 8,
+    "summary": "Step 8 'Expected the sidebar pet widget to display mood 'Sad'.' failed. Error: TEST FAILURE\n\nThe pet mood shown in the Pixel Room does not match the sidebar pet widget mood.\n\nObservations:\n- The room status message reads: \"Pip is sad... Complete a session to start improving their mood.\" (room indicates sad)\n- The sidebar pet widget shows: \"Neutral\"",
+    "path": "steps/08-snapshot.html"
+  }
+]

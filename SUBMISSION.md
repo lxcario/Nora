@@ -37,15 +37,17 @@ loop that caught genuine regressions in a production-grade Next.js app.
 
 | Metric | Value |
 |---|---|
-| Tests banked | **44 — all passing (41 frontend + 3 backend)** |
-| Loop iterations | **42** across 6 active build days (Jun 30, Jul 2–4, Jul 6, Jul 8) |
-| Total test runs | **80+** |
-| Real product bugs caught & fixed | **9** |
-| Distinct root causes diagnosed | **12** |
+| Tests banked | **61 — all passing (50 frontend + 7 backend + 4 advisory-duplicate)** |
+| Loop iterations | **55** across 7 active build days (Jun 30, Jul 2–4, Jul 6, Jul 8–9) |
+| Total test runs | **100+** |
+| Real product bugs caught & fixed | **10** |
+| Distinct root causes diagnosed | **14** |
 | New features shipped *under* the loop | **2** (Prediction Mode, Companion Router) |
-| Coverage expansion | **20 → 44** live — including 3 backend RLS/schema tests |
+| Major UI overhaul verified under the loop | **1** (8-task pixel-art UX pass — pet liveliness, icon migration, mobile nav, pixel-panel, contrast, scoped CSS, sidebar de-dup, rewards module) |
+| Coverage expansion | **20 → 61** live — including 7 backend RLS/security tests |
 | Platform limitation found & documented | 1 (desktop-only runner can't simulate mobile resize) |
-| CI/CD | **GitLab CI** reruns the unit suite + the TestSprite **backend checker** on every `master` push — **verified green** (`gitlab.com/lxcario-group/Nora/-/pipelines`). A GitHub Actions workflow holds the same command but is gated by a GitHub account Actions billing lock. |
+| Full regression rerun (post-UI-overhaul) | **59 tests** → caught 1 genuine mood regression → fixed → green |
+| CI/CD | **GitLab CI** reruns the unit suite (394 tests) + the TestSprite **backend checker** on every `master` push — **verified green** (`gitlab.com/lxcario-group/Nora/-/pipelines`). A GitHub Actions workflow holds the same command but is gated by a GitHub account Actions billing lock. |
 
 ## What "genuinely used as the checker" looks like here (Rule 4)
 
