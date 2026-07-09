@@ -35,22 +35,17 @@ export async function proxy(request: NextRequest) {
     }
   );
 
-  // Refresh the session — important for Server Components
+  // Refresh the session; important for Server Components.
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Protected routes: redirect to /login if not authenticated
-  if (
-    !user &&
-    request.nextUrl.pathname.startsWith("/app")
-  ) {
+  if (!user && request.nextUrl.pathname.startsWith("/app")) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
-  // If logged in and visiting login/signup, redirect to /app
   if (
     user &&
     (request.nextUrl.pathname === "/login" ||

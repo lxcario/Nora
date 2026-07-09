@@ -1,149 +1,174 @@
 /**
- * PokéAPI integration for the pet system.
- * Uses free PokeAPI v2 — no API key needed.
- * Sprites are served from raw.githubusercontent.com.
+ * Local companion data for Nora's pet system.
+ *
+ * The exported function names are kept stable because the room and settings
+ * flows already depend on them, but the data is now fully local: no external
+ * character metadata or sprite service is needed at runtime.
  */
 
 export interface PokemonData {
   id: number;
   name: string;
-  sprite: string; // animated pixel sprite URL
-  spriteStatic: string; // static fallback
+  sprite: string;
+  spriteStatic: string;
   types: string[];
   evolutionChainId?: number;
 }
 
-// Starter Pokémon options for pet selection (Gen 1-3, cute ones)
+type CompanionType =
+  | "spark"
+  | "leaf"
+  | "ember"
+  | "water"
+  | "moon"
+  | "stone"
+  | "bloom"
+  | "cloud";
+
+type CompanionInfo = {
+  id: number;
+  name: string;
+  types: CompanionType[];
+};
+
+const COMPANIONS: Record<number, CompanionInfo> = {
+  25: { id: 25, name: "Nim", types: ["spark"] },
+  26: { id: 26, name: "Nimbolt", types: ["spark"] },
+  172: { id: 172, name: "Nimlet", types: ["spark"] },
+
+  133: { id: 133, name: "Pip", types: ["cloud"] },
+  134: { id: 134, name: "Pipstream", types: ["water"] },
+  196: { id: 196, name: "Pipglow", types: ["moon"] },
+  197: { id: 197, name: "Pipshade", types: ["moon"] },
+  700: { id: 700, name: "Ribbon", types: ["bloom"] },
+
+  1: { id: 1, name: "Moss", types: ["leaf"] },
+  2: { id: 2, name: "Mossbud", types: ["leaf"] },
+  3: { id: 3, name: "Mossbloom", types: ["leaf", "bloom"] },
+
+  4: { id: 4, name: "Ember", types: ["ember"] },
+  5: { id: 5, name: "Emberling", types: ["ember"] },
+  6: { id: 6, name: "Emberwing", types: ["ember", "cloud"] },
+
+  7: { id: 7, name: "Brook", types: ["water"] },
+  8: { id: 8, name: "Brooklet", types: ["water"] },
+  9: { id: 9, name: "Brookguard", types: ["water", "stone"] },
+
+  152: { id: 152, name: "Clover", types: ["leaf"] },
+  153: { id: 153, name: "Cloverleaf", types: ["leaf"] },
+  154: { id: 154, name: "Cloverbloom", types: ["leaf", "bloom"] },
+
+  155: { id: 155, name: "Kindle", types: ["ember"] },
+  156: { id: 156, name: "Kindlepaw", types: ["ember"] },
+  157: { id: 157, name: "Kindleflame", types: ["ember", "spark"] },
+
+  258: { id: 258, name: "Ripple", types: ["water"] },
+  259: { id: 259, name: "Ripplefin", types: ["water"] },
+  260: { id: 260, name: "Rippletide", types: ["water", "stone"] },
+
+  393: { id: 393, name: "Pebble", types: ["stone"] },
+  394: { id: 394, name: "Pebblecoat", types: ["stone"] },
+  395: { id: 395, name: "Pebblecrest", types: ["stone", "water"] },
+
+  447: { id: 447, name: "Nova", types: ["spark"] },
+  448: { id: 448, name: "Novafang", types: ["spark", "stone"] },
+
+  175: { id: 175, name: "Dew", types: ["bloom"] },
+  176: { id: 176, name: "Dewwing", types: ["bloom", "cloud"] },
+  468: { id: 468, name: "Dewstar", types: ["bloom", "spark"] },
+
+  39: { id: 39, name: "Luma", types: ["moon"] },
+  40: { id: 40, name: "Lumapuff", types: ["moon", "cloud"] },
+  174: { id: 174, name: "Luma Jr.", types: ["moon"] },
+
+  52: { id: 52, name: "Mews", types: ["cloud"] },
+  53: { id: 53, name: "Mewsly", types: ["cloud", "moon"] },
+};
+
+const EVOLUTION_CHAINS: Record<number, number[]> = {
+  25: [25, 172, 26],
+  133: [133, 196, 197],
+  1: [1, 2, 3],
+  4: [4, 5, 6],
+  7: [7, 8, 9],
+  152: [152, 153, 154],
+  155: [155, 156, 157],
+  258: [258, 259, 260],
+  393: [393, 394, 395],
+  447: [447, 448],
+  175: [175, 176, 468],
+  39: [39, 174, 40],
+  52: [52, 53],
+  700: [700],
+};
+
+const EVOLUTION_LEVELS = [1, 5, 15];
+
 export const STARTER_POKEMON = [
-  { id: 25, name: "Pikachu" },
-  { id: 133, name: "Eevee" },
-  { id: 1, name: "Bulbasaur" },
-  { id: 4, name: "Charmander" },
-  { id: 7, name: "Squirtle" },
-  { id: 152, name: "Chikorita" },
-  { id: 155, name: "Cyndaquil" },
-  { id: 258, name: "Mudkip" },
-  { id: 393, name: "Piplup" },
-  { id: 447, name: "Riolu" },
-  { id: 175, name: "Togepi" },
-  { id: 39, name: "Jigglypuff" },
+  COMPANIONS[25],
+  COMPANIONS[133],
+  COMPANIONS[1],
+  COMPANIONS[4],
+  COMPANIONS[7],
+  COMPANIONS[152],
+  COMPANIONS[155],
+  COMPANIONS[258],
+  COMPANIONS[393],
+  COMPANIONS[447],
+  COMPANIONS[175],
+  COMPANIONS[39],
 ];
 
-/**
- * Resolves a Pokémon id to its self-hosted animated sprite.
- * Sprites live in `public/sprites/pets/` so the pet system never depends on a
- * flaky third-party image host (raw.githubusercontent rate-limits hotlinks).
- */
 export function petSpriteUrl(id: number | string): string {
   return `/sprites/pets/${id}.gif`;
 }
 
-/**
- * Fetches Pokémon metadata (name, types) from PokeAPI for the given id.
- * The sprite is always served locally via {@link petSpriteUrl}, so the pet
- * still renders even when the PokeAPI JSON endpoint is unreachable.
- */
 export async function getPokemon(idOrName: number | string): Promise<PokemonData | null> {
-  const numericHint = typeof idOrName === "number" ? idOrName : parseInt(idOrName, 10);
-  try {
-    const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${idOrName}`, {
-      next: { revalidate: 86400 }, // cache for 24h
-    });
+  const id = typeof idOrName === "number" ? idOrName : parseInt(idOrName, 10);
+  if (!Number.isFinite(id) || id <= 0) return null;
 
-    if (res.ok) {
-      const data = await res.json();
-      return {
-        id: data.id,
-        name: data.name,
-        sprite: petSpriteUrl(data.id),
-        spriteStatic: petSpriteUrl(data.id),
-        types: data.types?.map((t: { type: { name: string } }) => t.type.name) ?? [],
-      };
-    }
-  } catch {
-    // fall through to the offline-safe fallback below
-  }
+  const companion = COMPANIONS[id] ?? {
+    id,
+    name: `Companion ${id}`,
+    types: ["cloud"] as CompanionType[],
+  };
 
-  // Offline / not-found fallback: still show the local sprite if we have an id.
-  if (Number.isFinite(numericHint) && numericHint > 0) {
-    return {
-      id: numericHint,
-      name: typeof idOrName === "string" ? idOrName : `pokemon-${numericHint}`,
-      sprite: petSpriteUrl(numericHint),
-      spriteStatic: petSpriteUrl(numericHint),
-      types: [],
-    };
-  }
-  return null;
+  return {
+    id: companion.id,
+    name: companion.name,
+    sprite: petSpriteUrl(companion.id),
+    spriteStatic: petSpriteUrl(companion.id),
+    types: companion.types,
+  };
 }
 
-/**
- * Gets the evolution chain for a Pokémon to determine next evolution.
- */
-export async function getEvolutionChain(pokemonId: number): Promise<{
+export async function getEvolutionChain(companionId: number): Promise<{
   currentStage: number;
   evolutions: { id: number; name: string; minLevel: number }[];
 } | null> {
-  try {
-    // First get the species to find evolution chain URL
-    const speciesRes = await fetch(
-      `https://pokeapi.co/api/v2/pokemon-species/${pokemonId}`,
-      { next: { revalidate: 86400 } }
-    );
-    if (!speciesRes.ok) return null;
-    const speciesData = await speciesRes.json();
+  const chain =
+    EVOLUTION_CHAINS[companionId] ??
+    Object.values(EVOLUTION_CHAINS).find((ids) => ids.includes(companionId));
 
-    const chainUrl = speciesData.evolution_chain?.url;
-    if (!chainUrl) return null;
+  if (!chain) return null;
 
-    const chainRes = await fetch(chainUrl, { next: { revalidate: 86400 } });
-    if (!chainRes.ok) return null;
-    const chainData = await chainRes.json();
-
-    // Parse evolution chain
-    const evolutions: { id: number; name: string; minLevel: number }[] = [];
-    let currentStage = 0;
-
-    function parseChain(chain: Record<string, unknown>, stage: number) {
-      const species = chain.species as { name: string; url: string };
-      const speciesId = parseInt(species.url.split("/").filter(Boolean).pop() ?? "0");
-      const evolveDetails = (chain.evolution_details as { min_level: number }[]) ?? [];
-      const minLevel = evolveDetails[0]?.min_level ?? stage * 15;
-
-      evolutions.push({ id: speciesId, name: species.name, minLevel });
-
-      if (speciesId === pokemonId) {
-        currentStage = stage;
-      }
-
-      const evolvesTo = chain.evolves_to as Record<string, unknown>[];
-      if (evolvesTo?.length > 0) {
-        parseChain(evolvesTo[0], stage + 1);
-      }
-    }
-
-    parseChain(chainData.chain, 0);
-    return { currentStage, evolutions };
-  } catch {
-    return null;
-  }
+  return {
+    currentStage: Math.max(0, chain.indexOf(companionId)),
+    evolutions: chain.map((id, index) => ({
+      id,
+      name: COMPANIONS[id]?.name ?? `Companion ${id}`,
+      minLevel: EVOLUTION_LEVELS[index] ?? index * 10,
+    })),
+  };
 }
 
-/**
- * Determines which Pokémon the user should have based on their level.
- * Evolution at level 5 and level 15.
- */
 export function getEvolutionForLevel(
   evolutions: { id: number; name: string; minLevel: number }[],
   userLevel: number
 ): { id: number; name: string } {
-  // Map user levels to evolution stages
-  // Stage 0: level 1-4, Stage 1: level 5-14, Stage 2: level 15+
-  if (userLevel >= 15 && evolutions.length >= 3) {
-    return evolutions[2];
+  let current = evolutions[0];
+  for (const evolution of evolutions) {
+    if (userLevel >= evolution.minLevel) current = evolution;
   }
-  if (userLevel >= 5 && evolutions.length >= 2) {
-    return evolutions[1];
-  }
-  return evolutions[0];
+  return current;
 }

@@ -240,7 +240,7 @@ function scoreSourceRelevance(source: ResearchSource, queryTokens: Set<string>):
 
   // Count query terms found in title (weight 2x) and snippet (weight 1x)
   let matchScore = 0;
-  let maxPossible = queryTokens.size * 2; // Best case: all query terms in title
+  const maxPossible = queryTokens.size * 2; // Best case: all query terms in title
 
   for (const qt of queryTokens) {
     if (titleTokens.has(qt)) matchScore += 2;
@@ -1069,7 +1069,8 @@ export async function deletePaper(paperId: string): Promise<{ success?: boolean;
   } = await supabase.auth.getUser();
   if (!user) return { error: "Not authenticated" };
 
-  await supabase.from("papers").delete().eq("id", paperId).eq("user_id", user.id);
+  const { error: deleteError } = await supabase.from("papers").delete().eq("id", paperId).eq("user_id", user.id);
+  if (deleteError) return { error: deleteError.message };
   revalidatePath("/app/research");
   return { success: true };
 }

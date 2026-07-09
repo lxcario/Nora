@@ -1,6 +1,8 @@
 "use server";
 
-import { callLLM } from "@/lib/llm";
+import { createClient } from "@/lib/supabase/server";
+import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { callLLM, hasLLMProvider } from "@/lib/llm";
 import { NORA_VOICE_UTILITY } from "@/lib/nora-voice";
 
 /**
@@ -15,10 +17,16 @@ export async function getNoteCompletion(
   videoTitle: string,
   currentText: string
 ): Promise<{ suggestion?: string; error?: string }> {
-  const groqKey = process.env.GROQ_API_KEY;
-  const orKey = process.env.OPENROUTER_API_KEY;
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
 
-  if (!groqKey && !orKey) {
+  const rl = checkRateLimit(user.id, "note_completion", RATE_LIMITS.ai_light.maxRequests, RATE_LIMITS.ai_light.windowMs);
+  if (!rl.allowed) return { error: "Too many requests. Please wait a moment." };
+
+  if (!hasLLMProvider()) {
     return { error: "No AI key configured" };
   }
 

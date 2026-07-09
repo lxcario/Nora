@@ -10,16 +10,16 @@ import { choosePet } from "@/app/(protected)/app/_actions/gamification";
 type Companion = { id: number; name: string };
 
 const COMPANIONS: Companion[] = [
-  { id: 25, name: "Pikachu" },
-  { id: 133, name: "Eevee" },
-  { id: 39, name: "Jigglypuff" },
-  { id: 52, name: "Meowth" },
-  { id: 175, name: "Togepi" },
-  { id: 196, name: "Espeon" },
-  { id: 197, name: "Umbreon" },
-  { id: 393, name: "Piplup" },
-  { id: 447, name: "Riolu" },
-  { id: 700, name: "Sylveon" },
+  { id: 25, name: "Nim" },
+  { id: 133, name: "Pip" },
+  { id: 39, name: "Luma" },
+  { id: 52, name: "Mews" },
+  { id: 175, name: "Dew" },
+  { id: 196, name: "Pipglow" },
+  { id: 197, name: "Pipshade" },
+  { id: 393, name: "Pebble" },
+  { id: 447, name: "Nova" },
+  { id: 700, name: "Ribbon" },
 ];
 
 export function CompanionPicker({ currentPetType }: { currentPetType?: string | null }) {

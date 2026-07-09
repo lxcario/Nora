@@ -36,7 +36,7 @@ export function PetSelector({ currentPetType }: { currentPetType: string | null 
         )}
       </p>
 
-      {/* Pokémon grid */}
+      {/* Companion grid */}
       <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
         {STARTER_POKEMON.map((pokemon) => {
           const isSelected = selected === pokemon.id;

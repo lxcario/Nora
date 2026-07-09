@@ -105,3 +105,9 @@ docs/DEMO-SCRIPT.md
 
 # Loose TestSprite scratch step files (plans/ are tracked)
 /.testsprite/*.steps.json
+
+# Internal audit + lint-scratch (kept local, never pushed)
+/AUDIT-GLM.md
+/get-eslint-errors.js
+/.eslint-json.txt
+/.eslint-out.json

@@ -3,7 +3,6 @@
 import { createClient } from "@/lib/supabase/server";
 import {
   scheduleReview,
-  initFromSM2,
   Rating,
   type Grade,
   type FSRSCardState,

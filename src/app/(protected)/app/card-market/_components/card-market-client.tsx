@@ -47,7 +47,7 @@ export function CardMarketClient({ decks, partyName }: { decks: SharedDeck[]; pa
               { name: "Telescope", price: 120, icon: "MagnifyingGlass" },
               { name: "Crystal Ball", price: 200, icon: "Necklace" },
               { name: "Travel Book Cursor", price: 150, icon: "Touch" },
-              { name: "Pikachu Companion", price: 300, icon: "Lightbulb" },
+              { name: "Nim Companion", price: 300, icon: "Lightbulb" },
             ].map((item) => (
               <div
                 key={item.name}

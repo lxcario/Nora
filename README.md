@@ -67,7 +67,7 @@ Nora is an entry in **TestSprite Hackathon Season 3 — "Build the Loop."** The 
 | **41** loop iterations · **70+** runs · 5 build days | **9** real product bugs caught & fixed |
 | Coverage grew **20 → 43** live | **2** features shipped *under* the loop |
 
-When two new tests came back **`blocked`**, the run summary drove the fix and a rerun turned them green — a clean `create → blocked → diagnose → fix → rerun → pass` cycle. Across 40 iterations the loop caught 9 genuine bugs, from duplicate UI cards to mood-sync contradictions and an onboarding tour that re-appeared on every fresh browser session. The full per-iteration story is in **[LOOP.md](LOOP.md)**, the submission write-up in **[SUBMISSION.md](SUBMISSION.md)**, and the banked plans + an archived failure bundle in **[testsprite_tests/](testsprite_tests/)**.
+When two new tests came back **`blocked`**, the run summary drove the fix and a rerun turned them green — a clean `create → blocked → diagnose → fix → rerun → pass` cycle. Across 41 iterations the loop caught 9 genuine bugs, from duplicate UI cards to mood-sync contradictions and an onboarding tour that re-appeared on every fresh browser session. The full per-iteration story is in **[LOOP.md](LOOP.md)**, the submission write-up in **[SUBMISSION.md](SUBMISSION.md)**, and the banked plans + an archived failure bundle in **[testsprite_tests/](testsprite_tests/)**.
 
 *(Jump to [the verification loop section](#the-verification-loop-testsprite) for the details.)*
 
@@ -331,7 +331,7 @@ Nora is an entry in **TestSprite Hackathon Season 3 — "Build the Loop."** The 
 
 - **Signup redirect** — a new account landed on a blank `/app`; the loop caught it and the fix redirects straight to `/app/onboarding`.
 - **Analytics navigation** — a banked test was reaching a dead `/app/room/analytics` URL (404); the failure bundle showed the route mismatch, and the plan was corrected to open the real `/app/analytics` route.
-- **Knowledge Web & Eureka `blocked` → green** — while expanding coverage from 20 to 42, both pages rendered correctly but a verbose two-branch assertion made the testing agent run out of runway before a verdict. The run summary revealed the exact empty-state controls, so each plan was tightened to a single decisive assertion, pushed with `test plan put`, and reran green — a textbook `create → blocked → diagnose → fix → rerun → pass` cycle.
+- **Knowledge Web & Eureka `blocked` → green** — while expanding coverage toward the final 43-test suite, both pages rendered correctly but a verbose two-branch assertion made the testing agent run out of runway before a verdict. The run summary revealed the exact empty-state controls, so each plan was tightened to a single decisive assertion, pushed with `test plan put`, and reran green — a textbook `create → blocked → diagnose → fix → rerun → pass` cycle.
 
 **One honest limitation, documented not faked:** the mobile bottom-nav test was *removed* after two runs proved the cloud runner uses a fixed desktop viewport and can't simulate a mobile-width resize. The `BottomNav` is correctly wired and works for real users — this is a runner limitation, out of scope per the "state outside the test's control" rule.
 
@@ -447,7 +447,7 @@ If your change makes Nora feel more like Nora — welcome.
 
 Application code is **MIT**. Assets carry their own licenses: LPC character art is CC BY-SA 3.0 / GPL 3.0, and the UI sprites are CC0. Academic data comes from OpenAlex (CC0), Crossref, and Unpaywall under their respective terms. See [`docs/ASSETS.md`](docs/ASSETS.md) for the full attribution list.
 
-Companion pet visuals use sprites served through the free, open-source [PokéAPI](https://pokeapi.co/) sprite set (`PokeAPI/sprites`). Pokémon and all related sprites, names, and characters are trademarks of and © Nintendo, Game Freak, and The Pokémon Company. Nora is an independent, non-commercial, fan-made educational project — it is not affiliated with, sponsored by, or endorsed by those companies, and all rights to that content remain with their owners.
+Companion pet visuals are treated as third-party demonstration assets and are excluded from the MIT source-code grant. Nora is an independent, non-commercial educational project; third-party content remains with its respective owners.
 
 Nora is an educational, non-commercial project. Third-party content is used for technical demonstration only, and all rights remain with their respective owners.
 

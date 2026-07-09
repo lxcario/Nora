@@ -1,0 +1,56 @@
+Nora - Asset License Notice
+===========================
+
+The MIT license in this repository's LICENSE file applies to the application
+source code and to the original Nora companion sprites under
+`public/sprites/pets/`.
+
+Some bundled art, font, and data assets carry their own licenses and are
+explicitly excluded from the source-code license grant where noted below. If you
+fork or redistribute Nora, keep this file and `docs/ASSETS.md` aligned with the
+actual assets you ship.
+
+-------------------------------------------------------------------------------
+
+## public/sprites/pets/*.gif
+
+Original pixel companion sprites generated specifically for Nora. These are
+covered by the repository's MIT license.
+
+-------------------------------------------------------------------------------
+
+## public/fonts/sprout-lands.ttf
+
+Sprout Lands pixel font by Cup Nooble. Used under the asset's free-use terms for
+game-development projects. See the asset page for current license terms.
+
+Not covered by the MIT license.
+
+-------------------------------------------------------------------------------
+
+## public/sprites/travel-book/*.png
+
+Travel Book UI sprite sheets by Crusenho, used under CC BY 4.0. Attribution is
+required when redistributed.
+
+Not covered by the MIT license.
+
+-------------------------------------------------------------------------------
+
+## public/sprites/ui/*.png, public/sprites/cursors/*.png
+
+Kenney / CC0 UI assets and cursor packs. No attribution required, though credited
+in the app and documentation.
+
+-------------------------------------------------------------------------------
+
+## Academic data
+
+Retrieved at runtime under each provider's respective terms:
+
+- OpenAlex: CC0
+- Crossref: see Crossref terms
+- Unpaywall: see Unpaywall terms
+- Semantic Scholar: see Semantic Scholar API terms
+
+For the full asset attribution list, see `docs/ASSETS.md`.

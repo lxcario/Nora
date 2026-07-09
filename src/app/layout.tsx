@@ -21,9 +21,9 @@ const sproutLands = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Nora — a softer way to study",
+  title: "Nora - a softer way to study",
   description:
-    "A cozy pixel-art study app combining evidence-based learning with gentle gamification. Feynman technique, spaced repetition, AI research, and your Pokémon companion.",
+    "A cozy pixel-art study app combining evidence-based learning with gentle gamification. Feynman technique, spaced repetition, AI research, and a gentle companion.",
 };
 
 export default function RootLayout({
@@ -43,7 +43,7 @@ export default function RootLayout({
         <link rel="preload" href="/sprites/ui/dialog-box-big.png" as="image" type="image/png" />
         <link rel="preload" href="/sprites/ui/icons.png" as="image" type="image/png" />
         {/* No-flash: apply cursor pack + animation + theme + palette before first paint */}
-        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
+        { }
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){try{

@@ -34,7 +34,7 @@ export interface RoomState {
 }
 
 /**
- * Fetches the user's pixel room state with PokéAPI pet data.
+ * Fetches the user's pixel room state with companion pet data.
  */
 export async function getRoomState(): Promise<{
   data?: RoomState;
@@ -60,14 +60,14 @@ export async function getRoomState(): Promise<{
     .eq("user_id", user.id)
     .single();
 
-  // Fetch pet (pet_type stores the base pokemon ID)
+  // Fetch pet (pet_type stores the base companion ID)
   const { data: pet } = await supabase
     .from("pets")
     .select("pet_type, name, state, affinity")
     .eq("user_id", user.id)
     .single();
 
-  // Get base pokemon ID (default to Pikachu = 25)
+  // Get base companion ID (default to Nim = 25)
   const basePokemonId = parseInt(pet?.pet_type ?? "25") || 25;
   const userLevel = profile?.level ?? 1;
 
@@ -94,7 +94,7 @@ export async function getRoomState(): Promise<{
     }
   }
 
-  // Fetch Pokemon sprite from PokeAPI
+  // Fetch companion sprite and metadata
   const pokemonData = await getPokemon(currentPokemonId);
 
   // Compute pet state from recent activity (last 3 days)
@@ -168,7 +168,7 @@ export async function getRoomState(): Promise<{
       },
       pet: {
         pokemonId: currentPokemonId,
-        name: pet?.name ?? pokemonData?.name ?? "Pikachu",
+        name: pet?.name ?? pokemonData?.name ?? "Nim",
         sprite: pokemonData?.sprite ?? "",
         types: pokemonData?.types ?? [],
         state: petState,

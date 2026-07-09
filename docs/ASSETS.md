@@ -80,19 +80,18 @@ LPC content **must not** be mixed with CC0/custom content in a way that hides at
 
 > **TODO:** Once you finalize which specific animals you use as pets, list sprite filenames here.
 
-### 3.2 Companion Pets (PokéAPI sprites)
+### 3.2 Companion Pets (Nora original sprites)
 
-- **Name:** PokéAPI sprite set (`PokeAPI/sprites`)
-- **Source:** PokéAPI — free, open-source Pokémon data + sprite project
-- **URL:** https://pokeapi.co/ · https://github.com/PokeAPI/sprites
+- **Name:** Nora companion sprites
+- **Source:** Generated specifically for Nora and committed under `public/sprites/pets/{id}.gif`
 - **What we use:**
-  - Animated Gen-V-style companion sprites for the study pet / room companion, self-hosted under `public/sprites/pets/{id}.gif` for reliable loading.
-- **Trademark / rights notice:**
-  - The PokéAPI sprite *project* is open source, but **Pokémon and all related sprites, names, and characters are trademarks of and © Nintendo, Game Freak, and The Pokémon Company.**
-  - Nora is an **independent, non-commercial, fan-made educational project**. It is **not affiliated with, sponsored by, or endorsed by** Nintendo, Game Freak, or The Pokémon Company. All rights to that content remain with their owners.
+  - Small animated pixel companions for the study pet / room companion.
+  - Companion IDs are stable so existing saved `pet_type` values continue to work.
+- **License:**
+  - MIT, as original project assets.
 - **Usage rules:**
-  - Sprites are used only for non-commercial technical demonstration inside Nora.
-  - We do not sell, sublicense, or present this content as our own original work.
+  - These sprites can be redistributed with Nora under the repository license.
+  - Do not replace them with third-party character art without updating this file and `LICENSE-ASSETS`.
 
 ---
 

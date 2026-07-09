@@ -1,0 +1,12 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "Unauthenticated visit to /app redirects to login",
+  "description": "When a user visits /app (or any protected route) without an active session, the middleware/layout auth gate redirects them to /login before the app shell renders. This is a regression guard for the edge middleware fix (src/proxy.ts export rename) and confirms auth is enforced at the request boundary, not just the component level.",
+  "priority": "p1",
+  "planSteps": [
+    { "type": "action", "description": "Open a fresh browser session with no saved cookies or localStorage (incognito/fresh profile)" },
+    { "type": "action", "description": "Navigate directly to /app on the target URL" },
+    { "type": "assertion", "description": "Verify the browser is redirected to /login and the login page is visible with an email input, password input, and submit button — NOT the app dashboard or a blank page" }
+  ]
+}

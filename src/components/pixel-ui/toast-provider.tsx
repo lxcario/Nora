@@ -63,7 +63,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       const newToast: Toast = { ...toast, id, duration };
 
       setToasts((prev) => {
-        let next = [...prev, newToast];
+        const next = [...prev, newToast];
         // Evict oldest if over capacity
         while (next.length > MAX_TOASTS) {
           const evicted = next.shift()!;
