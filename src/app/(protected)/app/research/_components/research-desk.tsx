@@ -372,14 +372,14 @@ export function ResearchDesk({ topics }: { topics: TopicOption[] }) {
 
           {/* Cancelled notice */}
           {currentStage === "cancelled" && !isPending && (
-            <div className="rounded-lg border-2 border-[var(--pixel-border)] bg-[var(--pixel-bg-secondary)] p-3 text-sm text-[var(--pixel-text-muted)]">
+            <div className="pixel-panel p-3 text-sm text-[var(--pixel-text-secondary)]">
               Research cancelled. The current search may finish in the background, but its result will be discarded.
             </div>
           )}
 
           {/* Error */}
           {error && (
-            <div className="rounded-lg border-2 border-[var(--pixel-error)] bg-[var(--pixel-bg-secondary)] p-3 text-sm text-[var(--pixel-error)]">
+            <div className="pixel-panel p-3 text-sm text-[var(--pixel-error)]" data-state="error" role="alert">
               {error}
             </div>
           )}
@@ -515,7 +515,7 @@ export function ResearchDesk({ topics }: { topics: TopicOption[] }) {
           )}
 
           {ragError && (
-            <div className="rounded-lg border-2 border-[var(--pixel-error)] bg-[var(--pixel-bg-secondary)] p-3 text-sm text-[var(--pixel-error)]">
+            <div className="pixel-panel p-3 text-sm text-[var(--pixel-error)]" data-state="error" role="alert">
               {ragError}
             </div>
           )}

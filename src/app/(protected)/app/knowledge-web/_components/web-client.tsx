@@ -30,8 +30,8 @@ function ConceptCard({ node, selected, onClick }: { node: ConceptNode; selected:
         </span>
       </div>
       <div className="flex items-center justify-between">
-        <span className="text-[8px]" style={{ color: "var(--pixel-text-muted)" }}>{node.subjectName}</span>
-        <span className="font-pixel text-[8px]" style={{ color: masteryColor(node.mastery) }}>
+        <span className="text-[10px]" style={{ color: "var(--pixel-text-muted)" }}>{node.subjectName}</span>
+        <span className="font-pixel text-[10px]" style={{ color: masteryColor(node.mastery) }}>
           {Math.round(node.mastery * 100)}%
         </span>
       </div>

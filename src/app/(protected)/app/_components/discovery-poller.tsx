@@ -51,7 +51,7 @@ export function DiscoveryPoller({ initialProgress }: { initialProgress: JobProgr
   if (total === 0) return null;
 
   return (
-    <div className="rounded-lg border-2 border-[var(--pixel-border)] bg-[var(--pixel-bg-surface)] p-3">
+    <div className="pixel-panel p-3">
       <div className="flex items-center justify-between gap-3">
         <span className="font-pixel text-[11px] text-[var(--pixel-accent)]">
           {progress.active ? "FINDING YOUR OFFICIAL SOURCES…" : "SOURCE COLLECTION DONE"}

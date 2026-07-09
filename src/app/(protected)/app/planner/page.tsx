@@ -36,18 +36,22 @@ export default async function PlannerPage({ searchParams }: PlannerPageProps) {
 
       {academicLoad.message && (
         <div
-          className="rounded-lg border-2 text-sm"
+          className="pixel-panel text-sm"
+          data-state={academicLoad.phase === "mitigation" ? "error" : "warning"}
           style={{
             padding: "var(--pixel-panel-standard)",
-            borderColor:
-              academicLoad.phase === "mitigation" ? "var(--pixel-error)" : "var(--pixel-warning)",
-            backgroundColor: "var(--pixel-bg-surface)",
             color:
               academicLoad.phase === "mitigation" ? "var(--pixel-error)" : "var(--pixel-text-primary)",
           }}
           role="status"
         >
-          <span className="font-pixel text-[10px] mr-2">
+          <span
+            className="font-pixel text-[11px] mr-2"
+            style={{
+              color:
+                academicLoad.phase === "mitigation" ? "var(--pixel-error)" : "var(--pixel-warning)",
+            }}
+          >
             {academicLoad.phase === "mitigation" ? "⚠ HIGH LOAD" : "FOCUS SHIFT"}
           </span>
           {academicLoad.message}
@@ -55,7 +59,7 @@ export default async function PlannerPage({ searchParams }: PlannerPageProps) {
       )}
 
       {upcomingDeadlines.length > 0 && (
-        <div className="rounded-lg border-2 border-[var(--pixel-border)] bg-[var(--pixel-bg-surface)]" style={{ padding: "var(--pixel-panel-standard)" }}>
+        <div className="pixel-panel" style={{ padding: "var(--pixel-panel-standard)" }}>
           <h2 className="font-pixel text-[11px] text-[var(--pixel-accent)] mb-2">
             UPCOMING ACADEMIC DEADLINES
           </h2>
@@ -63,7 +67,8 @@ export default async function PlannerPage({ searchParams }: PlannerPageProps) {
             {upcomingDeadlines.map((e) => (
               <li
                 key={e.id}
-                className="flex items-center gap-2 border-2 border-[var(--pixel-border)] px-2 py-1 text-xs text-[var(--pixel-text-primary)]"
+                className="pixel-panel pixel-panel-inset flex items-center gap-2 text-xs text-[var(--pixel-text-primary)]"
+                style={{ padding: "6px 10px" }}
                 title={`${e.status === "verified" ? "Verified — official" : "Inferred — confirm if unsure"}`}
               >
                 <span

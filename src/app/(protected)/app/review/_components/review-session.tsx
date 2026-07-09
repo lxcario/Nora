@@ -488,7 +488,7 @@ export function ReviewSession({ initialCards }: { initialCards: DueCard[] }) {
                       }}
                     >
                       <span className="font-pixel text-sm font-bold">{value}</span>
-                      <span className="font-pixel text-[7px] leading-tight opacity-80">{label}</span>
+                      <span className="font-pixel text-[10px] leading-tight opacity-80">{label}</span>
                     </button>
                   ))}
                 </div>
@@ -567,7 +567,7 @@ export function ReviewSession({ initialCards }: { initialCards: DueCard[] }) {
                     ) : (
                       <>
                         <span className="font-pixel text-sm font-bold">{label}</span>
-                        <span className="font-pixel text-[8px] opacity-80">{sublabel}</span>
+                        <span className="font-pixel text-[10px] opacity-80">{sublabel}</span>
                       </>
                     )}
                   </button>

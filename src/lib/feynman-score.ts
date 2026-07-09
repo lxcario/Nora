@@ -77,7 +77,9 @@ export function scoreToVerdict(score: number): Verdict {
  * (e.g. the explanation was rejected as off-topic / all-questions).
  */
 export function computeComprehensionScore(
-  segments: { status: unknown }[]
+  // Only `status` is read; extra keys (adversarial `text`/`feedback`/etc. the
+  // model may emit) are tolerated and ignored, so callers never need to cast.
+  segments: readonly { status?: unknown; [key: string]: unknown }[]
 ): ComprehensionScore {
   const counts = { green: 0, amber: 0, red: 0, total: 0 };
 

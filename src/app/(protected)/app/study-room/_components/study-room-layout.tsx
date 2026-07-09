@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import { MonitorPlay } from "lucide-react";
 import { YouTubePlayer, type PlayerController } from "./youtube-player";
 import { VideoSearch } from "./video-search";
 import { UrlInput } from "./url-input";
@@ -94,6 +93,23 @@ export function StudyRoomLayout({
 
   // XP toast
   const [xpToastData, setXpToastData] = useState({ xp: 0, coins: 0, visible: false });
+
+  // Mobile view switch (<lg): the player column and the note editor stack into
+  // an extremely long scroll otherwise. On desktop both panels always show
+  // (60/40 side-by-side) and this state is ignored.
+  const [mobileTab, setMobileTab] = useState<"video" | "notes">("video");
+
+  const handleTabKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+        e.preventDefault();
+        const next = mobileTab === "video" ? "notes" : "video";
+        setMobileTab(next);
+        document.getElementById(next === "video" ? "sr-tab-video" : "sr-tab-notes")?.focus();
+      }
+    },
+    [mobileTab]
+  );
 
   // ─── Cumulative play time tracking ──────────────────────────────────────
 
@@ -322,7 +338,15 @@ export function StudyRoomLayout({
       <div className="mx-auto max-w-2xl space-y-6 py-12">
         <XpToast xp={xpToastData.xp} coins={xpToastData.coins} visible={xpToastData.visible} />
         <div className="text-center">
-          <MonitorPlay className="mx-auto h-12 w-12 text-[var(--pixel-text-muted)]" />
+          <img
+            src="/sprites/travel-book/icons/Monitor.png"
+            alt=""
+            aria-hidden="true"
+            width={48}
+            height={48}
+            className="pixel-art mx-auto"
+            draggable={false}
+          />
           <h2 className="mt-4 text-lg font-semibold font-pixel text-[var(--pixel-text-primary)]">
             Start Studying
           </h2>
@@ -332,12 +356,10 @@ export function StudyRoomLayout({
         </div>
         {videoLoadError && (
           <div
-            className="rounded-lg border-2 p-3 text-sm"
-            style={{
-              borderColor: "var(--pixel-error)",
-              backgroundColor: "var(--pixel-bg-secondary)",
-              color: "var(--pixel-error)",
-            }}
+            className="pixel-panel p-3 text-sm"
+            data-state="error"
+            role="alert"
+            style={{ color: "var(--pixel-error)" }}
           >
             {videoLoadError}
           </div>
@@ -383,10 +405,65 @@ export function StudyRoomLayout({
         )}
       </div>
 
-      {/* Split Layout: Player (left) / Editor (right) */}
+      {/* Mobile-only view switch (<lg). Lets the note editor be reached in one
+          tap instead of scrolling past the whole player column. */}
+      <div
+        role="tablist"
+        aria-label="Study room view"
+        className="flex gap-1 lg:hidden pixel-panel"
+        style={{ padding: "4px" }}
+      >
+        {([
+          { key: "video", label: "Video", icon: "Monitor" },
+          { key: "notes", label: "Notes", icon: "Pencil" },
+        ] as const).map((tab) => {
+          const selected = mobileTab === tab.key;
+          return (
+            <button
+              key={tab.key}
+              id={`sr-tab-${tab.key}`}
+              role="tab"
+              type="button"
+              aria-selected={selected}
+              aria-controls={`sr-panel-${tab.key}`}
+              tabIndex={selected ? 0 : -1}
+              onClick={() => setMobileTab(tab.key)}
+              onKeyDown={handleTabKeyDown}
+              className="flex flex-1 items-center justify-center gap-1.5 py-2 font-pixel text-[11px]"
+              style={{
+                backgroundColor: selected
+                  ? "color-mix(in srgb, var(--pixel-accent) 16%, var(--pixel-bg-surface))"
+                  : "transparent",
+                color: selected ? "var(--pixel-accent)" : "var(--pixel-text-secondary)",
+              }}
+            >
+              <img
+                src={`/sprites/travel-book/icons/${tab.icon}.png`}
+                alt=""
+                aria-hidden="true"
+                width={14}
+                height={14}
+                className="pixel-art"
+                draggable={false}
+              />
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Split Layout: Player (left) / Editor (right).
+          Desktop (lg+): both panels side-by-side (60/40). Mobile: only the
+          panel for the active tab is shown; both stay mounted so their state
+          (player position, draft notes) is preserved when switching. */}
       <div className="flex flex-col gap-4 lg:flex-row">
         {/* Left Panel — Player + Controls (60% on desktop) */}
-        <div className="w-full min-w-0 space-y-3 lg:w-[60%]">
+        <div
+          id="sr-panel-video"
+          role="tabpanel"
+          aria-labelledby="sr-tab-video"
+          className={`${mobileTab === "video" ? "block" : "hidden"} lg:block w-full min-w-0 space-y-3 lg:w-[60%]`}
+        >
           {/* YouTube Player */}
           <YouTubePlayer
             videoId={videoId}
@@ -425,7 +502,7 @@ export function StudyRoomLayout({
 
           {/* Note Generation Error */}
           {noteError && !isGenerating && (
-            <div className="rounded-lg border border-[var(--pixel-error)]/30 bg-[color-mix(in_srgb,var(--pixel-error)_8%,var(--pixel-bg-surface))] p-3">
+            <div className="pixel-panel p-3" data-state="error" role="alert">
               <p className="text-sm text-[var(--pixel-error)]">{noteError}</p>
               {noteError.includes("transcript") && transcriptError && (
                 <p className="text-xs text-[var(--pixel-error)]/80 mt-1">
@@ -467,7 +544,12 @@ export function StudyRoomLayout({
         </div>
 
         {/* Right Panel — Note Editor (40% on desktop) */}
-        <div className="w-full min-w-0 lg:w-[40%]">
+        <div
+          id="sr-panel-notes"
+          role="tabpanel"
+          aria-labelledby="sr-tab-notes"
+          className={`${mobileTab === "notes" ? "block" : "hidden"} lg:block w-full min-w-0 lg:w-[40%]`}
+        >
           {videoRecord && (
             <div className="sticky top-4">
               <NoteEditor

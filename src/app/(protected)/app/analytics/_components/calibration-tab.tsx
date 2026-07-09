@@ -56,7 +56,7 @@ function CalibrationBar({
       </div>
       {/* Label below */}
       <div className="absolute -bottom-6 left-0 right-0 text-center">
-        <span className="font-pixel text-[8px]" style={{ color: "var(--pixel-text-secondary)" }}>
+        <span className="font-pixel text-[10px]" style={{ color: "var(--pixel-text-secondary)" }}>
           {confidence}
         </span>
       </div>
@@ -152,17 +152,17 @@ export function CalibrationTab({ data }: { data: CalibrationData }) {
                   />
                 </div>
                 {/* Confidence label */}
-                <span className="font-pixel text-[8px]" style={{ color: "var(--pixel-text-secondary)" }}>
+                <span className="font-pixel text-[10px] leading-none" style={{ color: "var(--pixel-text-secondary)" }}>
                   {conf}
                 </span>
-                <span className="text-[7px]" style={{ color: "var(--pixel-text-muted)" }}>
+                <span className="text-[10px] leading-none text-center" style={{ color: "var(--pixel-text-secondary)" }}>
                   {CONFIDENCE_LABELS[conf]}
                 </span>
               </div>
             );
           })}
         </div>
-        <div className="flex items-center gap-4 mt-3 text-[9px]" style={{ color: "var(--pixel-text-muted)" }}>
+        <div className="flex items-center gap-4 mt-3 text-[10px]" style={{ color: "var(--pixel-text-secondary)" }}>
           <span className="flex items-center gap-1">
             <span className="inline-block w-2.5 h-2.5" style={{ border: "1px dashed var(--pixel-border)", backgroundColor: "var(--pixel-bg-elevated)" }} />
             Expected

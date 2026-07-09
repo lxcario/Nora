@@ -399,7 +399,7 @@ export function FeynmanEditor({ topics, defaultTopicId }: { topics: TopicOption[
 
       {/* Error */}
       {error && (
-        <div className="rounded-lg p-4 text-sm border-2 border-[var(--pixel-error)] bg-[var(--pixel-bg-secondary)] text-[var(--pixel-error)]">
+        <div className="pixel-panel p-4 text-sm text-[var(--pixel-error)]" data-state="error" role="alert">
           {error}
         </div>
       )}
@@ -611,7 +611,7 @@ function SourceSection({
             <FileText className="h-3.5 w-3.5 shrink-0" style={{ color: "var(--pixel-accent)" }} />
           )}
           <div className="flex-1 min-w-0">
-            <span className="font-pixel text-[9px] uppercase" style={{ color: "var(--pixel-accent)" }}>
+            <span className="font-pixel text-[10px] uppercase" style={{ color: "var(--pixel-accent)" }}>
               {currentSource.type === "paper" ? "Paper source" : "Notes source"}
             </span>
             <p
@@ -631,7 +631,7 @@ function SourceSection({
           <div className="flex items-center gap-1 shrink-0">
             <button
               onClick={handleOpenPicker}
-              className="font-pixel text-[9px] px-1.5 py-0.5"
+              className="font-pixel text-[10px] px-1.5 py-0.5"
               style={{ color: "var(--pixel-accent)", border: "1px solid var(--pixel-accent)" }}
             >
               Change
@@ -666,7 +666,7 @@ function SourceSection({
           </span>
           <button
             onClick={handleOpenPicker}
-            className="font-pixel text-[9px] px-2 py-0.5 shrink-0"
+            className="font-pixel text-[10px] px-2 py-0.5 shrink-0"
             style={{
               color: "var(--pixel-accent)",
               border: "1px solid var(--pixel-accent)",
@@ -704,7 +704,7 @@ function SourceSection({
               <button
                 key={tab}
                 onClick={() => setPickerTab(tab)}
-                className="font-pixel text-[9px] px-2 py-1 capitalize"
+                className="font-pixel text-[10px] px-2 py-1 capitalize"
                 style={{
                   border: "2px solid",
                   borderColor: pickerTab === tab ? "var(--pixel-accent)" : "var(--pixel-border)",
@@ -767,7 +767,7 @@ function SourceSection({
           <div className="flex justify-end gap-2">
             <button
               onClick={() => setShowPicker(false)}
-              className="font-pixel text-[9px] px-2 py-1"
+              className="font-pixel text-[10px] px-2 py-1"
               style={{ color: "var(--pixel-text-muted)" }}
             >
               Cancel
@@ -925,7 +925,7 @@ function ScoreSparkline({ points }: { points: TopicScorePoint[] }) {
           >
             {latest}
           </span>
-          <span className="font-pixel text-[9px] text-[var(--pixel-text-muted)]">latest</span>
+          <span className="font-pixel text-[10px] text-[var(--pixel-text-muted)]">latest</span>
         </div>
       </div>
     </div>

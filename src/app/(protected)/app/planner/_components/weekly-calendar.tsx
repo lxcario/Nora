@@ -66,7 +66,7 @@ export function WeeklyCalendar({ sessions, weekStart, weekEnd, weekOffset = 0, a
               {/* Day header */}
               <div className="mb-1 text-center">
                 <div
-                  className="font-pixel text-[9px]"
+                  className="font-pixel text-[10px]"
                   style={{ color: isToday ? "var(--pixel-accent)" : "var(--pixel-text-muted)" }}
                 >
                   {DAY_NAMES[day.getDay()]}
@@ -98,7 +98,7 @@ export function WeeklyCalendar({ sessions, weekStart, weekEnd, weekOffset = 0, a
                 ))}
                 {daySessions.length === 0 && dayAcademic.length === 0 ? (
                   <div className="flex flex-1 items-center justify-center">
-                    <span className="font-pixel text-[9px]" style={{ color: "var(--pixel-text-muted)" }}>
+                    <span className="font-pixel text-[10px]" style={{ color: "var(--pixel-text-muted)" }}>
                       —
                     </span>
                   </div>
@@ -118,12 +118,12 @@ export function WeeklyCalendar({ sessions, weekStart, weekEnd, weekOffset = 0, a
         {Object.entries(MODE_CONFIG).map(([mode, config]) => (
           <div key={mode} className="flex items-center gap-1.5">
             <div className="h-2.5 w-2.5" style={{ backgroundColor: config.color }} />
-            <span className="font-pixel text-[9px]">{config.label}</span>
+            <span className="font-pixel text-[10px]">{config.label}</span>
           </div>
         ))}
         <div className="flex items-center gap-1.5">
           <img src="/sprites/travel-book/icons/Trophy.png" alt="" width={10} height={10} className="pixel-art" />
-          <span className="font-pixel text-[9px]">Completed</span>
+          <span className="font-pixel text-[10px]">Completed</span>
         </div>
       </div>
     </div>
@@ -134,7 +134,7 @@ function AcademicChip({ event }: { event: PlannedAcademicEvent }) {
   const dotColor = event.status === "verified" ? "var(--pixel-success)" : "var(--pixel-warning)";
   return (
     <div
-      className="flex items-center gap-1 px-1.5 py-1 text-[9px]"
+      className="flex items-center gap-1 px-1.5 py-1 text-[10px]"
       style={{
         border: "1px solid var(--pixel-border)",
         backgroundColor: "var(--pixel-bg-surface)",
@@ -157,7 +157,7 @@ function SessionChip({ session }: { session: PlannedSession }) {
 
   return (
     <div
-      className="flex items-center gap-1 px-1.5 py-1 text-[9px]"
+      className="flex items-center gap-1 px-1.5 py-1 text-[10px]"
       style={{
         backgroundColor: session.completed
           ? "color-mix(in srgb, var(--pixel-success) 10%, var(--pixel-bg-surface))"

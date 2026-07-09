@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Check, Loader2 } from "lucide-react";
+import { PixelSpinner } from "@/components/pixel-ui";
 import { petSpriteUrl } from "@/lib/pokeapi";
 import { choosePet } from "@/app/(protected)/app/_actions/gamification";
 
@@ -65,15 +65,16 @@ export function CompanionPicker({ currentPetType }: { currentPetType?: string | 
             >
               {isChosen && (
                 <span
-                  className="absolute right-1 top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full"
-                  style={{ backgroundColor: "var(--pixel-accent)" }}
+                  aria-hidden="true"
+                  className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center font-pixel text-[10px] leading-none"
+                  style={{ backgroundColor: "var(--pixel-accent)", color: "var(--pixel-bg-primary)" }}
                 >
-                  <Check className="h-2.5 w-2.5 text-[var(--pixel-bg-primary)]" />
+                  ✓
                 </span>
               )}
               {isLoading ? (
-                <span className="flex h-10 w-10 items-center justify-center">
-                  <Loader2 className="h-4 w-4 animate-spin text-[var(--pixel-accent)]" />
+                <span className="flex h-10 w-10 items-center justify-center text-[var(--pixel-accent)]">
+                  <PixelSpinner label={`Setting ${c.name}`} />
                 </span>
               ) : (
                 <Image
@@ -86,7 +87,7 @@ export function CompanionPicker({ currentPetType }: { currentPetType?: string | 
                 />
               )}
               <span
-                className="font-pixel text-[8px] text-center"
+                className="font-pixel text-[10px] text-center leading-tight"
                 style={{ color: isChosen ? "var(--pixel-accent)" : "var(--pixel-text-primary)" }}
               >
                 {c.name}
@@ -95,7 +96,7 @@ export function CompanionPicker({ currentPetType }: { currentPetType?: string | 
           );
         })}
       </div>
-      <p className="mt-2 text-[9px] font-pixel" style={{ color: "var(--pixel-text-muted)" }}>
+      <p className="mt-2 text-[10px] font-pixel" style={{ color: "var(--pixel-text-secondary)" }}>
         {chosenId
           ? "Companion set — see them in your sidebar and Pixel Room. They evolve as you level up."
           : "Tap a companion to set them as your study buddy. They evolve as you level up."}

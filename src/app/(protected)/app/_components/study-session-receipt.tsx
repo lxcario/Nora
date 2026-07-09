@@ -98,7 +98,7 @@ function ReceiptContent({ session }: { session: CompletedSession }) {
 
       {/* Activity breakdown */}
       <div className="px-6 py-4">
-        <p className="font-pixel text-[9px] mb-3 uppercase tracking-wider" style={{ color: "var(--pixel-text-secondary)" }}>
+        <p className="font-pixel text-[10px] mb-3 uppercase tracking-wider" style={{ color: "var(--pixel-text-secondary)" }}>
           What you did
         </p>
         <div className="space-y-2">
@@ -113,7 +113,7 @@ function ReceiptContent({ session }: { session: CompletedSession }) {
                     <span className="font-pixel text-[10px] truncate" style={{ color: "var(--pixel-text-primary)" }}>
                       {config.label}
                     </span>
-                    <span className="font-pixel text-[9px] tabular-nums shrink-0 ml-2" style={{ color: "var(--pixel-text-secondary)" }}>
+                    <span className="font-pixel text-[10px] tabular-nums shrink-0 ml-2" style={{ color: "var(--pixel-text-secondary)" }}>
                       {formatDuration(duration)}
                     </span>
                   </div>
@@ -136,7 +136,7 @@ function ReceiptContent({ session }: { session: CompletedSession }) {
 
       {/* Activity timeline */}
       <div className="px-6 py-4">
-        <p className="font-pixel text-[9px] mb-2 uppercase tracking-wider" style={{ color: "var(--pixel-text-secondary)" }}>
+        <p className="font-pixel text-[10px] mb-2 uppercase tracking-wider" style={{ color: "var(--pixel-text-secondary)" }}>
           Timeline
         </p>
         <div className="space-y-1">
@@ -144,7 +144,7 @@ function ReceiptContent({ session }: { session: CompletedSession }) {
             const config = ACTIVITY_CONFIG[a.type];
             const dur = (a.endedAt ?? session.endedAt) - a.startedAt;
             return (
-              <div key={i} className="flex items-center gap-2 text-[9px]">
+              <div key={i} className="flex items-center gap-2 text-[10px]">
                 <span style={{ color: "var(--pixel-text-muted)" }}>{formatTime(a.startedAt)}</span>
                 <span>{config.emoji}</span>
                 <span className="truncate" style={{ color: "var(--pixel-text-secondary)" }}>{a.label}</span>
@@ -155,7 +155,7 @@ function ReceiptContent({ session }: { session: CompletedSession }) {
             );
           })}
           {session.activities.length > 12 && (
-            <p className="text-[8px]" style={{ color: "var(--pixel-text-muted)" }}>
+            <p className="text-[10px]" style={{ color: "var(--pixel-text-muted)" }}>
               +{session.activities.length - 12} more
             </p>
           )}
@@ -170,7 +170,7 @@ function ReceiptContent({ session }: { session: CompletedSession }) {
           backgroundColor: "color-mix(in srgb, var(--pixel-accent) 6%, var(--pixel-bg-surface))",
         }}
       >
-        <p className="font-pixel text-[9px]" style={{ color: "var(--pixel-text-muted)" }}>
+        <p className="font-pixel text-[10px]" style={{ color: "var(--pixel-text-muted)" }}>
           powered by nora — a softer way to study
         </p>
       </div>

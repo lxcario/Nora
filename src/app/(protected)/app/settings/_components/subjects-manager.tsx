@@ -66,7 +66,7 @@ function MaterialTypeSelector({
         value={value}
         disabled={isPending}
         onChange={(e) => handleChange(e.target.value as MaterialType)}
-        className="font-pixel text-[9px] px-1 py-0.5 max-w-[130px]"
+        className="font-pixel text-[10px] px-1 py-0.5 max-w-[130px]"
         style={{
           border: "1px solid var(--pixel-border)",
           backgroundColor: "var(--pixel-bg-surface)",
@@ -155,7 +155,7 @@ export function SubjectsManager({ subjects }: { subjects: Subject[] }) {
                     {subject.name}
                   </span>
                   <span
-                    className="font-pixel text-[9px] shrink-0"
+                    className="font-pixel text-[10px] shrink-0"
                     style={{ color: "var(--pixel-text-muted)" }}
                   >
                     ({subject.topics.length} topics)
@@ -182,7 +182,7 @@ export function SubjectsManager({ subjects }: { subjects: Subject[] }) {
                         name: subject.name,
                       })
                     }
-                    className="font-pixel text-[9px] px-2 py-1"
+                    className="font-pixel text-[10px] px-2 py-1"
                     style={{
                       color: "var(--pixel-error)",
                       border: "none",
@@ -220,7 +220,7 @@ export function SubjectsManager({ subjects }: { subjects: Subject[] }) {
                         </span>
                         {topic.exam_date && (
                           <span
-                            className="font-pixel text-[8px] shrink-0"
+                            className="font-pixel text-[10px] shrink-0"
                             style={{ color: "var(--pixel-text-muted)" }}
                           >
                             (exam: {topic.exam_date})
@@ -243,7 +243,7 @@ export function SubjectsManager({ subjects }: { subjects: Subject[] }) {
                               name: topic.name,
                             })
                           }
-                          className="font-pixel text-[8px] px-1"
+                          className="font-pixel text-[10px] px-1"
                           style={{
                             color: "var(--pixel-error)",
                             border: "none",

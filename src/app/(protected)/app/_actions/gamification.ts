@@ -3,15 +3,11 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { getRewardAmounts } from "@/lib/rewards";
 
 /**
- * XP/Coin reward rules:
- * - Feynman explanation completed: +15 XP, +5 coins
- * - Card reviewed (grade >= 3): +3 XP, +1 coin
- * - Card reviewed (grade < 3): +1 XP
- * - Card created: +2 XP
- * - Study session completed (>=15 min): +10 XP, +3 coins
- * - All daily missions done: +20 XP, +10 coins (bonus)
+ * Reward amounts are centralized in `@/lib/rewards` (the single source of truth
+ * shared with the UI copy). See that file for the per-action XP/coin table.
  *
  * Level formula: level = floor(sqrt(xp / 50)) + 1
  * So: Lv2 at 50XP, Lv3 at 200XP, Lv4 at 450XP, Lv5 at 800XP...
@@ -25,21 +21,6 @@ interface RewardResult {
   newLevel: number;
   leveledUp: boolean;
   petAffinityChange: number;
-}
-
-/**
- * Resolve XP and coin amounts for a given action.
- */
-function getRewardAmounts(action: string): { xp: number; coins: number; affinity: number } {
-  switch (action) {
-    case "feynman": return { xp: 15, coins: 5, affinity: 3 };
-    case "review_good": return { xp: 3, coins: 1, affinity: 1 };
-    case "review_bad": return { xp: 1, coins: 0, affinity: 0 };
-    case "card_created": return { xp: 2, coins: 0, affinity: 0 };
-    case "session_complete": return { xp: 10, coins: 3, affinity: 2 };
-    case "missions_complete": return { xp: 20, coins: 10, affinity: 5 };
-    default: return { xp: 0, coins: 0, affinity: 0 };
-  }
 }
 
 /**

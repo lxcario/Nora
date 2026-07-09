@@ -83,12 +83,9 @@ export default async function AcademicPage() {
 
       {notice.message && (
         <div
-          className="rounded-lg border-2 p-3 text-sm"
-          style={{
-            borderColor: notice.tone === "warning" ? "var(--pixel-warning)" : "var(--pixel-border)",
-            backgroundColor: "var(--pixel-bg-surface)",
-            color: "var(--pixel-text-primary)",
-          }}
+          className="pixel-panel p-3 text-sm"
+          data-state={notice.tone === "warning" ? "warning" : undefined}
+          style={{ color: "var(--pixel-text-primary)" }}
           role="status"
         >
           {notice.message}

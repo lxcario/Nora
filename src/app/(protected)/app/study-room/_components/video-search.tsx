@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Loader2 } from "lucide-react";
-import { Search } from "lucide-react";
+import { PixelSpinner } from "@/components/pixel-ui";
 import { searchVideos } from "../../_actions/study-room";
 
 interface VideoSearchProps {
@@ -118,7 +117,15 @@ export function VideoSearch({ onSelectVideo }: VideoSearchProps) {
     <div className="space-y-3">
       {/* Search input */}
       <div className="relative">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--pixel-text-muted)]" />
+        <img
+          src="/sprites/travel-book/icons/MagnifyingGlass.png"
+          alt=""
+          aria-hidden="true"
+          width={16}
+          height={16}
+          className="pixel-art pointer-events-none absolute left-3 top-1/2 -translate-y-1/2"
+          draggable={false}
+        />
         <input
           type="text"
           value={query}
@@ -132,7 +139,9 @@ export function VideoSearch({ onSelectVideo }: VideoSearchProps) {
           }}
         />
         {isLoading && (
-          <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-[var(--pixel-accent)]" />
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--pixel-accent)]">
+            <PixelSpinner label="Searching videos" />
+          </span>
         )}
       </div>
 
@@ -143,7 +152,12 @@ export function VideoSearch({ onSelectVideo }: VideoSearchProps) {
 
       {/* API error */}
       {error && (
-        <div className="rounded-lg border-2 border-[var(--pixel-error)] bg-[var(--pixel-bg-secondary)] px-3 py-2 text-xs text-[var(--pixel-error)]">
+        <div
+          className="pixel-panel text-xs text-[var(--pixel-error)]"
+          data-state="error"
+          role="alert"
+          style={{ padding: "var(--pixel-panel-standard)" }}
+        >
           {error}
         </div>
       )}
@@ -183,7 +197,7 @@ export function VideoSearch({ onSelectVideo }: VideoSearchProps) {
                 )}
                 {/* Duration badge */}
                 <span
-                  className="absolute bottom-1 right-1 font-pixel text-[9px] px-1 py-0.5"
+                  className="absolute bottom-1 right-1 font-pixel text-[10px] px-1 py-0.5"
                   style={{ backgroundColor: "var(--pixel-bg-elevated)", color: "var(--pixel-text-secondary)" }}
                 >
                   {formatDuration(video.durationSeconds)}
@@ -195,7 +209,7 @@ export function VideoSearch({ onSelectVideo }: VideoSearchProps) {
                 <p className="line-clamp-2 text-xs font-medium" style={{ color: "var(--pixel-text-primary)" }}>
                   {video.title}
                 </p>
-                <p className="mt-0.5 truncate font-pixel text-[9px]" style={{ color: "var(--pixel-text-muted)" }}>
+                <p className="mt-0.5 truncate font-pixel text-[10px]" style={{ color: "var(--pixel-text-secondary)" }}>
                   {video.channelTitle}
                 </p>
               </div>

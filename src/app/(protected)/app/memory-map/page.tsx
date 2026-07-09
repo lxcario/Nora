@@ -52,7 +52,7 @@ function PlantCard({ topic }: { topic: MemoryMapTopic }) {
       </span>
 
       {/* Health badge */}
-      <span className="font-pixel text-[8px]" style={{ color: config.color }}>
+      <span className="font-pixel text-[10px]" style={{ color: config.color }}>
         {config.label}
       </span>
 

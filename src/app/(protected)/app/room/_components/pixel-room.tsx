@@ -243,7 +243,7 @@ export function PixelRoom({
               {state.pet.name}
             </span>
             {state.pet.canEvolve && (
-              <span className="font-pixel mt-0.5 flex items-center gap-0.5 text-[8px] text-[var(--pixel-accent)]">
+              <span className="font-pixel mt-0.5 flex items-center gap-0.5 text-[10px] text-[var(--pixel-accent)]">
                 <Zap className="h-2.5 w-2.5" /> Ready to evolve!
               </span>
             )}
@@ -444,7 +444,7 @@ export function PixelRoom({
               style={{ backgroundColor: "var(--pixel-bg-secondary)", textDecoration: "none" }}
             >
               <span className="text-lg text-[var(--pixel-text-secondary)]">+</span>
-              <span className="font-pixel text-[8px] text-[var(--pixel-text-secondary)]">
+              <span className="font-pixel text-[10px] text-[var(--pixel-text-secondary)]">
                 Card Market
               </span>
             </Link>

@@ -104,7 +104,7 @@ export function CornellMode({ videoTitle, onCreateCard }: CornellModeProps) {
               Cue Questions
             </span>
             {isGenerating && (
-              <span className="font-pixel text-[8px]" style={{ color: "var(--pixel-text-muted)" }}>
+              <span className="font-pixel text-[10px]" style={{ color: "var(--pixel-text-muted)" }}>
                 generating...
               </span>
             )}
@@ -132,17 +132,17 @@ export function CornellMode({ videoTitle, onCreateCard }: CornellModeProps) {
                   {!cue.convertedToCard ? (
                     <button
                       onClick={() => handleConvertToCard(cue)}
-                      className="font-pixel text-[8px]"
+                      className="font-pixel text-[10px]"
                       style={{ color: "var(--pixel-accent)" }}
                     >
                       → Card
                     </button>
                   ) : (
-                    <span className="font-pixel text-[8px]" style={{ color: "var(--pixel-success)" }}>✓ Saved</span>
+                    <span className="font-pixel text-[10px]" style={{ color: "var(--pixel-success)" }}>✓ Saved</span>
                   )}
                   <button
                     onClick={() => handleRemoveCue(cue.id)}
-                    className="font-pixel text-[8px]"
+                    className="font-pixel text-[10px]"
                     style={{ color: "var(--pixel-text-muted)" }}
                   >
                     ×

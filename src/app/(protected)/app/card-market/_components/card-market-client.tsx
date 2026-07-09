@@ -64,7 +64,7 @@ export function CardMarketClient({ decks, partyName }: { decks: SharedDeck[]; pa
                 <span className="font-pixel text-[9px] text-center" style={{ color: "var(--pixel-text-primary)" }}>
                   {item.name}
                 </span>
-                <span className="font-pixel text-[8px] flex items-center gap-0.5" style={{ color: "var(--pixel-accent)" }}>
+                <span className="font-pixel text-[10px] flex items-center gap-0.5" style={{ color: "var(--pixel-accent)" }}>
                   <img src="/sprites/travel-book/icons/Coin.png" alt="" width={10} height={10} className="pixel-art" />
                   {item.price}
                 </span>
@@ -104,7 +104,7 @@ export function CardMarketClient({ decks, partyName }: { decks: SharedDeck[]; pa
                   <span className="font-pixel text-sm truncate" style={{ color: "var(--pixel-text-primary)" }}>
                     {deck.topicName}
                   </span>
-                  <span className="font-pixel text-[8px] px-1.5 py-0.5" style={{ color: "var(--pixel-text-muted)", border: "1px solid var(--pixel-border)" }}>
+                  <span className="font-pixel text-[10px] px-1.5 py-0.5" style={{ color: "var(--pixel-text-muted)", border: "1px solid var(--pixel-border)" }}>
                     {deck.subjectName}
                   </span>
                 </div>

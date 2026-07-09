@@ -5,6 +5,7 @@ import { DialogFrame, PixelCounter } from "@/components/pixel-ui";
 import { endOfUserLocalDay, startOfUserLocalDay, userLocalDateKey } from "@/lib/due";
 import { computeStreak } from "@/lib/streak";
 import { getNextStudyAction } from "@/lib/study-router";
+import { DAILY_QUEST_REWARD } from "@/lib/rewards";
 
 // ---------------------------------------------------------------------------
 // Data fetching helpers
@@ -308,7 +309,7 @@ export default async function DashboardPage() {
             <p className="text-sm italic" style={{ color: "var(--pixel-text-secondary)" }}>
               {companionLine}
             </p>
-            <span className="font-pixel text-[9px]" style={{ color: "var(--pixel-text-muted)" }}>
+            <span className="font-pixel text-[10px]" style={{ color: "var(--pixel-text-secondary)" }}>
               — {petName}
             </span>
           </div>
@@ -371,11 +372,11 @@ export default async function DashboardPage() {
             <div className="flex items-center gap-3 mt-1">
               <div className="flex items-center gap-1.5">
                 <img src="/sprites/travel-book/icons/Sun.png" alt="XP" width={14} height={14} className="pixel-art" />
-                <span className="text-[11px] text-[var(--pixel-accent)]">+25 XP</span>
+                <span className="text-[11px] text-[var(--pixel-accent)]">+{DAILY_QUEST_REWARD.xp} XP</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <img src="/sprites/travel-book/icons/Coin.png" alt="Coins" width={14} height={14} className="pixel-art" />
-                <span className="text-[11px] text-[var(--pixel-accent)]">+10</span>
+                <span className="text-[11px] text-[var(--pixel-accent)]">+{DAILY_QUEST_REWARD.coins}</span>
               </div>
             </div>
           </div>
@@ -415,11 +416,11 @@ export default async function DashboardPage() {
               </span>
               <div className="flex items-center gap-1.5">
                 <img src="/sprites/travel-book/icons/Sun.png" alt="XP" width={14} height={14} className="pixel-art" />
-                <span className="text-[11px] text-[var(--pixel-accent)]">+25 XP</span>
+                <span className="text-[11px] text-[var(--pixel-accent)]">+{DAILY_QUEST_REWARD.xp} XP</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <img src="/sprites/travel-book/icons/Coin.png" alt="Coins" width={14} height={14} className="pixel-art" />
-                <span className="text-[11px] text-[var(--pixel-accent)]">+10</span>
+                <span className="text-[11px] text-[var(--pixel-accent)]">+{DAILY_QUEST_REWARD.coins}</span>
               </div>
             </div>
           </div>
@@ -515,73 +516,6 @@ function FriendsActivity({ feed }: { feed: FriendsFeed }) {
 // ---------------------------------------------------------------------------
 // Shared tile / quest components
 // ---------------------------------------------------------------------------
-
-function StatTile({
-  icon,
-  value,
-  suffix,
-  label,
-  size = "large",
-  zeroText,
-}: {
-  icon: string;
-  value: number;
-  suffix?: string;
-  label: string;
-  size?: "hero" | "large" | "small";
-  zeroText?: string;
-}) {
-  const isHero = size === "hero";
-  const valueClass = isHero
-    ? "font-pixel text-2xl text-[var(--pixel-accent)] block leading-none"
-    : size === "large"
-      ? "font-pixel text-2xl text-[var(--pixel-accent)] block leading-none"
-      : "font-pixel text-lg text-[var(--pixel-text-secondary)] block leading-none";
-
-  return (
-    <div
-      className="pixel-panel flex items-center gap-3"
-      style={{ padding: isHero ? "var(--pixel-panel-standard)" : "var(--pixel-panel-compact)" }}
-    >
-      <div className="shrink-0">
-        <img
-          src={icon}
-          alt=""
-          width={isHero ? 40 : size === "large" ? 36 : 28}
-          height={isHero ? 40 : size === "large" ? 36 : 28}
-          className="pixel-art"
-        />
-      </div>
-      <div className="min-w-0">
-        {zeroText ? (
-          <span
-            className="font-pixel text-sm block leading-snug"
-            style={{ color: "var(--pixel-accent)" }}
-          >
-            {zeroText}
-          </span>
-        ) : (
-          <PixelCounter
-            value={value}
-            suffix={suffix}
-            className={valueClass}
-          />
-        )}
-        <span
-          className="text-xs block mt-1 truncate"
-          style={{
-            color:
-              size === "small"
-                ? "var(--pixel-text-muted)"
-                : "var(--pixel-text-secondary)",
-          }}
-        >
-          {label}
-        </span>
-      </div>
-    </div>
-  );
-}
 
 function AmbientStat({
   icon,

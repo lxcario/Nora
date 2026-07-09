@@ -98,7 +98,7 @@ export function MusicPlayer() {
               <p className="font-pixel text-[11px] truncate" style={{ color: station.color }}>
                 {station.title}
               </p>
-              <p className="text-[8px] uppercase tracking-wider" style={{ color: "var(--pixel-text-muted)" }}>
+              <p className="text-[10px] uppercase tracking-wider" style={{ color: "var(--pixel-text-muted)" }}>
                 {isPlaying ? "now playing" : "paused"}
               </p>
             </div>
@@ -136,7 +136,7 @@ export function MusicPlayer() {
               <img src={`/sprites/travel-book/icons/${muted ? "SpeakerMute" : "SpeakerOn"}.png`} alt="" width={12} height={12} className="pixel-art" />
             </button>
             <VolumeSlider value={muted ? 0 : volume} onChange={setVolume} color={station.color} />
-            <span className="font-pixel text-[8px] w-5 text-right tabular-nums" style={{ color: "var(--pixel-text-muted)" }}>
+            <span className="font-pixel text-[10px] w-5 text-right tabular-nums" style={{ color: "var(--pixel-text-muted)" }}>
               {muted ? 0 : Math.round(volume * 100)}
             </span>
           </div>

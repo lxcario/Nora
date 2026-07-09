@@ -111,7 +111,7 @@ export function ListenClient({ topics }: { topics: TopicOption[] }) {
                   }}
                 >
                   {seg.type === "question" && (
-                    <span className="font-pixel text-[8px] block mb-1" style={{ color: "var(--pixel-accent)" }}>
+                    <span className="font-pixel text-[10px] block mb-1" style={{ color: "var(--pixel-accent)" }}>
                       PAUSE AND THINK
                     </span>
                   )}

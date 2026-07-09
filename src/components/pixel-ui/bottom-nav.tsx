@@ -8,21 +8,12 @@ import {
   PenLine,
   FlaskConical,
   BookOpen,
-  DoorOpen,
-  Grid3X3,
-  X,
-  FileText,
-  Monitor,
-  Calendar,
-  Trophy,
-  Users,
-  Settings,
-  GraduationCap,
 } from "lucide-react";
 import { IconSprite } from "./icon-sprite";
 
 // ---------------------------------------------------------------------------
 // Primary tabs (always visible in bottom bar)
+// These keep the IconSprite + lucide-fallback pattern already established.
 // ---------------------------------------------------------------------------
 
 const primaryItems = [
@@ -33,19 +24,50 @@ const primaryItems = [
 ];
 
 // ---------------------------------------------------------------------------
-// All features (shown in the "More" drawer)
+// All remaining features (shown in the "More" drawer), grouped to match the
+// desktop sidebar's Study / My Room structure and sharing its travel-book
+// sprites so mobile and desktop speak one icon language. Every desktop
+// destination that isn't a primary tab lives here, so nothing is unreachable
+// on a phone.
 // ---------------------------------------------------------------------------
 
-const allFeatures = [
-  { href: "/app/exam", label: "Practice Exam", Icon: FileText },
-  { href: "/app/study-room", label: "Study Room", Icon: Monitor },
-  { href: "/app/planner", label: "Planner", Icon: Calendar },
-  { href: "/app/room", label: "Pixel Room", Icon: DoorOpen },
-  { href: "/app/analytics", label: "Analytics", Icon: Trophy },
-  { href: "/app/party", label: "Friends", Icon: Users },
-  { href: "/app/academic", label: "University", Icon: GraduationCap },
-  { href: "/app/settings", label: "Settings", Icon: Settings },
+const ICON_BASE = "/sprites/travel-book/icons";
+
+const featureGroups: { title: string; items: { href: string; label: string; icon: string }[] }[] = [
+  {
+    title: "STUDY",
+    items: [
+      { href: "/app/study", label: "Study Mix", icon: `${ICON_BASE}/Restart.png` },
+      { href: "/app/error-spotter", label: "Error Spotter", icon: `${ICON_BASE}/Eye.png` },
+      { href: "/app/exam", label: "Practice Exam", icon: `${ICON_BASE}/Document.png` },
+      { href: "/app/listen", label: "Listen Mode", icon: `${ICON_BASE}/MusicNotes.png` },
+      { href: "/app/study-room", label: "Study Room", icon: `${ICON_BASE}/Monitor.png` },
+      { href: "/app/planner", label: "Planner", icon: `${ICON_BASE}/Pencil.png` },
+      { href: "/app/academic", label: "University", icon: `${ICON_BASE}/Backpack.png` },
+    ],
+  },
+  {
+    title: "MY ROOM",
+    items: [
+      { href: "/app/room", label: "Pixel Room", icon: `${ICON_BASE}/Gamepad.png` },
+      { href: "/app/memory-map", label: "Memory Garden", icon: `${ICON_BASE}/Flower.png` },
+      { href: "/app/eureka", label: "Eureka", icon: `${ICON_BASE}/Lightbulb.png` },
+      { href: "/app/card-market", label: "Card Market", icon: `${ICON_BASE}/ChestTreasure.png` },
+      { href: "/app/collection", label: "Collection", icon: `${ICON_BASE}/Briefcase.png` },
+      { href: "/app/analytics", label: "Analytics", icon: `${ICON_BASE}/Trophy.png` },
+      { href: "/app/history", label: "History", icon: `${ICON_BASE}/FloppyDisk.png` },
+    ],
+  },
+  {
+    title: "GENERAL",
+    items: [
+      { href: "/app/party", label: "Friends", icon: `${ICON_BASE}/Team.png` },
+      { href: "/app/settings", label: "Settings", icon: `${ICON_BASE}/Gear.png` },
+    ],
+  },
 ];
+
+const allFeatures = featureGroups.flatMap((g) => g.items);
 
 // ---------------------------------------------------------------------------
 // BottomNav Component
@@ -70,61 +92,81 @@ export function BottomNav() {
         <div className="fixed inset-0 z-[60] md:hidden" aria-modal="true" role="dialog">
           {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-fade-in"
             onClick={() => setMoreOpen(false)}
-            style={{ transition: "opacity 200ms ease" }}
           />
 
           {/* Drawer */}
           <div
-            className="absolute inset-x-0 bottom-0 pb-[60px]"
+            className="absolute inset-x-0 bottom-0 max-h-[75vh] overflow-y-auto pb-[60px] scrollbar-hide"
             style={{
               backgroundColor: "var(--pixel-bg-surface)",
               borderTop: "2px solid var(--pixel-border)",
-              borderTopLeftRadius: "12px",
-              borderTopRightRadius: "12px",
               animation: "slide-up 200ms ease-out",
             }}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-4 pt-3 pb-2">
+            <div
+              className="sticky top-0 flex items-center justify-between px-4 pt-3 pb-2"
+              style={{ backgroundColor: "var(--pixel-bg-surface)" }}
+            >
               <span className="font-pixel text-xs" style={{ color: "var(--pixel-text-primary)" }}>
                 ALL FEATURES
               </span>
               <button
                 onClick={() => setMoreOpen(false)}
-                className="p-1"
+                aria-label="Close menu"
+                className="font-pixel flex h-8 w-8 items-center justify-center text-sm"
                 style={{ color: "var(--pixel-text-secondary)" }}
               >
-                <X className="h-4 w-4" />
+                ✕
               </button>
             </div>
 
-            {/* Grid of features */}
-            <div className="grid grid-cols-4 gap-1 px-3 pb-4">
-              {allFeatures.map((item) => {
-                const active = isActive(item.href);
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setMoreOpen(false)}
-                    className="flex flex-col items-center justify-center gap-1.5 rounded-lg py-3 px-1 transition-colors"
-                    style={{
-                      backgroundColor: active
-                        ? "color-mix(in srgb, var(--pixel-accent) 15%, var(--pixel-bg-surface))"
-                        : undefined,
-                      color: active ? "var(--pixel-accent)" : "var(--pixel-text-secondary)",
-                    }}
-                  >
-                    <item.Icon className="h-5 w-5" />
-                    <span className="font-pixel text-[8px] text-center leading-tight">
-                      {item.label}
-                    </span>
-                  </Link>
-                );
-              })}
-            </div>
+            {/* Grouped grids of features */}
+            {featureGroups.map((group) => (
+              <div key={group.title} className="px-3 pb-3">
+                <p
+                  className="font-pixel text-[10px] px-1 pb-1"
+                  style={{ color: "var(--pixel-text-muted)" }}
+                >
+                  {group.title}
+                </p>
+                <div className="grid grid-cols-4 gap-1">
+                  {group.items.map((item) => {
+                    const active = isActive(item.href);
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => setMoreOpen(false)}
+                        aria-current={active ? "page" : undefined}
+                        className="pixel-hover-brighten flex min-h-[44px] flex-col items-center justify-center gap-1.5 py-3 px-1"
+                        style={{
+                          backgroundColor: active
+                            ? "color-mix(in srgb, var(--pixel-accent) 15%, var(--pixel-bg-surface))"
+                            : undefined,
+                          color: active ? "var(--pixel-accent)" : "var(--pixel-text-secondary)",
+                        }}
+                      >
+                        <img
+                          src={item.icon}
+                          alt=""
+                          aria-hidden="true"
+                          width={22}
+                          height={22}
+                          className="pixel-art"
+                          draggable={false}
+                        />
+                        <span className="font-pixel text-[10px] text-center leading-tight">
+                          {item.label}
+                        </span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -157,7 +199,7 @@ export function BottomNav() {
                 fallback={item.fallback}
                 aria-label={item.label}
               />
-              <span className="font-pixel text-[9px] leading-tight">
+              <span className="font-pixel text-[10px] leading-tight">
                 {item.label}
               </span>
             </Link>
@@ -167,13 +209,23 @@ export function BottomNav() {
         {/* More button */}
         <button
           onClick={() => setMoreOpen(true)}
+          aria-label="More features"
+          aria-expanded={moreOpen}
           className="flex min-h-[44px] min-w-[44px] flex-col items-center justify-center gap-0.5 rounded-lg px-2 py-1 transition-opacity"
           style={{
             color: moreIsActive ? "var(--pixel-accent)" : "var(--pixel-text-muted)",
           }}
         >
-          <Grid3X3 className="h-5 w-5" />
-          <span className="font-pixel text-[9px] leading-tight">More</span>
+          <img
+            src={`${ICON_BASE}/Option.png`}
+            alt=""
+            aria-hidden="true"
+            width={16}
+            height={16}
+            className="pixel-art"
+            draggable={false}
+          />
+          <span className="font-pixel text-[10px] leading-tight">More</span>
         </button>
       </nav>
     </>

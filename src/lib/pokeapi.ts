@@ -10,7 +10,6 @@ export interface PokemonData {
   id: number;
   name: string;
   sprite: string;
-  spriteStatic: string;
   types: string[];
   evolutionChainId?: number;
 }
@@ -137,7 +136,6 @@ export async function getPokemon(idOrName: number | string): Promise<PokemonData
     id: companion.id,
     name: companion.name,
     sprite: petSpriteUrl(companion.id),
-    spriteStatic: petSpriteUrl(companion.id),
     types: companion.types,
   };
 }

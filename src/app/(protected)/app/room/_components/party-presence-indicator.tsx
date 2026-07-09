@@ -19,7 +19,7 @@ export function PartyPresenceIndicator({
 
   return (
     <div className="absolute bottom-3 right-3 z-20 flex items-center gap-1.5 rounded-lg border border-[var(--pixel-border)] bg-[var(--pixel-bg-primary)]/80 px-2 py-1.5 backdrop-blur-sm">
-      <span className="font-pixel mr-1 text-[8px] text-[var(--pixel-text-muted)]">Party</span>
+      <span className="font-pixel mr-1 text-[10px] text-[var(--pixel-text-secondary)]">Party</span>
       {members.map((member) => (
         <div
           key={member.userId}

@@ -326,7 +326,7 @@ function FlashcardView({
                   ) : (
                     <>
                       <span className="font-pixel text-sm font-bold">{label}</span>
-                      <span className="font-pixel text-[8px] opacity-80">{sublabel}</span>
+                      <span className="font-pixel text-[10px] opacity-80">{sublabel}</span>
                     </>
                   )}
                 </button>

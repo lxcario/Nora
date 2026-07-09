@@ -113,7 +113,7 @@ export function PreferencesPanel() {
                 border: "2px solid var(--pixel-border)",
               }}
             />
-            <span className="font-pixel text-[8px]" style={{ color: "var(--pixel-text-secondary)" }}>
+            <span className="font-pixel text-[10px]" style={{ color: "var(--pixel-text-secondary)" }}>
               None
             </span>
           </button>
@@ -141,7 +141,7 @@ export function PreferencesPanel() {
                     border: "2px solid var(--pixel-border)",
                   }}
                 />
-                <span className="font-pixel text-[8px]" style={{ color: "var(--pixel-text-secondary)" }}>
+                <span className="font-pixel text-[10px]" style={{ color: "var(--pixel-text-secondary)" }}>
                   {preset.name}
                 </span>
               </button>

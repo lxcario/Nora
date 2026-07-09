@@ -399,7 +399,7 @@ function StepDots({
             }}
           />
           <span
-            className="font-pixel text-[8px] hidden sm:block"
+            className="font-pixel text-[10px] hidden sm:block"
             style={{ color: i === current ? "var(--pixel-accent)" : "var(--pixel-text-secondary)" }}
           >
             {labels[i]}
