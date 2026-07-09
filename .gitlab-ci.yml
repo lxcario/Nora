@@ -7,14 +7,16 @@
 # Two layers, both verified green locally:
 #   1. Unit suite (Vitest — 394 tests).
 #   2. The TestSprite checker: reruns the FULL banked suite (61 tests) against
-#      the live Vercel deployment. Backend tests (7) hit the REST/RLS layer and
-#      are drift-immune. Frontend tests (50) replay saved scripts for free —
-#      auto-heal fires only when the UI has actually drifted.
+#      the live Vercel deployment with --no-auto-heal so drift surfaces as a
+#      real failure rather than being silently patched. Backend tests (7) hit
+#      the REST/RLS layer and are drift-immune. Frontend tests (50) replay
+#      saved scripts for free — if they fail, it's a genuine regression or an
+#      intentional UI change that needs a plan update.
 #
-# Why --all instead of a subset:
-#   Frontend verbatim replays are free (no credit charge). If the UI hasn't
-#   changed, they pass instantly. If it has, auto-heal engages and either fixes
-#   the script or reports a genuine regression. Either way, the build knows.
+# Why --no-auto-heal:
+#   Auto-heal masks drift. In CI we want the opposite: if the UI changed and a
+#   test breaks, that's information. The developer decides whether to fix the
+#   code or update the test plan — not the AI.
 #
 # Setup (one-time, in GitLab): Project → Settings → CI/CD → Variables → add
 #   TESTSPRITE_API_KEY  (masked)  = <your key from .env.local>
@@ -41,12 +43,14 @@ verify:
     - npm install -g @testsprite/testsprite-cli
     - testsprite setup --from-env --yes --no-agent
     # Rerun the full banked suite against the live app.
-    # Backend tests (7) hit the Supabase REST/RLS layer — drift-immune, ~0 credits.
-    # Frontend tests (50) replay saved scripts — free verbatim replays, auto-heal
-    # engages only if the UI drifted (small credit, rare after stabilization).
-    # This gates the build on the entire TestSprite suite, not just a subset.
+    # --no-auto-heal: we WANT drift to surface as a failure, not be silently
+    # healed. If a frontend test fails, that's a signal the UI changed — the
+    # developer should decide whether to update the plan or fix the regression.
+    # Backend tests (7) hit the Supabase REST/RLS layer — drift-immune.
+    # Frontend tests (50) replay saved scripts — free verbatim replays.
     - >
       testsprite test rerun
       --all
       --project 4ba5d8f8-310d-41bc-bbf4-b85208bb6d44
+      --no-auto-heal
       --wait --timeout 900 --max-concurrency 4 --output json
