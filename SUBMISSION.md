@@ -142,6 +142,46 @@ Full ID-level table: [`testsprite_tests/README.md`](testsprite_tests/README.md).
 - **The loop as methodology:** real regressions caught during active feature
   work, a documented multi-iteration debugging arc, and CI wiring.
 
+## How the loop shaped this project
+
+The loop wasn't bolted on at the end. It changed how Nora was built — and along
+the way we stumbled into patterns we think are genuinely new.
+
+**The data-seed pattern.** Iteration 42 taught us that `blocked` doesn't always
+mean the plan is wrong. The Confidence Calibration chart rendered a clean empty
+state ("Not enough data yet"), and no amount of tightening the assertion could
+move it — because the problem was *what the test account had experienced*, not
+what the page showed. The fix was to seed real study data through a user-scoped
+Supabase token (never service-role) so the chart actually populates. That's a
+reusable pattern for any data-dependent feature: when a `blocked` verdict tracks
+the data and not the plan, seed rather than rewrite.
+
+**Test names are context.** The 4-iteration analytics arc (Iter 15) revealed
+something subtle: the testing agent reads the test *name* as intent, not just
+the plan steps. A leftover name ("Analytics page shows stats and charts") kept
+pulling the agent toward chart assertions that a low-data account can never
+satisfy — even after the plan no longer mentioned charts. Once we renamed via
+`test update --name`, it passed immediately. Tiny detail, big lesson.
+
+**Security you can't see from a browser.** Row-Level Security is invisible from
+the UI — the page just works. But *does* the database reject a forged request?
+We wrote `--type backend` Python tests that authenticate as an anonymous client
+and confirm the rejection. Anon can't read another user's cards. Anon can't call
+the reward RPC. It's not enough to test that a page renders; we wanted proof the
+boundary holds.
+
+**Extending the checker itself.** PR #132 added `test flaky` to the TestSprite
+CLI — a new command that repeats a run N times and flags non-deterministic
+verdicts. We built it because our own suite needed it, then dogfooded it against
+Nora before it merged. The loop didn't just *use* the tool; it made the tool
+better.
+
+**CI that knows its limits.** The GitLab pipeline only reruns the 3 backend
+tests — not the full 61-scenario browser suite — because saved browser scripts
+drift as the live UI evolves, while RLS/schema checks hit the REST layer and are
+drift-immune. That's a deliberate choice: cheap, fast, always meaningful. The
+full browser suite runs manually via `rerun --all` after significant changes.
+
 ## Bonus: CLI Improvement Bounty contributions (Rule 8)
 
 Separate from judging — genuine improvements to the open-source CLI, opened

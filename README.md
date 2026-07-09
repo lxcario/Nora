@@ -79,7 +79,7 @@ Nora is a study *operating system* â€” not a flashcard app, not a timer wit
 
 The whole product is built on one belief: **the AI should help you think, never think for you.** It asks questions, finds real academic sources, surfaces the gaps in your understanding, and schedules your review at the right moment â€” but you always do the thinking, because the thinking is the point.
 
-> Nora is in active development. The core loop â€” explain, remember, research â€” is solid and tested; some of the quieter rooms are still being furnished. Where we're unsure, we say so.
+> Nora is a living product. The core loop and all 22+ features are functional and tested (394 unit tests, 61 TestSprite scenarios, all green). Development continues — there's always another room to make warmer.
 
 ---
 

@@ -93,6 +93,23 @@ Repo: https://github.com/lxcario/Nora
 
 ---
 
+## Lessons banked
+
+Things we learned the hard way. Each row came from a real iteration above —
+the kind of thing you only discover by running the loop honestly over days.
+
+| # | What we learned | Where it came from | Applies to |
+|---|---|---|---|
+| 1 | A test's **name** is part of the agent's context. A stale name can override an updated plan — rename when the assertion scope changes. | Iter 15 — analytics 4-arc | Any TestSprite FE test |
+| 2 | Verbose "either A or B" assertions reliably block verdicts even when the page is correct. Write one decisive assertion referencing a concrete UI element. | Iter 29–30 — Knowledge Web / Eureka | Any FE plan authoring |
+| 3 | When `blocked` tracks the **data** and not the plan, the fix is to seed realistic data — not to loosen the assertion until it's meaningless. | Iter 42 — Calibration data-seed | Data-dependent features |
+| 4 | If the runner can't control a piece of state (viewport size, network speed), delete the test and say why. Faking green is worse than an honest gap. | Iter 18 — mobile bottom-nav | Runner-limited scenarios |
+| 5 | RLS is invisible from the browser. To prove the boundary holds, use `--type backend` and hit the database as an anonymous client. | Iter 35, 43–45, 50 — backend security | Any app with RLS or auth gates |
+| 6 | After a large UI refactor, `rerun --all` is cheap and catches regressions that targeted reruns miss. One mood-sync bug survived 8 individual tests and only surfaced in the full sweep. | Iter 51 — post-overhaul regression | Active development |
+| 7 | `create-batch --plan-from-dir` followed by targeted reruns on failures is the fastest way to expand coverage without losing the loop's feedback signal. | Iter 46–55 — coverage expansion | Scaling the suite |
+
+---
+
 ## Iteration 1 — Landing Page + Sign-up CTA
 
 **Date:** 2026-06-30
