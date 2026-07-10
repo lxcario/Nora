@@ -1,0 +1,8 @@
+{
+  "planSteps": [
+    { "type": "action", "description": "Go to the login page" },
+    { "type": "assertion", "description": "The login page loads with email and password fields visible" },
+    { "type": "action", "description": "Log in with valid credentials" },
+    { "type": "assertion", "description": "The dashboard loads after login" }
+  ]
+}

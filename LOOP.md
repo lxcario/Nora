@@ -1019,17 +1019,21 @@ Triggered a complete replay of all 42 banked tests (39 frontend + 3 backend) in 
 
 ## Final Suite Summary
 
-Authoritative list from the TestSprite platform (`testsprite test list --project 4ba5d8f8-…`). All **43** are `createdFrom: cli` and `passed`.
+Authoritative list from the TestSprite platform (`testsprite test list --project 4ba5d8f8-…`). All **57** are `createdFrom: cli` and `passed`.
 
-### Backend (`--type backend`, Python) — 3
+### Backend (`--type backend`, Python) — 7
 
 | # | Test ID | Scenario | Result |
 |---|---------|----------|--------|
 | 1 | `43943ea6` | Schema validation — 10 core tables + FSRS + gamification columns | ✅ PASS |
 | 2 | `36c43c1e` | RLS data isolation — cards, topics, feynman all protected | ✅ PASS |
 | 3 | `23d76c46` | RLS rejects unauthorized reward manipulation and table access | ✅ PASS |
+| 4 | `417da911` | Reward RPC boundary enforcement (anon blocked + no negative drain) | ✅ PASS |
+| 5 | `35c2cd0d` | Party quest IDOR and membership RLS enforcement | ✅ PASS |
+| 6 | `de8865b3` | Feynman and LLM action auth boundary | ✅ PASS |
+| 7 | `48bc112b` | Academic data and study content RLS | ✅ PASS |
 
-### Frontend (`--plan-from`, browser) — 40
+### Frontend (`--plan-from`, browser) — 50
 
 | # | Test ID | Scenario | Result |
 |---|---------|----------|--------|
@@ -1073,8 +1077,18 @@ Authoritative list from the TestSprite platform (`testsprite test list --project
 | 38 | `b1a6af61` | Study Mix page renders for a logged-in user | ✅ PASS |
 | 39 | `860a67c1` | Journal page renders heading and content for a logged-in user | ✅ PASS |
 | 40 | `f4663fb7` | Collection page lets a user choose a companion pet (regression: self-hosted sprites + wired selection) | ✅ PASS |
+| 41 | `8e0ba39c` | Unauthenticated visit to /app redirects to login | ✅ PASS |
+| 42 | `a13d80e8` | Unauthenticated deep-link to /app/feynman redirects to login | ✅ PASS |
+| 43 | `0492a72f` | Practice Exam page handles no-upload state correctly | ✅ PASS |
+| 44 | `c7434bdc` | Listen Mode handles missing notes gracefully | ✅ PASS |
+| 45 | `5cad9fe4` | Planner renders gracefully with no subjects or sessions | ✅ PASS |
+| 46 | `3261aea6` | Confidence Calibration renders on the Analytics page for a logged-in user | ✅ PASS |
+| 47 | `99544c08` | Study Room video search uses pixel sprites (no lucide icons) | ✅ PASS |
+| 48 | `dcbae4a6` | Planner uses pixel-panel styling (no rounded-lg containers) | ✅ PASS |
+| 49 | `7d44f8fb` | Pet widget renders in sidebar without animation glitches | ✅ PASS |
+| 50 | `db5c687b` | Sidebar icons are distinct per feature after de-duplication | ✅ PASS |
 
-**43 / 43 — ALL GREEN ✅**  ·  every test `createdFrom: cli`  ·  verify with `testsprite test list --project 4ba5d8f8-310d-41bc-bbf4-b85208bb6d44`
+**57 / 57 — ALL GREEN ✅**  ·  every test `createdFrom: cli`  ·  verify with `testsprite test list --project 4ba5d8f8-310d-41bc-bbf4-b85208bb6d44`
 
 ---
 

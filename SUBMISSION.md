@@ -115,7 +115,7 @@ updated the plan to assert the populated chart, and reran → **PASS** (test
 `3261aea6`, run `7b7ae0ee`). Lesson banked: a `blocked` verdict on an empty state
 is a data signal, not a plan bug.
 
-## Suite breadth (43 scenarios across 22+ features)
+## Suite breadth (57 scenarios across 22+ features)
 
 Entry & auth (landing, login, signup→onboarding) · core loop (dashboard,
 sidebar, review full flow, JOL confidence) · learning features (Feynman

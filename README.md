@@ -65,7 +65,7 @@ Nora is an entry in **TestSprite Hackathon Season 3 — "Build the Loop."** The 
 | **57** durable scenarios (50 browser + 7 backend) | **57 / 57 passing** |
 | Every test `createdFrom: cli` | not the portal — genuine CLI loop |
 | **55** loop iterations · **100+** runs · 7 build days | **10** real product bugs caught & fixed |
-| Coverage grew **20 → 60** live | **2** features shipped *under* the loop |
+| Coverage grew **20 → 57** live | **2** features shipped *under* the loop |
 
 When two new tests came back **`blocked`**, the run summary drove the fix and a rerun turned them green — a clean `create → blocked → diagnose → fix → rerun → pass` cycle. Across 55 iterations the loop caught 10 genuine bugs, from duplicate UI cards to mood-sync contradictions and an onboarding tour that re-appeared on every fresh browser session. The full per-iteration story is in **[LOOP.md](LOOP.md)**, the submission write-up in **[SUBMISSION.md](SUBMISSION.md)**, and the banked plans + an archived failure bundle in **[testsprite_tests/](testsprite_tests/)**.
 
