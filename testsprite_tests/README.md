@@ -6,7 +6,7 @@ live app at **https://norastudy.vercel.app** and banked on the TestSprite
 platform under the submitting account.
 
 - **Project:** Nora — `4ba5d8f8-310d-41bc-bbf4-b85208bb6d44`
-- **Banked suite:** **60 scenarios — all passing** (53 frontend + 7 backend security/schema)
+- **Banked suite:** **57 scenarios — all passing** (50 frontend + 7 backend security/schema)
 - **Every test is `createdFrom: cli`** — not the portal, genuine CLI loop
 - **Per-iteration loop log:** [`../LOOP.md`](../LOOP.md)
 - **Archived failure bundle:** [`failure/analytics-442d4d6e/`](failure/) — a real
@@ -114,14 +114,6 @@ security boundaries that a browser test can never see.
 
 B1–B3 are the **drift-immune** tests wired into GitLab CI — they rerun on every
 `master` push.
-
----
-
-## Advisory duplicates (4 tests)
-
-Four tests were flagged as advisory duplicates during batch creation (overlapping
-coverage with existing tests). They exist on the platform but are counted
-separately from the core 57.
 
 ---
 

@@ -1,8 +1,0 @@
-[
-  {
-    "kind": "snapshot",
-    "stepIndex": 9,
-    "summary": "Step 9 'Press Enter in the 'Search educational videos…' input to re-run the search and watch for a pixel-art loading spinner or confirm that video results render correctly' passed.",
-    "path": "steps/09-snapshot.html"
-  }
-]

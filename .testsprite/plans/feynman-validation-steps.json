@@ -1,0 +1,7 @@
+{
+  "planSteps": [
+    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to load" },
+    { "type": "action", "description": "Navigate to Feynman Mode via the sidebar" },
+    { "type": "action", "description": "Submit an empty explanation and verify a validation error appears" }
+  ]
+}

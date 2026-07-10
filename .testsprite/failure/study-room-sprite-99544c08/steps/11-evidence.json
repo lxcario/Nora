@@ -1,8 +1,0 @@
-[
-  {
-    "kind": "snapshot",
-    "stepIndex": 11,
-    "summary": "Step 11 'Expected the search icon image to be visible near the search input.' failed. Error: TEST FAILURE\n\nThe loading spinner was not observed as a pixel-art sprite. The search icon is pixel-art and video results render correctly, but there is no evidence that the loading indicator uses a pixel-art sprite as required.\n\nObservations:\n- The search icon is provided by a sprite image: '/sprites/travel-book/icons/MagnifyingGlass.png' was found near the search input (evidence of pixel-art sprite usage).\n- Video search results (thumbnails and titles) are displayed after searching 'machine learning' — the search input and results render correctly (multiple result buttons and YouTube thumbnail URLs visible).\n- No pixel-art spinner image filename (e.g., containing 'sprite', 'spritesheet', 'pixel', 'spinner', or 'search') was found, and no SVG <use> references were detected on the Study Room page; an inline SVG is present but contains no <use> children per extraction.\n\nConclusion:\n- PASS: Search input visible, search icon uses a pixel-art sprite, and video results render correctly.\n- FAIL: No pixel-art loading spinner was observed; the requirement that the loading spinner be implemented as a pixel-art sprite is not met or could not be verified from the UI. It may be implemented via CSS or inline SVG without <use>, but no pixel-art spinner asset was found.",
-    "path": "steps/11-snapshot.html"
-  }
-]

@@ -18,7 +18,7 @@ loop that caught genuine regressions in a production-grade Next.js app.
 - **Blog post (Medium):** https://medium.com/@resquedzn05/i-built-a-study-app-that-teaches-without-guilt-then-i-had-to-prove-it-actually-worked-89ee85e8c392
 - **Loop log (per-iteration, agent-written):** [`LOOP.md`](LOOP.md)
 - **Test artifacts + index:** [`testsprite_tests/`](testsprite_tests/)
-- **Machine-readable manifest (all 60 tests, `createdFrom: cli`):** [`testsprite_tests/manifest-all.json`](testsprite_tests/manifest-all.json)
+- **Machine-readable manifest (all 57 tests, `createdFrom: cli`):** [`testsprite_tests/manifest-all.json`](testsprite_tests/manifest-all.json)
 - **Archived failure bundle:** [`testsprite_tests/failure/analytics-442d4d6e/`](testsprite_tests/failure/)
 
 ## Team
@@ -37,17 +37,17 @@ loop that caught genuine regressions in a production-grade Next.js app.
 
 | Metric | Value |
 |---|---|
-| Tests banked | **60 — all passing (53 frontend + 7 backend)** |
+| Tests banked | **57 — all passing (50 frontend + 7 backend)** |
 | Loop iterations | **55** across 7 active build days (Jun 30, Jul 2–4, Jul 6, Jul 8–9) |
 | Total test runs | **100+** |
 | Real product bugs caught & fixed | **10** |
 | Distinct root causes diagnosed | **14** |
 | New features shipped *under* the loop | **2** (Prediction Mode, Companion Router) |
 | Major UI overhaul verified under the loop | **1** (8-task pixel-art UX pass — pet liveliness, icon migration, mobile nav, pixel-panel, contrast, scoped CSS, sidebar de-dup, rewards module) |
-| Coverage expansion | **20 → 60** live — including 7 backend RLS/security tests |
+| Coverage expansion | **20 → 57** live — including 7 backend RLS/security tests |
 | Platform limitation found & documented | 1 (desktop-only runner can't simulate mobile resize) |
-| Full regression rerun (post-UI-overhaul) | **60 tests** → caught 1 genuine mood regression → fixed → green |
-| CI/CD | **GitLab CI** reruns the unit suite (394 tests) + the TestSprite checker (7 backend tests, drift-immune) on every `master` push — **verified green** (`gitlab.com/lxcario-group/Nora/-/pipelines`). A GitHub Actions workflow holds the same command but is gated by a GitHub account Actions billing lock. |
+| Full regression rerun (post-UI-overhaul) | **57 tests** → caught 1 genuine mood regression → fixed → green |
+| CI/CD | **GitLab CI** reruns the unit suite (394 tests) + the TestSprite checker (57 tests) on every `master` push (`gitlab.com/lxcario-group/Nora/-/pipelines`). Backend tests (7) run strict with no auto-heal — selector-free REST/RLS testing. Frontend tests (50) use TestSprite auto-heal to absorb UI changes from active development; auto-heal is documented to patch selectors without weakening assertions, though per-test heal diffs weren't available to independently confirm this for passed runs. A GitHub Actions workflow holds the same command but is gated by a GitHub account Actions billing lock. |
 
 ## What "genuinely used as the checker" looks like here
 
@@ -176,7 +176,7 @@ verdicts. We built it because our own suite needed it, then dogfooded it against
 Nora before it merged. The loop didn't just *use* the tool; it made the tool
 better.
 
-**CI that runs the full loop.** The GitLab pipeline reruns the entire 60-test
+**CI that runs the full loop.** The GitLab pipeline reruns the entire 57-test
 banked suite on every `master` push — not just a subset. Backend tests hit the
 REST/RLS layer and are drift-immune. Frontend tests replay saved scripts for
 free; auto-heal engages only when the UI has genuinely drifted. The build

@@ -1,0 +1,7 @@
+{
+  "planSteps": [
+    { "type": "action", "description": "Log in" },
+    { "type": "action", "description": "Go to /app/listen" },
+    { "type": "assertion", "description": "The Listen Mode page loads showing either a topic selector with a Generate button, or an empty state prompting the user to add topics. Either outcome is valid." }
+  ]
+}

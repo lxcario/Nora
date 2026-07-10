@@ -1,8 +1,0 @@
-[
-  {
-    "kind": "snapshot",
-    "stepIndex": 8,
-    "summary": "Step 8 'The concept explorer displays a 'Generate Knowledge Web' button, showing a clear empty-state prompt to add concepts.' failed. Error: TEST BLOCKED: PASS: The Knowledge Web page renders correctly for a new account.\n\nFindings (observed in this session):\n- The page shows the heading: 'Knowledge Web'.\n- The guidance text directly under the heading is visible: 'See how your concepts connect across subjects. Tap a node to explore its relationships.'\n- The concept explorer area below the header displays a clear empty-state prompt: a button labeled 'Generate Knowledge Web' and helper text 'AI analyzes your topics and finds concept relationships', indicating the UI invites the user to generate/add concepts.\n- No 404, blank screen, or broken container was observed; the grid/canvas background is rendered and interactive controls like 'Start studying' are visible.\n\nConclusion: The Knowledge Web feature is present and rendered as required (empty-state prompt is acceptable for a new account).",
-    "path": "steps/08-snapshot.html"
-  }
-]

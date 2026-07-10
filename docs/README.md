@@ -37,17 +37,6 @@ These four documents explain almost every decision in the product. Read them bef
 
 ---
 
-## Audits
-
-Independent and internal audits of Nora's craft, security, and engineering.
-
-| Document | What it covers |
-|---|---|
-| [../AUDIT.md](../AUDIT.md) | Repo audit for the demo explainer — design tokens, motion catalog, copy voice |
-| [../AUDIT-GLM.md](../AUDIT-GLM.md) | Independent deep-dive engineering audit (read-only, every claim cites a file:line) |
-
----
-
 ## Feature specs
 
 Deeper design notes for individual features live alongside these files in `docs/` (e.g. `SPEC-PRACTICE-EXAM.md`, `SPEC-JOL-CONFIDENCE.md`) and as Kiro specs under `.kiro/specs/`.

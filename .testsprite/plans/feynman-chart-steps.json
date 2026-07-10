@@ -1,0 +1,7 @@
+{
+  "planSteps": [
+    { "type": "action", "description": "Log in with valid credentials" },
+    { "type": "action", "description": "Navigate to Feynman Mode via the sidebar" },
+    { "type": "assertion", "description": "Verify the Feynman Mode page loads with its content visible" }
+  ]
+}

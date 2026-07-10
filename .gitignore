@@ -106,6 +106,11 @@ docs/DEMO-SCRIPT.md
 # Loose TestSprite scratch step files (plans/ are tracked)
 /.testsprite/*.steps.json
 
+# TestSprite failure bundles (contain pre-signed S3 URLs with embedded temp credentials)
+.testsprite/failure/**/*.json
+.testsprite/failure/**/*.html
+.testsprite/failure/**/*.mp4
+
 # Internal audit + lint-scratch (kept local, never pushed)
 /AUDIT-GLM.md
 /get-eslint-errors.js

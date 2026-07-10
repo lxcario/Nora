@@ -1,0 +1,9 @@
+{
+  "planSteps": [
+    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to load" },
+    { "type": "action", "description": "Click the Settings link in the sidebar" },
+    { "type": "assertion", "description": "Verify the Settings page loads with tab buttons visible" },
+    { "type": "action", "description": "Click the Customization tab" },
+    { "type": "assertion", "description": "Verify the Theme & Appearance section is visible" }
+  ]
+}

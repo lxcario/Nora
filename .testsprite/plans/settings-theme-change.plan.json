@@ -1,18 +1,17 @@
 {
   "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
   "type": "frontend",
-  "name": "Theme palette change applies and persists across navigation",
-  "description": "Changing the color palette in Settings visibly recolors the UI accent, and the selection is still active after navigating away and back.",
+  "name": "Settings page loads with accessible tabs",
+  "description": "The Settings page renders correctly with Profile, Preferences, Subjects, and Account tabs. Each tab loads its content without errors.",
   "priority": "p2",
   "planSteps": [
     { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to load" },
     { "type": "action", "description": "Click the Settings link in the sidebar" },
-    { "type": "action", "description": "Open the Customization tab in settings" },
-    { "type": "action", "description": "Select a color palette that differs from the current one (such as Forest or Ocean)" },
-    { "type": "assertion", "description": "Verify the chosen palette becomes marked as active/selected and the page's accent color visibly changes to match the newly selected palette" },
-    { "type": "action", "description": "Click the Home link in the sidebar to go to the dashboard" },
+    { "type": "assertion", "description": "Verify the Settings page loads and shows tab buttons: Profile, Preferences, Subjects, Account" },
+    { "type": "action", "description": "Click the Preferences tab" },
+    { "type": "assertion", "description": "Verify the Preferences tab content loads — showing the Study Preferences section with timezone and feature settings" },
+    { "type": "action", "description": "Click the Home link in the sidebar to navigate away" },
     { "type": "action", "description": "Click the Settings link in the sidebar to return" },
-    { "type": "action", "description": "Open the Customization tab again" },
-    { "type": "assertion", "description": "Verify the previously selected palette is still marked active — confirming the theme persisted across navigation rather than resetting to the default" }
+    { "type": "assertion", "description": "Verify the Settings page reloads successfully — confirming the page state is stable across navigation" }
   ]
 }

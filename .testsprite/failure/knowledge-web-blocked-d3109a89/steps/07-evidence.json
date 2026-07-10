@@ -1,8 +1,0 @@
-[
-  {
-    "kind": "snapshot",
-    "stepIndex": 7,
-    "summary": "Step 7 'Dismiss the 'Start here' tour popover by clicking the 'Skip tour' button so the Knowledge Web heading and the concept explorer area are fully visible' passed.",
-    "path": "steps/07-snapshot.html"
-  }
-]

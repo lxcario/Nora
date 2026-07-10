@@ -1,8 +1,0 @@
-[
-  {
-    "kind": "snapshot",
-    "stepIndex": 8,
-    "summary": "Step 8 'Expected the Today's Memories page to display the empty-state text 'All memories are safe for now.'' failed. Error: TEST BLOCKED\n\nThe review cycle could not be executed because there are no review cards due on the Today's Memories page.\n\nObservations:\n- The page shows '0 cards due today' in the Today's Memories header.\n- The main panel reads 'All memories are safe for now. When something starts to fade, it'll appear here. In the meantime — explore something new.'\n\nDetails:\n- The app was reached and the review page loaded successfully after signing in and dismissing the onboarding tour, so the review feature exists but cannot be exercised because the prerequisite test data (an active due card) is absent.\n- Actionable buttons on the page include 'Explore a topic' and 'Start studying', but no review card UI (question, reveal, or FSRS grading buttons) is present to perform the requested reveal/grade flow.\n\nNext steps if the test should be rerun:\n- Provide or create at least one due memory/card (via test data setup or by using the app to create/study cards until they become due) and rerun the review flow test.\n\nOutcome: TEST BLOCKED (success=false).",
-    "path": "steps/08-snapshot.html"
-  }
-]

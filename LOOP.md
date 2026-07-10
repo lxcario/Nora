@@ -76,7 +76,7 @@ Repo: https://github.com/lxcario/Nora
 
 | Metric | Value |
 |--------|-------|
-| **Tests banked** | **60 — all passing** (53 frontend + 7 backend security/schema) |
+| **Tests banked** | **57 — all passing** (50 frontend + 7 backend security/schema) |
 | **Total TestSprite runs** | **100+** |
 | **Loop iterations** | **55** across 7 active build days (Jun 30, Jul 2–4, Jul 6, Jul 8–9) |
 | **Real product bugs caught & fixed** | **10** (signup redirect, analytics routing, streak counter, history path, duplicate memories card, pet mood mismatch ×2 (different root causes), sparkline unstyled, sidebar clutter/feature confusion, onboarding tour re-showing on fresh sessions) |
@@ -85,9 +85,9 @@ Repo: https://github.com/lxcario/Nora
 | **Test deleted (runner limitation, documented)** | 1 (mobile viewport — documented, not hidden) |
 | **New features shipped under the loop** | 2 (Prediction Mode, Companion Router) |
 | **Major UI overhaul verified under the loop** | 1 (8-task pixel-art UX pass: pet liveliness, icon migration, mobile nav, pixel-panel, contrast, scoped CSS, sidebar de-dup, rewards module) |
-| **Coverage expanded 20 → 60** | 40 new scenarios banked and verified by the final suite |
-| **CI/CD** | **GitLab CI** (`.gitlab-ci.yml`) reruns the unit suite (394 tests) + the TestSprite **backend checker** (7 drift-immune tests) on every `master` push. The pipeline uses `--no-auto-heal` so UI drift surfaces as failure, not silent patch. A GitHub Actions workflow (`.github/workflows/testsprite.yml`) holds the same command but is gated by a GitHub account Actions billing lock. |
-| **Full regression rerun** | `testsprite test rerun --all --project ... --max-concurrency 4` — entire 60-test suite replayed post-UI-overhaul; caught 1 genuine regression |
+| **Coverage expanded 20 → 57** | 37 new scenarios banked and verified by the final suite |
+| **CI/CD** | **GitLab CI** (`.gitlab-ci.yml`) reruns the unit suite (394 tests) + the TestSprite checker (57 tests) on every `master` push. Backend tests (7) run strict with no auto-heal — selector-free REST/RLS testing. Frontend tests (50) use TestSprite auto-heal to absorb UI changes from active development; auto-heal is documented to patch selectors without weakening assertions, though per-test heal diffs weren't available to independently confirm this for passed runs. A GitHub Actions workflow (`.github/workflows/testsprite.yml`) holds the same command but is gated by a GitHub account Actions billing lock. |
+| **Full regression rerun** | `testsprite test rerun --all --project ... --max-concurrency 4` — entire 57-test suite replayed post-UI-overhaul; caught 1 genuine regression |
 | **Batch capability** | `testsprite test create-batch --plan-from-dir .testsprite/plans` (45+ plans) |
 | **Upstream CLI contributions** | 10 PRs to [TestSprite/testsprite-cli](https://github.com/TestSprite/testsprite-cli) — **all 10 merged** ([verify](https://github.com/TestSprite/testsprite-cli/pulls?q=is%3Apr+author%3Alxcario+is%3Amerged)), incl. the new `test flaky` command (#132) |
 
@@ -103,6 +103,13 @@ renders correctly in either state -- but do not fully assert on the
 populated-data rendering path. Seeding the test account with study history
 would close this gap; the OR-fallback is intentional robustness, not a
 shortcut.
+
+**Theme customization panel** is implemented (`PreferencesPanel` in
+`components/pixel-ui/preferences-panel.tsx`) but was previously unreachable
+in the UI -- the tab button was missing from the Settings tab bar. Fixed
+during the pre-submission audit by adding the "Customization" tab entry to
+the `TABS` array in `settings-tabs.tsx`. The panel is now reachable and the
+theme persistence test passes.
 
 ---
 
@@ -1103,7 +1110,7 @@ All fixes are genuine improvements discovered while actually using the CLI to bu
 
 ---
 
-> **55 iterations · 60 banked scenarios · 100+ TestSprite runs · 10 real product bugs caught · 60/60 all green**
+> **55 iterations · 57 banked scenarios · 100+ TestSprite runs · 10 real product bugs caught · 57/57 all green**
 >
 > Frontend tests (`--plan-from`) + Backend tests (`--type backend --code-file`) + Full regression reruns (`--all --max-concurrency 4`).
 >
@@ -1213,7 +1220,7 @@ Verifiable, not marketing. Numbers below are **measured on this machine / agains
 - **Type-checked production build passes** — `next build` (Turbopack) **compiles in ~7.4s**, runs the strict-mode TypeScript check, and generates **32 static routes** clean (exit 0). A type error fails the build.
 - **Live latency** (5 samples against `https://norastudy.vercel.app`): **cold start ~1.08s TTFB, warm ~0.28–0.41s** — Vercel edge/SSR.
 - **22 SQL migrations**, applied in order, backward-compatible — a real schema history, not a single dump.
-- **60 TestSprite scenarios** (53 frontend + 7 backend), every one `createdFrom: cli`, replayable in one command (`testsprite test rerun --all`) — the same command committed in the CI workflow.
+- **57 TestSprite scenarios** (50 frontend + 7 backend), every one `createdFrom: cli`, replayable in one command (`testsprite test rerun --all`) — the same command committed in the CI workflow.
 - **Graceful degradation** — every optional provider key (OpenAI, Tavily, YouTube, Firecrawl, Semantic Scholar) disables exactly one feature when absent; the app never hard-fails on a missing key.
 
 > Method: `npm test` (Vitest run count + duration), `npm run build` (Turbopack compile time + route count), and 5 sequential `GET /` requests to the live app timed client-side (first = cold). Reproduce anytime; exact ms vary with network and Vercel cache state.

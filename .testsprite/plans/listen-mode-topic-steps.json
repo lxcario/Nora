@@ -1,0 +1,7 @@
+{
+  "planSteps": [
+    { "type": "action", "description": "Log in with valid credentials" },
+    { "type": "action", "description": "Navigate to Listen Mode via the sidebar" },
+    { "type": "assertion", "description": "Verify the Listen Mode page loads with topic selection or empty state" }
+  ]
+}

@@ -31,7 +31,7 @@
   <img src="https://img.shields.io/badge/Supabase-Postgres%20%2B%20pgvector-3ECF8E?style=flat-square&logo=supabase" />
   <img src="https://img.shields.io/badge/FSRS--6-ts--fsrs-blue?style=flat-square" />
   <img src="https://img.shields.io/badge/unit%20tests-394%20passing-729B1B?style=flat-square&logo=vitest" />
-  <img src="https://img.shields.io/badge/TestSprite-60%2F60%20green-7ee081?style=flat-square" />
+  <img src="https://img.shields.io/badge/TestSprite-57%2F57%20green-7ee081?style=flat-square" />
   <a href="https://github.com/TestSprite/testsprite-cli/pulls?q=is%3Apr+author%3Alxcario+is%3Amerged"><img src="https://img.shields.io/badge/testsprite--cli-10%20merged%20PRs-19C379?style=flat-square&logo=github" alt="10 merged PRs to testsprite-cli" /></a>
   <a href="https://gitlab.com/lxcario-group/Nora/-/pipelines"><img src="https://gitlab.com/lxcario-group/Nora/badges/master/pipeline.svg" alt="CI pipeline status" /></a>
   <img src="https://img.shields.io/badge/license-MIT-black?style=flat-square" />
@@ -62,7 +62,7 @@ Nora is an entry in **TestSprite Hackathon Season 3 — "Build the Loop."** The 
 
 |  |  |
 |---|---|
-| **60** durable scenarios (53 browser + 7 backend) | **60 / 60 passing** |
+| **57** durable scenarios (50 browser + 7 backend) | **57 / 57 passing** |
 | Every test `createdFrom: cli` | not the portal — genuine CLI loop |
 | **55** loop iterations · **100+** runs · 7 build days | **10** real product bugs caught & fixed |
 | Coverage grew **20 → 60** live | **2** features shipped *under* the loop |
@@ -79,7 +79,7 @@ Nora is a study *operating system* — not a flashcard app, not a timer with a c
 
 The whole product is built on one belief: **the AI should help you think, never think for you.** It asks questions, finds real academic sources, surfaces the gaps in your understanding, and schedules your review at the right moment — but you always do the thinking, because the thinking is the point.
 
-> Nora is a living product. The core loop and all 22+ features are functional and tested (394 unit tests, 60 TestSprite scenarios, all green). Development continues — there's always another room to make warmer.
+> Nora is a living product. The core loop and all 22+ features are functional and tested (394 unit tests, 57 TestSprite scenarios, all green). Development continues — there's always another room to make warmer.
 
 ---
 
@@ -299,7 +299,7 @@ Nora applies these *conditionally* — for example, it interleaves math and visu
 
 - **394 tests across 26 files** (Vitest), including **property-based tests** (fast-check) for the parts where correctness is subtle: FSRS scheduling, spacing math, timezone-safe due dates, and the study-mix queue. Core logic is written as pure functions so it can be tested without a database.
 - **Production build is type-checked** end to end (`tsc` in `next build`) under TypeScript strict mode.
-- **End-to-end flows** (auth, review, Feynman, research, planner) are exercised with TestSprite scenario plans (see `.testsprite/`).
+- **End-to-end flows** (auth, review, Feynman, research, planner) are exercised with TestSprite scenario plans (see `.testsprite/plans/`).
 
 ```bash
 npm test          # run the suite (Vitest)
@@ -312,7 +312,7 @@ Security posture — Row-Level Security on every user-owned table, SSRF protecti
 
 ## The verification loop (TestSprite)
 
-Nora is an entry in **TestSprite Hackathon Season 3 — "Build the Loop."** The [TestSprite CLI](https://github.com/TestSprite/testsprite-cli) runs real browser tests **in the cloud against the live app** ([norastudy.vercel.app](https://norastudy.vercel.app)) and hands back one self-consistent failure bundle the coding agent acts on: `create → run → failure get → fix → rerun`, and every pass is banked. The suite is **61 scenarios, all green, every one `createdFrom: cli`** — 50 frontend flows plus 7 backend security/schema checks plus 4 advisory duplicates.
+Nora is an entry in **TestSprite Hackathon Season 3 — "Build the Loop."** The [TestSprite CLI](https://github.com/TestSprite/testsprite-cli) runs real browser tests **in the cloud against the live app** ([norastudy.vercel.app](https://norastudy.vercel.app)) and hands back one self-consistent failure bundle the coding agent acts on: `create → run → failure get → fix → rerun`, and every pass is banked. The suite is **57 scenarios, all green, every one `createdFrom: cli`** — 50 frontend flows plus 7 backend security/schema checks.
 
 **What the loop covers** — a durable suite of frontend scenarios spanning the critical path and feature depth:
 

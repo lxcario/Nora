@@ -1,5 +1,0 @@
-{
-  "rootCauseHypothesis": "TEST FAILURE\n\nThe History route is not present — the page returned a 404 and the History view could not be evaluated.\n\nObservations:\n- The page shows a centered \"404 Page not found\" message with the caption \"This route doesn't exist in Nora.\".\n- A \"Go to Dashboard\" button is present on the 404 page instead of any history entries or an empty-state message.\n- No activity entries, date-grouped sections, or type badges (Feynman/Video/Research) were visible to verify the requested functionality.",
-  "recommendedFixTarget": null,
-  "evidence": []
-}
