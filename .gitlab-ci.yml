@@ -6,17 +6,18 @@
 #
 # Two layers, both verified green locally:
 #   1. Unit suite (Vitest — 394 tests).
-#   2. The TestSprite checker: reruns the FULL banked suite (61 tests) against
-#      the live Vercel deployment with --no-auto-heal so drift surfaces as a
-#      real failure rather than being silently patched. Backend tests (7) hit
-#      the REST/RLS layer and are drift-immune. Frontend tests (50) replay
-#      saved scripts for free — if they fail, it's a genuine regression or an
-#      intentional UI change that needs a plan update.
+#   2. The TestSprite checker: reruns the FULL banked suite (57 tests) against
+#      the live Vercel deployment. Backend tests (7) run strict with no
+#      auto-heal — they hit the REST/RLS layer and are selector-free.
+#      Frontend tests (50) use auto-heal (default) to absorb UI changes from
+#      active development; auto-heal patches selectors only, not assertions.
 #
-# Why --no-auto-heal:
-#   Auto-heal masks drift. In CI we want the opposite: if the UI changed and a
-#   test breaks, that's information. The developer decides whether to fix the
-#   code or update the test plan — not the AI.
+# Why backend runs strict but frontend uses auto-heal:
+#   Backend tests (Python scripts hitting REST/RLS) are selector-free — they
+#   never need healing and should always fail on drift. Frontend tests replay
+#   saved browser scripts; auto-heal patches selector/class drift from active
+#   UI development without masking functional regressions (assertions are
+#   never skipped or weakened).
 #
 # Setup (one-time, in GitLab): Project → Settings → CI/CD → Variables → add
 #   TESTSPRITE_API_KEY  (masked)  = <your key from .env.local>
@@ -43,14 +44,13 @@ verify:
     - npm install -g @testsprite/testsprite-cli
     - testsprite setup --from-env --yes --no-agent
     # Rerun the full banked suite against the live app.
-    # --no-auto-heal: we WANT drift to surface as a failure, not be silently
-    # healed. If a frontend test fails, that's a signal the UI changed — the
-    # developer should decide whether to update the plan or fix the regression.
-    # Backend tests (7) hit the Supabase REST/RLS layer — drift-immune.
-    # Frontend tests (50) replay saved scripts — free verbatim replays.
+    # Backend tests (7) run strict — auto-heal is ignored for backend, so
+    # schema/RLS/reward tests are always selector-free and drift-immune.
+    # Frontend tests (50) use auto-heal (default) to absorb UI changes from
+    # active development. Auto-heal patches selector drift only — it does not
+    # skip assertions or mask functional regressions.
     - >
       testsprite test rerun
       --all
       --project 4ba5d8f8-310d-41bc-bbf4-b85208bb6d44
-      --no-auto-heal
       --wait --timeout 900 --max-concurrency 4 --output json
