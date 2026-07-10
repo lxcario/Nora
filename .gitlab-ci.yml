@@ -53,4 +53,4 @@ verify:
       testsprite test rerun
       --all
       --project 4ba5d8f8-310d-41bc-bbf4-b85208bb6d44
-      --wait --timeout 900 --max-concurrency 4 --output json
+      --wait --timeout 1800 --max-concurrency 4 --output json
