@@ -1,7 +1,8 @@
 {
   "planSteps": [
-    { "type": "action", "description": "Log in" },
-    { "type": "action", "description": "Go to /app/feynman" },
-    { "type": "assertion", "description": "The Feynman Mode page loads with its content visible" }
+    { "type": "action", "description": "Go to https://norastudy.vercel.app/login" },
+    { "type": "action", "description": "Log in with test credentials" },
+    { "type": "action", "description": "Navigate to the Feynman page" },
+    { "type": "assertion", "description": "DO NOT click any AI evaluation buttons. Just confirm the page loaded and the text input area is visible." }
   ]
 }
