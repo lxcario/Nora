@@ -37,19 +37,14 @@ These four documents explain almost every decision in the product. Read them bef
 
 ---
 
-## Craft & audits
+## Audits
 
-Living reviews of how handmade Nora feels, and the backlog that keeps it that way. These are working documents, kept honest.
+Independent and internal audits of Nora's craft, security, and engineering.
 
 | Document | What it covers |
 |---|---|
-| [../AI_SLOP_AUDIT.md](../AI_SLOP_AUDIT.md) | Where copy drifts toward generic AI wording, and the rewrites |
-| [../UX_CRAFT_AUDIT.md](../UX_CRAFT_AUDIT.md) | Living world, interaction, emotional design, typography |
-| [../IDENTITY_AUDIT.md](../IDENTITY_AUDIT.md) | Which screens feel like Nora, and which could be any app |
-| [../COMPONENT_CONSISTENCY.md](../COMPONENT_CONSISTENCY.md) | Design-system drift and how to close it |
-| [../ACCESSIBILITY_AUDIT.md](../ACCESSIBILITY_AUDIT.md) | Keyboard, focus, contrast, reduced motion, screen readers |
-| [../COPY_REWRITE.md](../COPY_REWRITE.md) | Verbatim before/after copy in Nora's voice |
-| [../CRAFT_BACKLOG.md](../CRAFT_BACKLOG.md) | The consolidated, prioritized craft backlog |
+| [../AUDIT.md](../AUDIT.md) | Repo audit for the demo explainer — design tokens, motion catalog, copy voice |
+| [../AUDIT-GLM.md](../AUDIT-GLM.md) | Independent deep-dive engineering audit (read-only, every claim cites a file:line) |
 
 ---
 

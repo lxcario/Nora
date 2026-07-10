@@ -6,7 +6,7 @@ live app at **https://norastudy.vercel.app** and banked on the TestSprite
 platform under the submitting account.
 
 - **Project:** Nora — `4ba5d8f8-310d-41bc-bbf4-b85208bb6d44`
-- **Banked suite:** **61 scenarios — all passing** (50 frontend + 7 backend security/schema + 4 advisory-duplicate)
+- **Banked suite:** **60 scenarios — all passing** (53 frontend + 7 backend security/schema)
 - **Every test is `createdFrom: cli`** — not the portal, genuine CLI loop
 - **Per-iteration loop log:** [`../LOOP.md`](../LOOP.md)
 - **Archived failure bundle:** [`failure/analytics-442d4d6e/`](failure/) — a real

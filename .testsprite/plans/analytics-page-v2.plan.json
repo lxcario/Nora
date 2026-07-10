@@ -1,0 +1,12 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "Analytics page renders its dashboard for a logged-in user",
+  "description": "A logged-in user opens /app/analytics and sees the Analytics heading and stat cards with numeric values. Time-series charts may not be present on a new account; a 'Not enough data yet' message is acceptable alongside the stat cards.",
+  "priority": "p2",
+  "planSteps": [
+    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to finish loading" },
+    { "type": "action", "description": "Open the Analytics page by navigating to the /app/analytics route. If a tour or onboarding popup appears, dismiss it." },
+    { "type": "assertion", "description": "Verify the page shows the heading text 'Analytics' and is NOT a 404 or blank page. Then verify that a row of stat cards is visible, each showing a numeric value with a label such as XP, reviews, cards, or streak. Charts or heatmaps may or may not be present depending on account history — a 'Not enough data yet' message is acceptable. The page must not be blank, unstyled, or broken." }
+  ]
+}

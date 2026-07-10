@@ -1,0 +1,12 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "Card Market shows shared decks or a join-a-party prompt",
+  "description": "A logged-in user opens /app/card-market and sees the Card Market heading with guidance about browsing and importing flashcard decks. The page shows either shared decks (or a no-decks-yet message) when in a party, or a prompt to join a party with a link to the Friends page. Either outcome is valid; a 404 or blank page is not.",
+  "priority": "p2",
+  "planSteps": [
+    { "type": "action", "description": "Log in with valid credentials and wait for the dashboard to finish loading" },
+    { "type": "action", "description": "Navigate directly to the /app/card-market route" },
+    { "type": "assertion", "description": "Verify the page renders the 'Card Market' heading (not a 404 or blank screen) and shows one of two valid states: EITHER a shared-deck browsing area (a deck list or an explicit no-decks-yet message) when the account is in a party, OR a prompt explaining a study group is needed with a link to the Friends page. A broken or empty container with no heading is a failure." }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "cli-v1",
+  "snapshotId": "snap_00a0ceab62f63a49",
+  "testId": "99544c08-4bf9-4637-a6c3-9ae0f9b059ab",
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "codeVersion": "v1",
+  "runIdIfAvailable": "4c8e64c5-dba4-4f33-9b06-4d7b68a5d80e",
+  "targetUrl": "https://norastudy.vercel.app",
+  "failedStepIndex": 10,
+  "failureKind": "unknown",
+  "capturedAt": "2026-07-10T09:03:25.783Z",
+  "fetchedAt": "2026-07-10T09:17:11.924Z"
+}

@@ -121,7 +121,7 @@ Nora is grounded in **six evidence-based learning strategies** from cognitive ps
 - Eliminates "Ease Hell" (the SM-2 problem where difficult cards spiral into impossibly short intervals)
 - Timezone-safe: due dates stored as UTC instants, compared against the user's local day boundary
 - Pure function implementation: scheduling works offline without network calls
-- 332 unit tests covering scheduling, migration, and timezone edge cases
+- 394 unit tests covering scheduling, migration, and timezone edge cases
 
 **Rewards:** +3 XP, +1 coin per Good/Hard/Easy review; +1 XP per lapse (Again)
 
@@ -446,7 +446,7 @@ The entire UI uses a cozy pixel-art style inspired by Stardew Valley and RPG lif
 | Rich Text | Tiptap v3 (custom timestamp mark extension) |
 | PDF Parsing | pdf-parse (default); unpdf optional (Node ≥ 22) |
 | Video | YouTube IFrame API + youtube-transcript-plus + Groq Whisper fallback |
-| Testing | Vitest + fast-check (property-based) — 332 tests passing |
+| Testing | Vitest + fast-check (property-based) — 394 tests passing |
 | Sprites | LPC character sets + Sprout Lands UI + Kenney CC0 |
 
 ### Architecture Principles
@@ -664,7 +664,7 @@ Every optional service degrades without breaking the app:
 
 ## 12. Testing & Quality
 
-### Test Coverage (332 tests, all passing)
+### Test Coverage (394 tests, all passing)
 - **FSRS scheduling:** FSRS-1, FSRS-2 properties
 - **SM-2 → FSRS migration:** No NaN/negative values; no all-same-day collapse
 - **Timezone safety:** DUE-1 across 9 IANA zones + DST transitions
@@ -764,7 +764,7 @@ Plus university registry seed: `supabase/seed_university_registry.sql`
 npm run dev       # Development server (localhost:3000)
 npm run build     # Production build
 npm run start     # Production server
-npm test          # Run all 332 tests
+npm test          # Run all 394 tests
 npm run lint      # ESLint
 ```
 

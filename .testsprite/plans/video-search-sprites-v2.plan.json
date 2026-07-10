@@ -1,0 +1,29 @@
+{
+  "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
+  "type": "frontend",
+  "name": "Study Room video search uses pixel sprites (no lucide icons)",
+  "description": "After TASK B icon migration, verify the Study Room video search uses pixel-art sprites for the search icon and that no lucide-react Loader2 spinner is present. The search input and results should render correctly.",
+  "priority": "p2",
+  "planSteps": [
+    {
+      "type": "action",
+      "description": "Log in with test credentials and navigate to /app/study-room."
+    },
+    {
+      "type": "assertion",
+      "description": "The Study Room page renders with a video search input visible."
+    },
+    {
+      "type": "assertion",
+      "description": "A search icon is visible near the search input field — it should be a pixel-art sprite image (e.g. from /sprites/travel-book/icons/), not a lucide-react icon."
+    },
+    {
+      "type": "action",
+      "description": "Type 'machine learning' into the video search input and submit the search."
+    },
+    {
+      "type": "assertion",
+      "description": "After submitting the search, verify that video results appear (thumbnails and titles related to the search term), or a loading indicator is shown, or a no-results message is displayed. No crash or blank screen. Additionally, confirm that no lucide-react Loader2 icon (a smooth 360-degree rotating spinner) is present anywhere on the page — the loading indicator should use a pixel-art style with stepped animation, not a smooth lucide spinner."
+    }
+  ]
+}

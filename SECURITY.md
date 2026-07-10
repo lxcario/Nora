@@ -14,7 +14,6 @@ Nora handles student data, so security is enforced at the database and network e
 
 ## Authorization: Row-Level Security
 
-## Authorization: Row-Level Security
 
 Every user-owned table in Postgres enforces **Row-Level Security** with policies keyed on `auth.uid()`. Application code cannot read or write another user's rows even if a query is malformed — the database rejects it. RLS is treated as the last line of defense, independent of the client and the Server Actions layer.
 

@@ -1,5 +1,5 @@
 {
-  "$comment": "Consolidated, machine-readable index of every banked TestSprite test for Nora. Source of truth is the TestSprite platform: `testsprite test list --project 4ba5d8f8-310d-41bc-bbf4-b85208bb6d44`. Every test is createdFrom:cli under the submitting account (Rule 7).",
+  "$comment": "Consolidated, machine-readable index of every banked TestSprite test for Nora. Source of truth is the TestSprite platform: `testsprite test list --project 4ba5d8f8-310d-41bc-bbf4-b85208bb6d44`. Every test is createdFrom:cli under the submitting account.",
   "project": {
     "name": "Nora",
     "projectId": "4ba5d8f8-310d-41bc-bbf4-b85208bb6d44",
@@ -11,24 +11,24 @@
     "verifyCommand": "testsprite test list --project 4ba5d8f8-310d-41bc-bbf4-b85208bb6d44"
   },
   "totals": {
-    "frontend": 40,
-    "backend": 3,
-    "uniqueTests": 43,
-    "finalPass": 43,
+    "frontend": 53,
+    "backend": 7,
+    "uniqueTests": 60,
+    "finalPass": 60,
     "finalBlocked": 0,
     "finalFailed": 0,
-    "loopIterations": 41,
-    "totalRuns": "65+",
-    "realProductBugsCaughtAndFixed": 9,
-    "blockedThenDiagnosedThenGreenArcs": 9,
+    "loopIterations": 55,
+    "totalRuns": "100+",
+    "realProductBugsCaughtAndFixed": 10,
+    "blockedThenDiagnosedThenGreenArcs": 11,
     "committedFailureBundles": 6,
     "createdFrom": "cli (100% — no portal-created tests)",
-    "activeBuildDays": ["2026-06-30", "2026-07-02", "2026-07-03", "2026-07-04", "2026-07-06"]
+    "activeBuildDays": ["2026-06-30", "2026-07-02", "2026-07-03", "2026-07-04", "2026-07-06", "2026-07-08", "2026-07-09"]
   },
   "ci": {
     "gitlab": {
       "status": "green",
-      "runs": "332-test unit suite + 3 backend TestSprite tests (`testsprite test rerun 43943ea6 36c43c1e 23d76c46`) on every master push",
+      "runs": "394-test unit suite + 7 backend TestSprite tests (drift-immune: schema + RLS + reward RPC + auth boundaries) on every master push",
       "pipelines": "https://gitlab.com/lxcario-group/Nora/-/pipelines"
     },
     "githubActions": {
@@ -53,7 +53,8 @@
     { "iteration": 37, "testId": "2c0efffe", "area": "Pixel Room", "bug": "Sidebar pet mood (stale DB column) contradicted room's computed mood", "fix": "Sync computed mood back to pets table in getRoomState()" },
     { "iteration": 38, "testId": "192686d8", "area": "Feynman", "bug": "Progress sparkline was a bare, hard-to-read SVG", "fix": "Restyled into a pixel-panel with gradient fill + gridlines" },
     { "iteration": 39, "testId": "83d08540", "area": "Navigation/UX", "bug": "Feature overlap (Prediction/Feynman, Knowledge Web/Eureka) confused users", "fix": "Removed redundant sidebar items (routes preserved)" },
-    { "iteration": 40, "testId": "69c87020", "area": "Onboarding/UX", "bug": "Onboarding tour re-showed on every fresh session (localStorage-only gate) and blocked automated navigation — also hit real users in new browsers", "fix": "Gate tour server-side to genuinely new accounts (created_at < 10 min)" }
+    { "iteration": 40, "testId": "69c87020", "area": "Onboarding/UX", "bug": "Onboarding tour re-showed on every fresh session (localStorage-only gate) and blocked automated navigation — also hit real users in new browsers", "fix": "Gate tour server-side to genuinely new accounts (created_at < 10 min)" },
+    { "iteration": 51, "testId": null, "area": "Pixel Room", "bug": "Post-UI-overhaul regression: room said pet mood 'sad' while sidebar said 'Neutral' (different root cause from Iter 37 — stale DB read vs activity-based compute)", "fix": "Compute mood from activity in layout.tsx instead of stale DB read; fire-and-forget sync" }
   ],
   "blockedThenGreenArcs": {
     "note": "These pages rendered correctly; the runner returned `blocked` because the assertion was a verbose two-branch OR that burned the agent's runway before it emitted a verdict. Each failure bundle records the agent's own 'PASS/success=true' summary. Fix was to tighten the plan to a single decisive assertion (test plan put / test update), not to change the app.",
