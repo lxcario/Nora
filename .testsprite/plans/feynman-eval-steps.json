@@ -1,0 +1,7 @@
+{
+  "planSteps": [
+    { "type": "action", "description": "Log in" },
+    { "type": "action", "description": "Go to /app/feynman" },
+    { "type": "assertion", "description": "The Feynman Mode page loads with its content visible" }
+  ]
+}

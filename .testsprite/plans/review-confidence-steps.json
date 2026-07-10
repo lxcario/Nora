@@ -1,0 +1,7 @@
+{
+  "planSteps": [
+    { "type": "action", "description": "Log in" },
+    { "type": "action", "description": "Go to /app/review" },
+    { "type": "assertion", "description": "The review page loaded without a 404 error" }
+  ]
+}

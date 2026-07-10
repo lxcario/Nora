@@ -1,0 +1,7 @@
+{
+  "planSteps": [
+    { "type": "action", "description": "Log in" },
+    { "type": "action", "description": "Go to /app/research" },
+    { "type": "assertion", "description": "The Research Desk page loads with a search input visible" }
+  ]
+}
